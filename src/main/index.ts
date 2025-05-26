@@ -17,6 +17,7 @@ import {
   registerProtocolClient,
   setupAppImageDeepLink
 } from './services/ProtocolClient'
+import selectionService, { initSelectionService } from './services/SelectionService'
 import { registerShortcuts } from './services/ShortcutService'
 import { TrayService } from './services/TrayService'
 import { windowService } from './services/WindowService'
@@ -87,6 +88,9 @@ if (!app.requestSingleInstanceLock()) {
         .then((name) => console.log(`Added Extension:  ${name}`))
         .catch((err) => console.log('An error occurred: ', err))
     }
+
+    //start selection assistant service
+    initSelectionService()
   })
 
   registerProtocolClient(app)
@@ -113,6 +117,11 @@ if (!app.requestSingleInstanceLock()) {
 
   app.on('before-quit', () => {
     app.isQuitting = true
+
+    // quit selection service
+    if (selectionService) {
+      selectionService.quit()
+    }
   })
 
   app.on('will-quit', async () => {
