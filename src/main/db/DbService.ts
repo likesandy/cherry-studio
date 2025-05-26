@@ -1,0 +1,70 @@
+import { drizzle } from 'drizzle-orm/libsql'
+import { migrate } from 'drizzle-orm/libsql/migrator'
+import { app } from 'electron'
+import Logger from 'electron-log'
+import path from 'path'
+import { pathToFileURL } from 'url'
+
+import Seeds from './seed'
+import type { DbType } from './types'
+
+const DB_NAME = 'cherrystudio.sqlite'
+const MIGRATIONS_BASE_PATH = 'migrations/sqlite-drizzle'
+
+class DbService {
+  private static instance: DbService
+  private db: DbType
+
+  private constructor() {
+    this.db = drizzle({
+      connection: { url: pathToFileURL(path.join(app.getPath('userData'), DB_NAME)).href },
+      casing: 'snake_case'
+    })
+  }
+
+  public static getInstance(): DbService {
+    if (!DbService.instance) {
+      DbService.instance = new DbService()
+    }
+    return DbService.instance
+  }
+
+  public async migrateDb() {
+    const migrationsFolder = this.getMigrationsFolder()
+    await migrate(this.db, { migrationsFolder })
+  }
+
+  public getDb(): DbType {
+    return this.db
+  }
+
+  public async migrateSeed(seedName: keyof typeof Seeds): Promise<boolean> {
+    try {
+      const Seed = Seeds[seedName]
+      await new Seed().migrate(this.db)
+      return true
+    } catch (error) {
+      Logger.error(error)
+      return false
+    }
+  }
+
+  /**
+   * Get the migrations folder based on the app's packaging status
+   * @returns The path to the migrations folder
+   */
+  private getMigrationsFolder() {
+    if (app.isPackaged) {
+      //see electron-builder.yml, extraResources from/to
+      return path.join(process.resourcesPath, MIGRATIONS_BASE_PATH)
+    } else {
+      // in dev/preview, __dirname maybe /out/main
+      return path.join(__dirname, '../../', MIGRATIONS_BASE_PATH)
+    }
+  }
+}
+
+// Export a singleton instance
+const dbService = DbService.getInstance()
+
+export default dbService

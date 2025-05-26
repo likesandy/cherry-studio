@@ -39,6 +39,9 @@ files:
 asarUnpack:
   - resources/**
   - '**/*.{metal,exp,lib}'
+extraResources:
+  - from: 'migrations/sqlite-drizzle'
+    to: 'migrations/sqlite-drizzle'
 win:
   executableName: Cherry Studio
   artifactName: ${productName}-${version}-${arch}-setup.${ext}

@@ -17,6 +17,7 @@
     "paths": {
       "@main/*": ["src/main/*"],
       "@types": ["src/renderer/src/types/index.ts"],
+      "@storage/*": ["src/main/db/*"],
       "@shared/*": ["packages/shared/*"]
     }
   }

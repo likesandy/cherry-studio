@@ -1,6 +1,7 @@
 import '@main/config'
 
 import { electronApp, optimizer } from '@electron-toolkit/utils'
+import dbService from '@main/db/DbService'
 import { replaceDevtoolsFont } from '@main/utils/windowUtil'
 import { app } from 'electron'
 import installExtension, { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer'
@@ -20,7 +21,6 @@ import { registerShortcuts } from './services/ShortcutService'
 import { TrayService } from './services/TrayService'
 import { windowService } from './services/WindowService'
 import { setUserDataDir } from './utils/file'
-
 Logger.initialize()
 
 // in production mode, handle uncaught exception and unhandled rejection globally
@@ -44,10 +44,13 @@ if (!app.requestSingleInstanceLock()) {
   // Portable dir must be setup before app ready
   setUserDataDir()
 
+  dbService.migrateDb().then(async () => {
+    await dbService.migrateSeed('preference')
+  })
+
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
-
   app.whenReady().then(async () => {
     // Set app user model id for windows
     electronApp.setAppUserModelId(import.meta.env.VITE_MAIN_BUNDLE_ID || 'com.kangfenmao.CherryStudio')
