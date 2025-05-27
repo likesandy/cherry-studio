@@ -5,7 +5,7 @@ import Logger from 'electron-log'
 import path from 'path'
 import { pathToFileURL } from 'url'
 
-import Seeds from './seed'
+import Seeding from './seeding'
 import type { DbType } from './types'
 
 const DB_NAME = 'cherrystudio.sqlite'
@@ -38,9 +38,9 @@ class DbService {
     return this.db
   }
 
-  public async migrateSeed(seedName: keyof typeof Seeds): Promise<boolean> {
+  public async migrateSeed(seedName: keyof typeof Seeding): Promise<boolean> {
     try {
-      const Seed = Seeds[seedName]
+      const Seed = Seeding[seedName]
       await new Seed().migrate(this.db)
       return true
     } catch (error) {
