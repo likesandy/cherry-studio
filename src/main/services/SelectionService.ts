@@ -1,3 +1,4 @@
+import { SELECTION_FINETUNED_LIST, SELECTION_PREDEFINED_BLACKLIST } from '@main/configs/SelectionConfig'
 import { isDev, isWin } from '@main/constant'
 import { IpcChannel } from '@shared/IpcChannel'
 import { BrowserWindow, ipcMain, screen } from 'electron'
@@ -13,6 +14,7 @@ import type {
 
 import type { ActionItem } from '../../renderer/src/types/selectionTypes'
 import { ConfigKeys, configManager } from './ConfigManager'
+import storeSyncService from './StoreSyncService'
 
 let SelectionHook: SelectionHookConstructor | null = null
 try {
@@ -36,6 +38,12 @@ type RelativeOrientation =
   | 'middleRight'
   | 'center'
 
+enum TriggerMode {
+  Selected = 'selected',
+  Ctrlkey = 'ctrlkey',
+  Shortcut = 'shortcut'
+}
+
 /** SelectionService is a singleton class that manages the selection hook and the toolbar window
  *
  * Features:
@@ -58,8 +66,11 @@ export class SelectionService {
   private initStatus: boolean = false
   private started: boolean = false
 
-  private triggerMode = 'selected'
+  private triggerMode = TriggerMode.Selected
   private isFollowToolbar = true
+  private isRemeberWinSize = false
+  private filterMode = 'default'
+  private filterList: string[] = []
 
   private toolbarWindow: BrowserWindow | null = null
   private actionWindows = new Set<BrowserWindow>()
@@ -83,6 +94,11 @@ export class SelectionService {
 
   private readonly ACTION_WINDOW_WIDTH = 500
   private readonly ACTION_WINDOW_HEIGHT = 400
+
+  private lastActionWindowSize: { width: number; height: number } = {
+    width: this.ACTION_WINDOW_WIDTH,
+    height: this.ACTION_WINDOW_HEIGHT
+  }
 
   private constructor() {
     try {
@@ -136,17 +152,106 @@ export class SelectionService {
   }
 
   private initConfig() {
-    this.triggerMode = configManager.getSelectionAssistantTriggerMode()
+    this.triggerMode = configManager.getSelectionAssistantTriggerMode() as TriggerMode
     this.isFollowToolbar = configManager.getSelectionAssistantFollowToolbar()
+    this.isRemeberWinSize = configManager.getSelectionAssistantRemeberWinSize()
+    this.filterMode = configManager.getSelectionAssistantFilterMode()
+    this.filterList = configManager.getSelectionAssistantFilterList()
 
-    configManager.subscribe(ConfigKeys.SelectionAssistantTriggerMode, (triggerMode: string) => {
+    this.setHookGlobalFilterMode(this.filterMode, this.filterList)
+    this.setHookFineTunedList()
+
+    configManager.subscribe(ConfigKeys.SelectionAssistantTriggerMode, (triggerMode: TriggerMode) => {
+      const oldTriggerMode = this.triggerMode
+
       this.triggerMode = triggerMode
       this.processTriggerMode()
+
+      //trigger mode changed, need to update the filter list
+      if (oldTriggerMode !== triggerMode) {
+        this.setHookGlobalFilterMode(this.filterMode, this.filterList)
+      }
     })
 
     configManager.subscribe(ConfigKeys.SelectionAssistantFollowToolbar, (isFollowToolbar: boolean) => {
       this.isFollowToolbar = isFollowToolbar
     })
+
+    configManager.subscribe(ConfigKeys.SelectionAssistantRemeberWinSize, (isRemeberWinSize: boolean) => {
+      this.isRemeberWinSize = isRemeberWinSize
+      //when off, reset the last action window size to default
+      if (!this.isRemeberWinSize) {
+        this.lastActionWindowSize = {
+          width: this.ACTION_WINDOW_WIDTH,
+          height: this.ACTION_WINDOW_HEIGHT
+        }
+      }
+    })
+
+    configManager.subscribe(ConfigKeys.SelectionAssistantFilterMode, (filterMode: string) => {
+      this.filterMode = filterMode
+      this.setHookGlobalFilterMode(this.filterMode, this.filterList)
+    })
+
+    configManager.subscribe(ConfigKeys.SelectionAssistantFilterList, (filterList: string[]) => {
+      this.filterList = filterList
+      this.setHookGlobalFilterMode(this.filterMode, this.filterList)
+    })
+  }
+
+  /**
+   * Set the global filter mode for the selection-hook
+   * @param mode - The mode to set, either 'default', 'whitelist', or 'blacklist'
+   * @param list - An array of strings representing the list of items to include or exclude
+   */
+  private setHookGlobalFilterMode(mode: string, list: string[]) {
+    if (!this.selectionHook) return
+
+    const modeMap = {
+      default: SelectionHook!.FilterMode.DEFAULT,
+      whitelist: SelectionHook!.FilterMode.INCLUDE_LIST,
+      blacklist: SelectionHook!.FilterMode.EXCLUDE_LIST
+    }
+
+    let combinedList: string[] = list
+    let combinedMode = mode
+
+    //only the selected mode need to combine the predefined blacklist with the user-defined blacklist
+    if (this.triggerMode === TriggerMode.Selected) {
+      switch (mode) {
+        case 'blacklist':
+          //combine the predefined blacklist with the user-defined blacklist
+          combinedList = [...new Set([...list, ...SELECTION_PREDEFINED_BLACKLIST.WINDOWS])]
+          break
+        case 'whitelist':
+          combinedList = [...list]
+          break
+        case 'default':
+        default:
+          //use the predefined blacklist as the default filter list
+          combinedList = [...SELECTION_PREDEFINED_BLACKLIST.WINDOWS]
+          combinedMode = 'blacklist'
+          break
+      }
+    }
+
+    if (!this.selectionHook.setGlobalFilterMode(modeMap[combinedMode], combinedList)) {
+      this.logError(new Error('Failed to set selection-hook global filter mode'))
+    }
+  }
+
+  private setHookFineTunedList() {
+    if (!this.selectionHook) return
+
+    this.selectionHook.setFineTunedList(
+      SelectionHook!.FineTunedListType.EXCLUDE_CLIPBOARD_CURSOR_DETECT,
+      SELECTION_FINETUNED_LIST.EXCLUDE_CLIPBOARD_CURSOR_DETECT.WINDOWS
+    )
+
+    this.selectionHook.setFineTunedList(
+      SelectionHook!.FineTunedListType.INCLUDE_CLIPBOARD_DELAY_READ,
+      SELECTION_FINETUNED_LIST.INCLUDE_CLIPBOARD_DELAY_READ.WINDOWS
+    )
   }
 
   /**
@@ -160,8 +265,6 @@ export class SelectionService {
     }
 
     try {
-      //init basic configs
-      this.initConfig()
       //make sure the toolbar window is ready
       this.createToolbarWindow()
       // Initialize preloaded windows
@@ -175,11 +278,14 @@ export class SelectionService {
 
       // Start the hook
       if (this.selectionHook.start({ debug: isDev })) {
+        //init basic configs
+        this.initConfig()
+
         //init trigger mode configs
         this.processTriggerMode()
 
         this.started = true
-        this.logInfo('SelectionService Started')
+        this.logInfo('SelectionService Started', true)
         return true
       }
 
@@ -200,13 +306,20 @@ export class SelectionService {
     if (!this.selectionHook) return false
 
     this.selectionHook.stop()
-    this.selectionHook.cleanup()
+    this.selectionHook.cleanup() //already remove all listeners
+
+    //reset the listener states
+    this.isCtrlkeyListenerActive = false
+    this.isHideByMouseKeyListenerActive = false
+
     if (this.toolbarWindow) {
       this.toolbarWindow.close()
       this.toolbarWindow = null
     }
+    this.closePreloadedActionWindows()
+
     this.started = false
-    this.logInfo('SelectionService Stopped')
+    this.logInfo('SelectionService Stopped', true)
     return true
   }
 
@@ -222,7 +335,22 @@ export class SelectionService {
     this.selectionHook = null
     this.initStatus = false
     SelectionService.instance = null
-    this.logInfo('SelectionService Quitted')
+    this.logInfo('SelectionService Quitted', true)
+  }
+
+  /**
+   * Toggle the enabled state of the selection service
+   * Will sync the new enabled store to all renderer windows
+   */
+  public toggleEnabled(enabled: boolean | undefined = undefined) {
+    if (!this.selectionHook) return
+
+    const newEnabled = enabled === undefined ? !configManager.getSelectionAssistantEnabled() : enabled
+
+    configManager.setSelectionAssistantEnabled(newEnabled)
+
+    //sync the new enabled state to all renderer windows
+    storeSyncService.syncToRenderer('selectionStore/setSelectionEnabled', newEnabled)
   }
 
   /**
@@ -269,6 +397,9 @@ export class SelectionService {
 
     // Clean up when closed
     this.toolbarWindow.on('closed', () => {
+      if (!this.toolbarWindow?.isDestroyed()) {
+        this.toolbarWindow?.destroy()
+      }
       this.toolbarWindow = null
     })
 
@@ -325,8 +456,18 @@ export class SelectionService {
       x: posX,
       y: posY
     })
+
+    //set the window to always on top (highest level)
+    //should set every time the window is shown
+    this.toolbarWindow!.setAlwaysOnTop(true, 'screen-saver')
     this.toolbarWindow!.show()
-    this.toolbarWindow!.setOpacity(1)
+
+    /**
+     * In Windows 10, setOpacity(1) will make the window completely transparent
+     * It's a strange behavior, so we don't use it for compatibility
+     */
+    // this.toolbarWindow!.setOpacity(1)
+
     this.startHideByMouseKeyListener()
   }
 
@@ -336,7 +477,7 @@ export class SelectionService {
   public hideToolbar(): void {
     if (!this.isToolbarAlive()) return
 
-    this.toolbarWindow!.setOpacity(0)
+    // this.toolbarWindow!.setOpacity(0)
     this.toolbarWindow!.hide()
 
     this.stopHideByMouseKeyListener()
@@ -455,6 +596,45 @@ export class SelectionService {
   }
 
   /**
+   * Get the user selected text and process it (trigger by shortcut)
+   *
+   * it's a public method used by shortcut service
+   */
+  public processSelectTextByShortcut(): void {
+    if (!this.selectionHook || !this.started || this.triggerMode !== TriggerMode.Shortcut) return
+
+    const selectionData = this.selectionHook.getCurrentSelection()
+
+    if (selectionData) {
+      this.processTextSelection(selectionData)
+    }
+  }
+
+  /**
+   * Determine if the text selection should be processed by filter mode&list
+   * @param selectionData Text selection information and coordinates
+   * @returns {boolean} True if the selection should be processed, false otherwise
+   */
+  private shouldProcessTextSelection(selectionData: TextSelectionData): boolean {
+    if (selectionData.programName === '' || this.filterMode === 'default') {
+      return true
+    }
+
+    const programName = selectionData.programName.toLowerCase()
+    //items in filterList are already in lower case
+    const isFound = this.filterList.some((item) => programName.includes(item))
+
+    switch (this.filterMode) {
+      case 'whitelist':
+        return isFound
+      case 'blacklist':
+        return !isFound
+    }
+
+    return false
+  }
+
+  /**
    * Process text selection data and show toolbar
    * Handles different selection scenarios:
    * - Single click (cursor position)
@@ -465,6 +645,10 @@ export class SelectionService {
   private processTextSelection = (selectionData: TextSelectionData) => {
     // Skip if no text or toolbar already visible
     if (!selectionData.text || (this.isToolbarAlive() && this.toolbarWindow!.isVisible())) {
+      return
+    }
+
+    if (!this.shouldProcessTextSelection(selectionData)) {
       return
     }
 
@@ -551,12 +735,16 @@ export class SelectionService {
             selectionData.endBottom
           )
 
+          // Note: shift key + mouse click == DoubleClick
+
+          //double click to select a word
           if (isDoubleClick && isSameLine) {
             refOrientation = 'bottomMiddle'
             refPoint = { x: selectionData.mousePosEnd.x, y: selectionData.endBottom.y + 4 }
             break
           }
 
+          // below: isDoubleClick || isSameLine
           if (isSameLine) {
             const direction = selectionData.mousePosEnd.x - selectionData.mousePosStart.x
 
@@ -570,6 +758,7 @@ export class SelectionService {
             break
           }
 
+          // below: !isDoubleClick && !isSameLine
           const direction = selectionData.mousePosEnd.y - selectionData.mousePosStart.y
 
           if (direction > 0) {
@@ -667,7 +856,11 @@ export class SelectionService {
    */
   private handleKeyDownHide = (data: KeyboardEventData) => {
     //dont hide toolbar when ctrlkey is pressed
-    if (this.triggerMode === 'ctrlkey' && this.isCtrlkey(data.vkCode)) {
+    if (this.triggerMode === TriggerMode.Ctrlkey && this.isCtrlkey(data.vkCode)) {
+      return
+    }
+    //dont hide toolbar when shiftkey or altkey is pressed, because it's used for selection
+    if (this.isShiftkey(data.vkCode) || this.isAltkey(data.vkCode)) {
       return
     }
 
@@ -695,6 +888,9 @@ export class SelectionService {
     //ctrlkey pressed
     if (this.lastCtrlkeyDownTime === 0) {
       this.lastCtrlkeyDownTime = Date.now()
+      //add the mouse-wheel&mouse-down listener, detect if user is zooming in/out or multi-selecting
+      this.selectionHook!.on('mouse-wheel', this.handleMouseWheelCtrlkeyMode)
+      this.selectionHook!.on('mouse-down', this.handleMouseDownCtrlkeyMode)
       return
     }
 
@@ -705,7 +901,6 @@ export class SelectionService {
     this.lastCtrlkeyDownTime = -1
 
     const selectionData = this.selectionHook!.getCurrentSelection()
-
     if (selectionData) {
       this.processTextSelection(selectionData)
     }
@@ -718,12 +913,43 @@ export class SelectionService {
    */
   private handleKeyUpCtrlkeyMode = (data: KeyboardEventData) => {
     if (!this.isCtrlkey(data.vkCode)) return
+    //remove the mouse-wheel&mouse-down listener
+    this.selectionHook!.off('mouse-wheel', this.handleMouseWheelCtrlkeyMode)
+    this.selectionHook!.off('mouse-down', this.handleMouseDownCtrlkeyMode)
     this.lastCtrlkeyDownTime = 0
+  }
+
+  /**
+   * Handle mouse wheel events in ctrlkey trigger mode
+   * ignore CtrlKey pressing when mouse wheel is used
+   * because user is zooming in/out
+   */
+  private handleMouseWheelCtrlkeyMode = () => {
+    this.lastCtrlkeyDownTime = -1
+  }
+
+  /**
+   * Handle mouse down events in ctrlkey trigger mode
+   * ignore CtrlKey pressing when mouse down is used
+   * because user is multi-selecting
+   */
+  private handleMouseDownCtrlkeyMode = () => {
+    this.lastCtrlkeyDownTime = -1
   }
 
   //check if the key is ctrl key
   private isCtrlkey(vkCode: number) {
     return vkCode === 162 || vkCode === 163
+  }
+
+  //check if the key is shift key
+  private isShiftkey(vkCode: number) {
+    return vkCode === 160 || vkCode === 161
+  }
+
+  //check if the key is alt key
+  private isAltkey(vkCode: number) {
+    return vkCode === 164 || vkCode === 165
   }
 
   /**
@@ -733,8 +959,8 @@ export class SelectionService {
    */
   private createPreloadedActionWindow(): BrowserWindow {
     const preloadedActionWindow = new BrowserWindow({
-      width: this.ACTION_WINDOW_WIDTH,
-      height: this.ACTION_WINDOW_HEIGHT,
+      width: this.isRemeberWinSize ? this.lastActionWindowSize.width : this.ACTION_WINDOW_WIDTH,
+      height: this.isRemeberWinSize ? this.lastActionWindowSize.height : this.ACTION_WINDOW_HEIGHT,
       minWidth: 300,
       minHeight: 200,
       frame: false,
@@ -779,6 +1005,17 @@ export class SelectionService {
   }
 
   /**
+   * Close all preloaded action windows
+   */
+  private closePreloadedActionWindows() {
+    for (const actionWindow of this.preloadedActionWindows) {
+      if (!actionWindow.isDestroyed()) {
+        actionWindow.destroy()
+      }
+    }
+  }
+
+  /**
    * Preload a new action window asynchronously
    * This method is called after popping a window to ensure we always have windows ready
    */
@@ -808,6 +1045,16 @@ export class SelectionService {
       }
     })
 
+    //remember the action window size
+    actionWindow.on('resized', () => {
+      if (this.isRemeberWinSize) {
+        this.lastActionWindowSize = {
+          width: actionWindow.getBounds().width,
+          height: actionWindow.getBounds().height
+        }
+      }
+    })
+
     this.actionWindows.add(actionWindow)
 
     // Asynchronously create a new preloaded window
@@ -830,30 +1077,58 @@ export class SelectionService {
    * @param actionWindow Window to position and show
    */
   private showActionWindow(actionWindow: BrowserWindow) {
+    let actionWindowWidth = this.ACTION_WINDOW_WIDTH
+    let actionWindowHeight = this.ACTION_WINDOW_HEIGHT
+
+    //if remember win size is true, use the last remembered size
+    if (this.isRemeberWinSize) {
+      actionWindowWidth = this.lastActionWindowSize.width
+      actionWindowHeight = this.lastActionWindowSize.height
+    }
+
+    //center way
     if (!this.isFollowToolbar || !this.toolbarWindow) {
+      if (this.isRemeberWinSize) {
+        actionWindow.setBounds({
+          width: actionWindowWidth,
+          height: actionWindowHeight
+        })
+      }
+
       actionWindow.show()
       this.hideToolbar()
       return
     }
+
+    //follow toolbar
 
     const toolbarBounds = this.toolbarWindow!.getBounds()
     const display = screen.getDisplayNearestPoint({ x: toolbarBounds.x, y: toolbarBounds.y })
     const workArea = display.workArea
     const GAP = 6 // 6px gap from screen edges
 
+    //make sure action window is inside screen
+    if (actionWindowWidth > workArea.width - 2 * GAP) {
+      actionWindowWidth = workArea.width - 2 * GAP
+    }
+
+    if (actionWindowHeight > workArea.height - 2 * GAP) {
+      actionWindowHeight = workArea.height - 2 * GAP
+    }
+
     // Calculate initial position to center action window horizontally below toolbar
-    let posX = Math.round(toolbarBounds.x + (toolbarBounds.width - this.ACTION_WINDOW_WIDTH) / 2)
+    let posX = Math.round(toolbarBounds.x + (toolbarBounds.width - actionWindowWidth) / 2)
     let posY = Math.round(toolbarBounds.y)
 
     // Ensure action window stays within screen boundaries with a small gap
-    if (posX + this.ACTION_WINDOW_WIDTH > workArea.x + workArea.width) {
-      posX = workArea.x + workArea.width - this.ACTION_WINDOW_WIDTH - GAP
+    if (posX + actionWindowWidth > workArea.x + workArea.width) {
+      posX = workArea.x + workArea.width - actionWindowWidth - GAP
     } else if (posX < workArea.x) {
       posX = workArea.x + GAP
     }
-    if (posY + this.ACTION_WINDOW_HEIGHT > workArea.y + workArea.height) {
+    if (posY + actionWindowHeight > workArea.y + workArea.height) {
       // If window would go below screen, try to position it above toolbar
-      posY = workArea.y + workArea.height - this.ACTION_WINDOW_HEIGHT - GAP
+      posY = workArea.y + workArea.height - actionWindowHeight - GAP
     } else if (posY < workArea.y) {
       posY = workArea.y + GAP
     }
@@ -861,8 +1136,8 @@ export class SelectionService {
     actionWindow.setPosition(posX, posY, false)
     //KEY to make window not resize
     actionWindow.setBounds({
-      width: this.ACTION_WINDOW_WIDTH,
-      height: this.ACTION_WINDOW_HEIGHT,
+      width: actionWindowWidth,
+      height: actionWindowHeight,
       x: posX,
       y: posY
     })
@@ -888,31 +1163,44 @@ export class SelectionService {
    * Manages appropriate event listeners for each mode
    */
   private processTriggerMode() {
-    if (this.triggerMode === 'selected') {
-      if (this.isCtrlkeyListenerActive) {
-        this.selectionHook!.off('key-down', this.handleKeyDownCtrlkeyMode)
-        this.selectionHook!.off('key-up', this.handleKeyUpCtrlkeyMode)
+    switch (this.triggerMode) {
+      case TriggerMode.Selected:
+        if (this.isCtrlkeyListenerActive) {
+          this.selectionHook!.off('key-down', this.handleKeyDownCtrlkeyMode)
+          this.selectionHook!.off('key-up', this.handleKeyUpCtrlkeyMode)
 
-        this.isCtrlkeyListenerActive = false
-      }
+          this.isCtrlkeyListenerActive = false
+        }
 
-      this.selectionHook!.enableClipboard()
-      this.selectionHook!.setSelectionPassiveMode(false)
-    } else if (this.triggerMode === 'ctrlkey') {
-      if (!this.isCtrlkeyListenerActive) {
-        this.selectionHook!.on('key-down', this.handleKeyDownCtrlkeyMode)
-        this.selectionHook!.on('key-up', this.handleKeyUpCtrlkeyMode)
+        this.selectionHook!.setSelectionPassiveMode(false)
+        break
+      case TriggerMode.Ctrlkey:
+        if (!this.isCtrlkeyListenerActive) {
+          this.selectionHook!.on('key-down', this.handleKeyDownCtrlkeyMode)
+          this.selectionHook!.on('key-up', this.handleKeyUpCtrlkeyMode)
 
-        this.isCtrlkeyListenerActive = true
-      }
+          this.isCtrlkeyListenerActive = true
+        }
 
-      this.selectionHook!.disableClipboard()
-      this.selectionHook!.setSelectionPassiveMode(true)
+        this.selectionHook!.setSelectionPassiveMode(true)
+        break
+      case TriggerMode.Shortcut:
+        //remove the ctrlkey listener, don't need any key listener for shortcut mode
+        if (this.isCtrlkeyListenerActive) {
+          this.selectionHook!.off('key-down', this.handleKeyDownCtrlkeyMode)
+          this.selectionHook!.off('key-up', this.handleKeyUpCtrlkeyMode)
+
+          this.isCtrlkeyListenerActive = false
+        }
+
+        this.selectionHook!.setSelectionPassiveMode(true)
+        break
     }
   }
 
   public writeToClipboard(text: string): boolean {
-    return this.selectionHook?.writeToClipboard(text) ?? false
+    if (!this.selectionHook || !this.started) return false
+    return this.selectionHook.writeToClipboard(text)
   }
 
   /**
@@ -946,6 +1234,18 @@ export class SelectionService {
       configManager.setSelectionAssistantFollowToolbar(isFollowToolbar)
     })
 
+    ipcMain.handle(IpcChannel.Selection_SetRemeberWinSize, (_, isRemeberWinSize: boolean) => {
+      configManager.setSelectionAssistantRemeberWinSize(isRemeberWinSize)
+    })
+
+    ipcMain.handle(IpcChannel.Selection_SetFilterMode, (_, filterMode: string) => {
+      configManager.setSelectionAssistantFilterMode(filterMode)
+    })
+
+    ipcMain.handle(IpcChannel.Selection_SetFilterList, (_, filterList: string[]) => {
+      configManager.setSelectionAssistantFilterList(filterList)
+    })
+
     ipcMain.handle(IpcChannel.Selection_ProcessAction, (_, actionItem: ActionItem) => {
       selectionService?.processAction(actionItem)
     })
@@ -974,8 +1274,10 @@ export class SelectionService {
     this.isIpcHandlerRegistered = true
   }
 
-  private logInfo(message: string) {
-    isDev && Logger.info('[SelectionService] Info: ', message)
+  private logInfo(message: string, forceShow: boolean = false) {
+    if (isDev || forceShow) {
+      Logger.info('[SelectionService] Info: ', message)
+    }
   }
 
   private logError(...args: [...string[], Error]) {

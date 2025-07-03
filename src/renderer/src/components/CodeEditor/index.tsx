@@ -26,6 +26,7 @@ interface Props {
   onSave?: (newContent: string) => void
   onChange?: (newContent: string) => void
   setTools?: (value: React.SetStateAction<CodeTool[]>) => void
+  height?: string
   minHeight?: string
   maxHeight?: string
   /** 用于覆写编辑器的某些设置 */
@@ -54,6 +55,7 @@ const CodeEditor = ({
   onSave,
   onChange,
   setTools,
+  height,
   minHeight,
   maxHeight,
   options,
@@ -193,6 +195,7 @@ const CodeEditor = ({
       value={initialContent.current}
       placeholder={placeholder}
       width="100%"
+      height={height}
       minHeight={minHeight}
       maxHeight={collapsible && !isExpanded ? (maxHeight ?? '350px') : 'none'}
       editable={true}
@@ -225,9 +228,8 @@ const CodeEditor = ({
       }}
       style={{
         fontSize: `${fontSize - 1}px`,
-        border: '0.5px solid transparent',
-        borderRadius: '5px',
         marginTop: 0,
+        borderRadius: 'inherit',
         ...style
       }}
     />

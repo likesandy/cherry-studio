@@ -1,3 +1,4 @@
+import ContextMenu from '@renderer/components/ContextMenu'
 import SvgSpinners180Ring from '@renderer/components/Icons/SvgSpinners180Ring'
 import Scrollbar from '@renderer/components/Scrollbar'
 import { LOAD_MORE_COUNT } from '@renderer/config/constant'
@@ -16,9 +17,9 @@ import { estimateHistoryTokens } from '@renderer/services/TokenService'
 import store, { useAppDispatch } from '@renderer/store'
 import { messageBlocksSelectors, updateOneBlock } from '@renderer/store/messageBlock'
 import { newMessagesActions } from '@renderer/store/newMessage'
-import { saveMessageAndBlocksToDB } from '@renderer/store/thunk/messageThunk'
+import { saveMessageAndBlocksToDB, updateMessageAndBlocksThunk } from '@renderer/store/thunk/messageThunk'
 import type { Assistant, Topic } from '@renderer/types'
-import { type Message, MessageBlockType } from '@renderer/types/newMessage'
+import { type Message, MessageBlock, MessageBlockType } from '@renderer/types/newMessage'
 import {
   captureScrollableDivAsBlob,
   captureScrollableDivAsDataURL,
@@ -53,7 +54,7 @@ const Messages: React.FC<MessagesProps> = ({ assistant, topic, setActiveTopic, o
     `topic-${topic.id}`
   )
   const { t } = useTranslation()
-  const { showPrompt, showTopics, topicPosition, showAssistants, messageNavigation } = useSettings()
+  const { showPrompt, messageNavigation } = useSettings()
   const { updateTopic, addTopic } = useAssistant(assistant.id)
   const dispatch = useAppDispatch()
   const [displayMessages, setDisplayMessages] = useState<Message[]>([])
@@ -85,13 +86,6 @@ const Messages: React.FC<MessagesProps> = ({ assistant, topic, setActiveTopic, o
     setDisplayMessages(newDisplayMessages)
     setHasMore(messages.length > displayCount)
   }, [messages, displayCount])
-
-  const maxWidth = useMemo(() => {
-    const showRightTopics = showTopics && topicPosition === 'right'
-    const minusAssistantsWidth = showAssistants ? `- var(--assistants-width) - var(--scrollbar-width)` : ''
-    const minusRightTopicsWidth = showRightTopics ? `- var(--assistants-width) - var(--scrollbar-width)` : ''
-    return `calc(100vw - var(--sidebar-width) ${minusAssistantsWidth} ${minusRightTopicsWidth})`
-  }, [showAssistants, showTopics, topicPosition])
 
   const scrollToBottom = useCallback(() => {
     if (scrollContainerRef.current) {
@@ -217,7 +211,15 @@ const Messages: React.FC<MessagesProps> = ({ assistant, topic, setActiveTopic, o
           if (msgBlock && isTextLikeBlock(msgBlock) && msgBlock.type !== MessageBlockType.ERROR) {
             try {
               const updatedRaw = updateCodeBlock(msgBlock.content, codeBlockId, newContent)
+              const updatedBlock: MessageBlock = {
+                ...msgBlock,
+                content: updatedRaw,
+                updatedAt: new Date().toISOString()
+              }
+
               dispatch(updateOneBlock({ id: msgBlockId, changes: { content: updatedRaw } }))
+              await dispatch(updateMessageAndBlocksThunk(topic.id, null, [updatedBlock]))
+
               window.message.success({ content: t('code_block.edit.save.success'), key: 'save-code' })
             } catch (error) {
               console.error(`Failed to save code block ${codeBlockId} content to message block ${msgBlockId}:`, error)
@@ -273,18 +275,14 @@ const Messages: React.FC<MessagesProps> = ({ assistant, topic, setActiveTopic, o
   }, [onComponentUpdate])
 
   const groupedMessages = useMemo(() => Object.entries(getGroupedMessages(displayMessages)), [displayMessages])
+
   return (
-    <Container
+    <MessagesContainer
       id="messages"
+      className="messages-container"
       ref={scrollContainerRef}
-      style={{
-        position: 'relative',
-        maxWidth,
-        paddingTop: showPrompt ? 10 : 0
-      }}
       key={assistant.id}
-      onScroll={handleScrollPosition}
-      $right={topicPosition === 'left'}>
+      onScroll={handleScrollPosition}>
       <NarrowLayout style={{ display: 'flex', flexDirection: 'column-reverse' }}>
         <InfiniteScroll
           dataLength={displayMessages.length}
@@ -294,35 +292,36 @@ const Messages: React.FC<MessagesProps> = ({ assistant, topic, setActiveTopic, o
           scrollableTarget="messages"
           inverse
           style={{ overflow: 'visible' }}>
-          <ScrollContainer>
-            {groupedMessages.map(([key, groupMessages]) => (
-              <MessageGroup
-                key={key}
-                messages={groupMessages}
-                topic={topic}
-                hidePresetMessages={assistant.settings?.hideMessages}
-                registerMessageElement={registerMessageElement}
-              />
-            ))}
-            {isLoadingMore && (
-              <LoaderContainer>
-                <SvgSpinners180Ring color="var(--color-text-2)" />
-              </LoaderContainer>
-            )}
-          </ScrollContainer>
+          <ContextMenu>
+            <ScrollContainer>
+              {groupedMessages.map(([key, groupMessages]) => (
+                <MessageGroup
+                  key={key}
+                  messages={groupMessages}
+                  topic={topic}
+                  registerMessageElement={registerMessageElement}
+                />
+              ))}
+              {isLoadingMore && (
+                <LoaderContainer>
+                  <SvgSpinners180Ring color="var(--color-text-2)" />
+                </LoaderContainer>
+              )}
+            </ScrollContainer>
+          </ContextMenu>
         </InfiniteScroll>
+
         {showPrompt && <Prompt assistant={assistant} key={assistant.prompt} topic={topic} />}
       </NarrowLayout>
       {messageNavigation === 'anchor' && <MessageAnchorLine messages={displayMessages} />}
       {messageNavigation === 'buttons' && <ChatNavigation containerId="messages" />}
-
       <SelectionBox
         isMultiSelectMode={isMultiSelectMode}
         scrollContainerRef={scrollContainerRef}
         messageElements={messageElements.current}
         handleSelectMessage={handleSelectMessage}
       />
-    </Container>
+    </MessagesContainer>
   )
 }
 
@@ -374,19 +373,22 @@ const LoaderContainer = styled.div`
 const ScrollContainer = styled.div`
   display: flex;
   flex-direction: column-reverse;
+  padding: 10px 16px 20px;
+  .multi-select-mode & {
+    padding-bottom: 60px;
+  }
 `
 
 interface ContainerProps {
   $right?: boolean
 }
 
-const Container = styled(Scrollbar)<ContainerProps>`
+const MessagesContainer = styled(Scrollbar)<ContainerProps>`
   display: flex;
   flex-direction: column-reverse;
-  padding: 10px 0 20px;
   overflow-x: hidden;
-  background-color: var(--color-background);
   z-index: 1;
+  position: relative;
 `
 
 export default Messages

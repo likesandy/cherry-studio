@@ -1,12 +1,13 @@
-import { isWindows } from '@renderer/config/constant'
+import { isWin } from '@renderer/config/constant'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useSelectionAssistant } from '@renderer/hooks/useSelectionAssistant'
-import { TriggerMode } from '@renderer/types/selectionTypes'
+import { FilterMode, TriggerMode } from '@renderer/types/selectionTypes'
 import SelectionToolbar from '@renderer/windows/selection/toolbar/SelectionToolbar'
-import { Radio, Row, Slider, Switch, Tooltip } from 'antd'
-import { CircleHelp } from 'lucide-react'
-import { FC, useEffect } from 'react'
+import { Button, Radio, Row, Slider, Switch, Tooltip } from 'antd'
+import { CircleHelp, Edit2 } from 'lucide-react'
+import { FC, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import styled from 'styled-components'
 
 import {
@@ -19,6 +20,7 @@ import {
   SettingTitle
 } from '..'
 import SelectionActionsList from './SelectionActionsList'
+import SelectionFilterListModal from './SelectionFilterListModal'
 
 const SelectionAssistantSettings: FC = () => {
   const { theme } = useTheme()
@@ -30,21 +32,29 @@ const SelectionAssistantSettings: FC = () => {
     isAutoClose,
     isAutoPin,
     isFollowToolbar,
+    isRemeberWinSize,
     actionItems,
     actionWindowOpacity,
+    filterMode,
+    filterList,
     setSelectionEnabled,
     setTriggerMode,
     setIsCompact,
     setIsAutoClose,
     setIsAutoPin,
     setIsFollowToolbar,
+    setIsRemeberWinSize,
     setActionWindowOpacity,
-    setActionItems
+    setActionItems,
+    setFilterMode,
+    setFilterList
   } = useSelectionAssistant()
+  const [isFilterListModalOpen, setIsFilterListModalOpen] = useState(false)
+  const [opacityValue, setOpacityValue] = useState(actionWindowOpacity)
 
   // force disable selection assistant on non-windows systems
   useEffect(() => {
-    if (!isWindows && selectionEnabled) {
+    if (!isWin && selectionEnabled) {
       setSelectionEnabled(false)
     }
   }, [selectionEnabled, setSelectionEnabled])
@@ -52,21 +62,27 @@ const SelectionAssistantSettings: FC = () => {
   return (
     <SettingContainer theme={theme}>
       <SettingGroup>
-        <Row>
+        <Row align="middle">
           <SettingTitle>{t('selection.name')}</SettingTitle>
           <Spacer />
+          <Button
+            type="link"
+            onClick={() => window.api.openWebsite('https://github.com/CherryHQ/cherry-studio/issues/6505')}
+            style={{ fontSize: 12 }}>
+            {'FAQ & ' + t('settings.about.feedback.button')}
+          </Button>
           <ExperimentalText>{t('selection.settings.experimental')}</ExperimentalText>
         </Row>
         <SettingDivider />
         <SettingRow>
           <SettingLabel>
             <SettingRowTitle>{t('selection.settings.enable.title')}</SettingRowTitle>
-            {!isWindows && <SettingDescription>{t('selection.settings.enable.description')}</SettingDescription>}
+            {!isWin && <SettingDescription>{t('selection.settings.enable.description')}</SettingDescription>}
           </SettingLabel>
           <Switch
-            checked={isWindows && selectionEnabled}
+            checked={isWin && selectionEnabled}
             onChange={(checked) => setSelectionEnabled(checked)}
-            disabled={!isWindows}
+            disabled={!isWin}
           />
         </SettingRow>
 
@@ -80,6 +96,7 @@ const SelectionAssistantSettings: FC = () => {
         <>
           <SettingGroup>
             <SettingTitle>{t('selection.settings.toolbar.title')}</SettingTitle>
+
             <SettingDivider />
 
             <SettingRow>
@@ -96,11 +113,30 @@ const SelectionAssistantSettings: FC = () => {
                 value={triggerMode}
                 onChange={(e) => setTriggerMode(e.target.value as TriggerMode)}
                 buttonStyle="solid">
-                <Radio.Button value="selected">{t('selection.settings.toolbar.trigger_mode.selected')}</Radio.Button>
-                <Radio.Button value="ctrlkey">{t('selection.settings.toolbar.trigger_mode.ctrlkey')}</Radio.Button>
+                <Tooltip placement="top" title={t('selection.settings.toolbar.trigger_mode.selected_note')} arrow>
+                  <Radio.Button value="selected">{t('selection.settings.toolbar.trigger_mode.selected')}</Radio.Button>
+                </Tooltip>
+                <Tooltip placement="top" title={t('selection.settings.toolbar.trigger_mode.ctrlkey_note')} arrow>
+                  <Radio.Button value="ctrlkey">{t('selection.settings.toolbar.trigger_mode.ctrlkey')}</Radio.Button>
+                </Tooltip>
+                <Tooltip
+                  placement="topRight"
+                  title={
+                    <div>
+                      {t('selection.settings.toolbar.trigger_mode.shortcut_note')}
+                      <Link to="/settings/shortcut" style={{ color: 'var(--color-primary)' }}>
+                        {t('selection.settings.toolbar.trigger_mode.shortcut_link')}
+                      </Link>
+                    </div>
+                  }
+                  arrow>
+                  <Radio.Button value="shortcut">{t('selection.settings.toolbar.trigger_mode.shortcut')}</Radio.Button>
+                </Tooltip>
               </Radio.Group>
             </SettingRow>
+
             <SettingDivider />
+
             <SettingRow>
               <SettingLabel>
                 <SettingRowTitle>{t('selection.settings.toolbar.compact_mode.title')}</SettingRowTitle>
@@ -112,6 +148,7 @@ const SelectionAssistantSettings: FC = () => {
 
           <SettingGroup>
             <SettingTitle>{t('selection.settings.window.title')}</SettingTitle>
+
             <SettingDivider />
 
             <SettingRow>
@@ -121,7 +158,19 @@ const SelectionAssistantSettings: FC = () => {
               </SettingLabel>
               <Switch checked={isFollowToolbar} onChange={(checked) => setIsFollowToolbar(checked)} />
             </SettingRow>
+
             <SettingDivider />
+
+            <SettingRow>
+              <SettingLabel>
+                <SettingRowTitle>{t('selection.settings.window.remember_size.title')}</SettingRowTitle>
+                <SettingDescription>{t('selection.settings.window.remember_size.description')}</SettingDescription>
+              </SettingLabel>
+              <Switch checked={isRemeberWinSize} onChange={(checked) => setIsRemeberWinSize(checked)} />
+            </SettingRow>
+
+            <SettingDivider />
+
             <SettingRow>
               <SettingLabel>
                 <SettingRowTitle>{t('selection.settings.window.auto_close.title')}</SettingRowTitle>
@@ -129,7 +178,9 @@ const SelectionAssistantSettings: FC = () => {
               </SettingLabel>
               <Switch checked={isAutoClose} onChange={(checked) => setIsAutoClose(checked)} />
             </SettingRow>
+
             <SettingDivider />
+
             <SettingRow>
               <SettingLabel>
                 <SettingRowTitle>{t('selection.settings.window.auto_pin.title')}</SettingRowTitle>
@@ -137,26 +188,72 @@ const SelectionAssistantSettings: FC = () => {
               </SettingLabel>
               <Switch checked={isAutoPin} onChange={(checked) => setIsAutoPin(checked)} />
             </SettingRow>
+
             <SettingDivider />
+
             <SettingRow>
               <SettingLabel>
                 <SettingRowTitle>{t('selection.settings.window.opacity.title')}</SettingRowTitle>
                 <SettingDescription>{t('selection.settings.window.opacity.description')}</SettingDescription>
               </SettingLabel>
-              <div style={{ marginRight: '16px' }}>{actionWindowOpacity}%</div>
+              <div style={{ marginRight: '16px' }}>{opacityValue}%</div>
               <Slider
                 style={{ width: 100 }}
                 min={20}
                 max={100}
                 reverse
-                value={actionWindowOpacity}
-                onChange={setActionWindowOpacity}
+                value={opacityValue}
+                onChange={setOpacityValue}
+                onChangeComplete={setActionWindowOpacity}
                 tooltip={{ open: false }}
               />
             </SettingRow>
           </SettingGroup>
 
           <SelectionActionsList actionItems={actionItems} setActionItems={setActionItems} />
+
+          <SettingGroup>
+            <SettingTitle>{t('selection.settings.advanced.title')}</SettingTitle>
+
+            <SettingDivider />
+
+            <SettingRow>
+              <SettingLabel>
+                <SettingRowTitle>{t('selection.settings.advanced.filter_mode.title')}</SettingRowTitle>
+                <SettingDescription>{t('selection.settings.advanced.filter_mode.description')}</SettingDescription>
+              </SettingLabel>
+              <Radio.Group
+                value={filterMode ?? 'default'}
+                onChange={(e) => setFilterMode(e.target.value as FilterMode)}
+                buttonStyle="solid">
+                <Radio.Button value="default">{t('selection.settings.advanced.filter_mode.default')}</Radio.Button>
+                <Radio.Button value="whitelist">{t('selection.settings.advanced.filter_mode.whitelist')}</Radio.Button>
+                <Radio.Button value="blacklist">{t('selection.settings.advanced.filter_mode.blacklist')}</Radio.Button>
+              </Radio.Group>
+            </SettingRow>
+
+            {filterMode && filterMode !== 'default' && (
+              <>
+                <SettingDivider />
+                <SettingRow>
+                  <SettingLabel>
+                    <SettingRowTitle>{t('selection.settings.advanced.filter_list.title')}</SettingRowTitle>
+                    <SettingDescription>{t('selection.settings.advanced.filter_list.description')}</SettingDescription>
+                  </SettingLabel>
+                  <Button icon={<Edit2 size={14} />} onClick={() => setIsFilterListModalOpen(true)}>
+                    {t('common.edit')}
+                  </Button>
+                </SettingRow>
+
+                <SelectionFilterListModal
+                  open={isFilterListModalOpen}
+                  onClose={() => setIsFilterListModalOpen(false)}
+                  filterList={filterList}
+                  onSave={setFilterList}
+                />
+              </>
+            )}
+          </SettingGroup>
         </>
       )}
     </SettingContainer>

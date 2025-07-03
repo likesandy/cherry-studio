@@ -7,7 +7,7 @@ import { IpcChannel } from '@shared/IpcChannel'
 import { Button, Slider, Tooltip } from 'antd'
 import { Droplet, Minus, Pin, X } from 'lucide-react'
 import { DynamicIcon } from 'lucide-react/dynamic'
-import { FC, useEffect, useRef, useState } from 'react'
+import { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
@@ -15,7 +15,7 @@ import ActionGeneral from './components/ActionGeneral'
 import ActionTranslate from './components/ActionTranslate'
 
 const SelectionActionApp: FC = () => {
-  const { language } = useSettings()
+  const { language, customCss } = useSettings()
 
   const { t } = useTranslation()
 
@@ -29,9 +29,10 @@ const SelectionActionApp: FC = () => {
   const [showOpacitySlider, setShowOpacitySlider] = useState(false)
   const [opacity, setOpacity] = useState(actionWindowOpacity)
 
+  const shouldCloseWhenBlur = useRef(false)
   const contentElementRef = useRef<HTMLDivElement>(null)
   const isAutoScrollEnabled = useRef(true)
-  const shouldCloseWhenBlur = useRef(false)
+  const lastScrollHeight = useRef(0)
 
   useEffect(() => {
     if (isAutoPin) {
@@ -55,6 +56,7 @@ const SelectionActionApp: FC = () => {
       window.removeEventListener('blur', handleWindowBlur)
     }
     // don't need any dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -62,9 +64,25 @@ const SelectionActionApp: FC = () => {
   }, [language])
 
   useEffect(() => {
+    let customCssElement = document.getElementById('user-defined-custom-css') as HTMLStyleElement
+    if (customCssElement) {
+      customCssElement.remove()
+    }
+
+    if (customCss) {
+      customCssElement = document.createElement('style')
+      customCssElement.id = 'user-defined-custom-css'
+      customCssElement.textContent = customCss
+      document.head.appendChild(customCssElement)
+    }
+  }, [customCss])
+
+  useEffect(() => {
     const contentEl = contentElementRef.current
     if (contentEl) {
       contentEl.addEventListener('scroll', handleUserScroll)
+      // Initialize the scroll height
+      lastScrollHeight.current = contentEl.scrollHeight
     }
     return () => {
       if (contentEl) {
@@ -125,22 +143,33 @@ const SelectionActionApp: FC = () => {
     setOpacity(value)
   }
 
-  const handleScrollToBottom = () => {
+  //must useCallback to avoid re-rendering the component
+  const handleScrollToBottom = useCallback(() => {
     if (contentElementRef.current && isAutoScrollEnabled.current) {
       contentElementRef.current.scrollTo({
         top: contentElementRef.current.scrollHeight,
         behavior: 'smooth'
       })
     }
-  }
+  }, [])
 
   const handleUserScroll = () => {
     if (!contentElementRef.current) return
 
     const { scrollTop, scrollHeight, clientHeight } = contentElementRef.current
-    const isAtBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 24
 
-    // Only update isAutoScrollEnabled if user is at bottom
+    // Check if content height has increased (new content added)
+    const contentIncreased = scrollHeight > lastScrollHeight.current
+    lastScrollHeight.current = scrollHeight
+
+    // If content increased and we're in auto-scroll mode, don't change the auto-scroll state
+    if (contentIncreased && isAutoScrollEnabled.current) {
+      return
+    }
+
+    // Only check user position if content didn't increase
+    const isAtBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 32
+
     if (isAtBottom) {
       isAutoScrollEnabled.current = true
     } else {
@@ -206,10 +235,12 @@ const SelectionActionApp: FC = () => {
           <WinButton type="text" icon={<X size={16} />} onClick={handleClose} className="close" />
         </TitleBarButtons>
       </TitleBar>
-      <Content ref={contentElementRef}>
-        {action.id == 'translate' && <ActionTranslate action={action} scrollToBottom={handleScrollToBottom} />}
-        {action.id != 'translate' && <ActionGeneral action={action} scrollToBottom={handleScrollToBottom} />}
-      </Content>
+      <MainContainer>
+        <Content ref={contentElementRef}>
+          {action.id == 'translate' && <ActionTranslate action={action} scrollToBottom={handleScrollToBottom} />}
+          {action.id != 'translate' && <ActionGeneral action={action} scrollToBottom={handleScrollToBottom} />}
+        </Content>
+      </MainContainer>
     </WindowFrame>
   )
 }
@@ -325,6 +356,14 @@ const WinButton = styled(Button)`
   }
 `
 
+const MainContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+`
+
 const Content = styled.div`
   display: flex;
   flex-direction: column;
@@ -334,7 +373,8 @@ const Content = styled.div`
   font-size: 14px;
   -webkit-app-region: none;
   user-select: text;
-  width: 100%;
+  /* width: 100%; */
+  max-width: 1280px;
 `
 
 const OpacitySlider = styled.div`

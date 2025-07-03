@@ -5,10 +5,12 @@ import { useAssistant } from '@renderer/hooks/useAssistant'
 import { useSettings } from '@renderer/hooks/useSettings'
 import FileManager from '@renderer/services/FileManager'
 import PasteService from '@renderer/services/PasteService'
+import { useAppSelector } from '@renderer/store'
+import { selectMessagesForTopic } from '@renderer/store/newMessage'
 import { FileType, FileTypes } from '@renderer/types'
 import { Message, MessageBlock, MessageBlockStatus, MessageBlockType } from '@renderer/types/newMessage'
 import { classNames, getFileExtension } from '@renderer/utils'
-import { getFilesFromDropEvent } from '@renderer/utils/input'
+import { getFilesFromDropEvent, isSendMessageKeyPressed } from '@renderer/utils/input'
 import { createFileBlock, createImageBlock } from '@renderer/utils/messageUtils/create'
 import { findAllBlocks } from '@renderer/utils/messageUtils/find'
 import { documentExts, imageExts, textExts } from '@shared/config/constant'
@@ -25,12 +27,13 @@ import { ToolbarButton } from '../Inputbar/Inputbar'
 
 interface Props {
   message: Message
+  topicId: string
   onSave: (blocks: MessageBlock[]) => void
   onResend: (blocks: MessageBlock[]) => void
   onCancel: () => void
 }
 
-const MessageBlockEditor: FC<Props> = ({ message, onSave, onResend, onCancel }) => {
+const MessageBlockEditor: FC<Props> = ({ message, topicId, onSave, onResend, onCancel }) => {
   const allBlocks = findAllBlocks(message)
   const [editedBlocks, setEditedBlocks] = useState<MessageBlock[]>(allBlocks)
   const [files, setFiles] = useState<FileType[]>([])
@@ -40,20 +43,11 @@ const MessageBlockEditor: FC<Props> = ({ message, onSave, onResend, onCancel }) 
   const model = assistant.model || assistant.defaultModel
   const isVision = useMemo(() => isVisionModel(model), [model])
   const supportExts = useMemo(() => [...textExts, ...documentExts, ...(isVision ? imageExts : [])], [isVision])
-  const { pasteLongTextAsFile, pasteLongTextThreshold, fontSize } = useSettings()
+  const { pasteLongTextAsFile, pasteLongTextThreshold, fontSize, sendMessageShortcut, enableSpellCheck } = useSettings()
   const { t } = useTranslation()
   const textareaRef = useRef<TextAreaRef>(null)
   const attachmentButtonRef = useRef<AttachmentButtonRef>(null)
-
-  useEffect(() => {
-    setTimeout(() => {
-      resizeTextArea()
-      if (textareaRef.current) {
-        textareaRef.current.focus({ cursor: 'end' })
-      }
-    }, 0)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const isUserMessage = message.role === 'user'
 
   const resizeTextArea = useCallback(() => {
     const textArea = textareaRef.current?.resizableTextArea?.textArea
@@ -62,6 +56,15 @@ const MessageBlockEditor: FC<Props> = ({ message, onSave, onResend, onCancel }) 
       textArea.style.height = textArea?.scrollHeight > 400 ? '400px' : `${textArea?.scrollHeight}px`
     }
   }, [])
+
+  useEffect(() => {
+    setTimeout(() => {
+      resizeTextArea()
+      if (textareaRef.current) {
+        textareaRef.current.focus({ cursor: 'end' })
+      }
+    }, 0)
+  }, [resizeTextArea])
 
   const onPaste = useCallback(
     async (event: ClipboardEvent) => {
@@ -84,13 +87,9 @@ const MessageBlockEditor: FC<Props> = ({ message, onSave, onResend, onCancel }) 
 
   // 添加全局粘贴事件处理
   useEffect(() => {
-    // 注册当前组件的粘贴处理函数
     PasteService.registerHandler('messageEditor', onPaste)
-
-    // 在组件加载时将焦点设置为当前组件
     PasteService.setLastFocusedComponent('messageEditor')
 
-    // 卸载时取消注册
     return () => {
       PasteService.unregisterHandler('messageEditor')
     }
@@ -142,9 +141,8 @@ const MessageBlockEditor: FC<Props> = ({ message, onSave, onResend, onCancel }) 
     }
   }
 
-  const handleClick = async (withResend?: boolean) => {
-    if (isProcessing) return
-    setIsProcessing(true)
+  // 处理编辑区块并上传文件
+  const processEditedBlocks = async () => {
     const updatedBlocks = [...editedBlocks]
     if (files && files.length) {
       const uploadedFiles = await FileManager.uploadFiles(files)
@@ -158,21 +156,107 @@ const MessageBlockEditor: FC<Props> = ({ message, onSave, onResend, onCancel }) 
         }
       })
     }
-    if (withResend) {
-      onResend(updatedBlocks)
-    } else {
-      onSave(updatedBlocks)
+    return updatedBlocks
+  }
+
+  const handleSave = async () => {
+    if (isProcessing) return
+    setIsProcessing(true)
+    const updatedBlocks = await processEditedBlocks()
+    onSave(updatedBlocks)
+  }
+
+  const handleResend = async () => {
+    if (isProcessing) return
+    setIsProcessing(true)
+    const updatedBlocks = await processEditedBlocks()
+    onResend(updatedBlocks)
+  }
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>, blockId: string) => {
+    if (message.role !== 'user') {
+      return
+    }
+
+    // keep the same enter behavior as inputbar
+    const isEnterPressed = event.key === 'Enter' && !event.nativeEvent.isComposing
+    if (isEnterPressed) {
+      if (isSendMessageKeyPressed(event, sendMessageShortcut)) {
+        handleResend()
+        return event.preventDefault()
+      } else {
+        if (!event.shiftKey) {
+          event.preventDefault()
+
+          const textArea = textareaRef.current?.resizableTextArea?.textArea
+          if (textArea) {
+            const start = textArea.selectionStart
+            const end = textArea.selectionEnd
+            const text = textArea.value
+            const newText = text.substring(0, start) + '\n' + text.substring(end)
+
+            //same with onChange()
+            handleTextChange(blockId, newText)
+
+            // set cursor position in the next render cycle
+            setTimeout(() => {
+              textArea.selectionStart = textArea.selectionEnd = start + 1
+              resizeTextArea() // trigger resizeTextArea
+            }, 0)
+          }
+        }
+      }
     }
   }
 
-  const autoResizeTextArea = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const textarea = e.target
-    textarea.style.height = 'auto'
-    textarea.style.height = `${textarea.scrollHeight}px`
-  }
+  const topicMessages = useAppSelector((state) => selectMessagesForTopic(state, topicId))
+
+  const couldAddImageFile = useMemo(() => {
+    const relatedAssistantMessages = topicMessages.filter((m) => m.askId === message.id && m.role === 'assistant')
+    if (relatedAssistantMessages.length === 0) {
+      // 无关联消息时fallback到助手模型
+      return isVisionModel(model)
+    }
+    return relatedAssistantMessages.every((m) => {
+      if (m.model) {
+        return isVisionModel(m.model)
+      } else {
+        // 若消息关联不存在的模型，视为其支持视觉
+        return true
+      }
+    })
+  }, [message.id, model, topicMessages])
+
+  const couldAddTextFile = useMemo(() => {
+    const relatedAssistantMessages = topicMessages.filter((m) => m.askId === message.id && m.role === 'assistant')
+    if (relatedAssistantMessages.length === 0) {
+      // 无关联消息时fallback到助手模型
+      return isVisionModel(model) || (!isVisionModel(model) && !isGenerateImageModel(model))
+    }
+    return relatedAssistantMessages.every((m) => {
+      if (m.model) {
+        return isVisionModel(m.model) || (!isVisionModel(m.model) && !isGenerateImageModel(m.model))
+      } else {
+        // 若消息关联不存在的模型，视为其支持文本
+        return true
+      }
+    })
+  }, [message.id, model, topicMessages])
+
+  const extensions = useMemo(() => {
+    if (couldAddImageFile && couldAddTextFile) {
+      return [...imageExts, ...documentExts, ...textExts]
+    } else if (couldAddImageFile) {
+      return [...imageExts]
+    } else if (couldAddTextFile) {
+      return [...documentExts, ...textExts]
+    } else {
+      return []
+    }
+  }, [couldAddImageFile, couldAddTextFile])
 
   return (
-    <EditorContainer onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}>
+    <EditorContainer className="message-editor" onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}>
       {editedBlocks
         .filter((block) => block.type === MessageBlockType.MAIN_TEXT)
         .map((block) => (
@@ -184,15 +268,19 @@ const MessageBlockEditor: FC<Props> = ({ message, onSave, onResend, onCancel }) 
             value={block.content}
             onChange={(e) => {
               handleTextChange(block.id, e.target.value)
-              autoResizeTextArea(e)
+              resizeTextArea()
             }}
+            onKeyDown={(e) => handleKeyDown(e, block.id)}
             autoFocus
-            contextMenu="true"
-            spellCheck={false}
+            spellCheck={enableSpellCheck}
             onPaste={(e) => onPaste(e.nativeEvent)}
             onFocus={() => {
               // 记录当前聚焦的组件
               PasteService.setLastFocusedComponent('messageEditor')
+            }}
+            onContextMenu={(e) => {
+              // 阻止事件冒泡，避免触发全局的 Electron contextMenu
+              e.stopPropagation()
             }}
             style={{
               fontSize,
@@ -235,13 +323,16 @@ const MessageBlockEditor: FC<Props> = ({ message, onSave, onResend, onCancel }) 
 
       <ActionBar>
         <ActionBarLeft>
-          <AttachmentButton
-            ref={attachmentButtonRef}
-            model={model}
-            files={files}
-            setFiles={setFiles}
-            ToolbarButton={ToolbarButton}
-          />
+          {isUserMessage && (
+            <AttachmentButton
+              ref={attachmentButtonRef}
+              files={files}
+              setFiles={setFiles}
+              couldAddImageFile={couldAddImageFile}
+              extensions={extensions}
+              ToolbarButton={ToolbarButton}
+            />
+          )}
         </ActionBarLeft>
         <ActionBarMiddle />
         <ActionBarRight>
@@ -251,13 +342,13 @@ const MessageBlockEditor: FC<Props> = ({ message, onSave, onResend, onCancel }) 
             </ToolbarButton>
           </Tooltip>
           <Tooltip title={t('common.save')}>
-            <ToolbarButton type="text" onClick={() => handleClick()}>
+            <ToolbarButton type="text" onClick={handleSave}>
               <Save size={16} />
             </ToolbarButton>
           </Tooltip>
           {message.role === 'user' && (
             <Tooltip title={t('chat.resend')}>
-              <ToolbarButton type="text" onClick={() => handleClick(true)}>
+              <ToolbarButton type="text" onClick={handleResend}>
                 <Send size={16} />
               </ToolbarButton>
             </Tooltip>
@@ -270,10 +361,11 @@ const MessageBlockEditor: FC<Props> = ({ message, onSave, onResend, onCancel }) 
 
 const EditorContainer = styled.div`
   padding: 8px 0;
-  border: 1px solid var(--color-border);
+  border: 0.5px solid var(--color-border);
   transition: all 0.2s ease;
   border-radius: 15px;
   margin-top: 5px;
+  margin-bottom: 10px;
   background-color: var(--color-background-opacity);
   width: 100%;
 

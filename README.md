@@ -1,12 +1,74 @@
+<div align="right" >
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="right">
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=en">English</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=zh-CN">简体中文</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=zh-TW">繁體中文</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=ja">日本語</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=ko">한국어</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=hi">हिन्दी</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=th">ไทย</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=fr">Français</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=de">Deutsch</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=es">Español</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=it">Itapano</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=ru">Русский</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=pt">Português</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=nl">Nederlands</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=pl">Polski</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=ar">العربية</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=fa">فارسی</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=tr">Türkçe</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=vi">Tiếng Việt</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=CherryHQ&project=cherry-studio&lang=id">Bahasa Indonesia</a></p>
+      </div>
+    </div>
+  </details>
+</div>
+
 <h1 align="center">
   <a href="https://github.com/CherryHQ/cherry-studio/releases">
     <img src="https://github.com/CherryHQ/cherry-studio/blob/main/build/icon.png?raw=true" width="150" height="150" alt="banner" /><br>
   </a>
 </h1>
-  <p align="center">English | <a href="./docs/README.zh.md">中文</a> | <a href="./docs/README.ja.md">日本語</a><br></p>
+  <p align="center">English | <a href="./docs/README.zh.md">中文</a> | <a href="./docs/README.ja.md">日本語</a> | <a href="https://cherry-ai.com">Official Site</a> | <a href="https://docs.cherry-ai.com/cherry-studio-wen-dang/en-us">Documents</a> | <a href="./docs/dev.md">Development</a> | <a href="https://github.com/CherryHQ/cherry-studio/issues">Feedback</a><br></p>
+
+<!-- 题头徽章组合 -->
+
 <div align="center">
+
+[![][deepwiki-shield]][deepwiki-link]
+[![][twitter-shield]][twitter-link]
+[![][discord-shield]][discord-link]
+[![][telegram-shield]][telegram-link]
+
+</div>
+
+<!-- 项目统计徽章 -->
+
+<div align="center">
+
+[![][github-stars-shield]][github-stars-link]
+[![][github-forks-shield]][github-forks-link]
+[![][github-release-shield]][github-release-link]
+[![][github-contributors-shield]][github-contributors-link]
+
+</div>
+
+<div align="center">
+
+[![][license-shield]][license-link]
+[![][commercial-shield]][commercial-link]
+[![][sponsor-shield]][sponsor-link]
+
+</div>
+
+<div align="center">
+ <a href="https://hellogithub.com/repository/1605492e1e2a4df3be07abfa4578dd37" target="_blank"><img src="https://api.hellogithub.com/v1/widgets/recommend.svg?rid=1605492e1e2a4df3be07abfa4578dd37" alt="Featured｜HelloGitHub" style="width: 200px; height: 43px;" width="200" height="43" /></a>
  <a href="https://trendshift.io/repositories/11772" target="_blank"><img src="https://trendshift.io/api/badge/repositories/11772" alt="kangfenmao%2Fcherry-studio | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
- <a href="https://www.producthunt.com/posts/cherry-studio?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-cherry&#0045;studio" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=496640&theme=light" alt="Cherry&#0032;Studio - AI&#0032;Chatbots&#0044;&#0032;AI&#0032;Desktop&#0032;Client | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+ <a href="https://www.producthunt.com/posts/cherry-studio?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-cherry&#0045;studio" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=496640&theme=light" alt="Cherry&#0032;Studio - AI&#0032;Chatbots&#0044;&#0032;AI&#0032;Desktop&#0032;Client | Product Hunt" style="width: 200px; height: 43px;" width="200" height="43" /></a>
 </div>
 
 # 🍒 Cherry Studio
@@ -16,10 +78,6 @@ Cherry Studio is a desktop client that supports for multiple LLM providers, avai
 👏 Join [Telegram Group](https://t.me/CherryStudioAI)｜[Discord](https://discord.gg/wez8HtpxqQ) | [QQ Group(575014769)](https://qm.qq.com/q/lo0D4qVZKi)
 
 ❤️ Like Cherry Studio? Give it a star 🌟 or [Sponsor](docs/sponsor.md) to support the development!
-
-# 📖 Guide
-
-<https://docs.cherry-ai.com>
 
 # 🌠 Screenshot
 
@@ -114,14 +172,6 @@ Want to influence our roadmap? Join our [GitHub Discussions](https://github.com/
 
 Welcome PR for more themes
 
-# 🖥️ Develop
-
-Refer to the [development documentation](docs/dev.md)
-
-Refer to the [Architecture overview documentation](https://deepwiki.com/CherryHQ/cherry-studio)
-
-Refer to the [Branching Strategy](docs/branching-strategy-en.md) for contribution guidelines
-
 # 🤝 Contributing
 
 We welcome contributions to Cherry Studio! Here are some ways you can contribute:
@@ -134,6 +184,8 @@ We welcome contributions to Cherry Studio! Here are some ways you can contribute
 6. **Community Engagement**: Join discussions and help users.
 7. **Promote Usage**: Spread the word about Cherry Studio.
 
+Refer to the [Branching Strategy](docs/branching-strategy-en.md) for contribution guidelines
+
 ## Getting Started
 
 1. **Fork the Repository**: Fork and clone it to your local machine.
@@ -144,6 +196,78 @@ We welcome contributions to Cherry Studio! Here are some ways you can contribute
 For more detailed guidelines, please refer to our [Contributing Guide](./CONTRIBUTING.md).
 
 Thank you for your support and contributions!
+
+# 🔧 Developer Co-creation Program
+
+We are launching the Cherry Studio Developer Co-creation Program to foster a healthy and positive-feedback loop within the open-source ecosystem. We believe that great software is built collaboratively, and every merged pull request breathes new life into the project.
+
+We sincerely invite you to join our ranks of contributors and shape the future of Cherry Studio with us.
+
+## Contributor Rewards Program
+
+To give back to our core contributors and create a virtuous cycle, we have established the following long-term incentive plan.
+
+**The inaugural tracking period for this program will be Q3 2025 (July, August, September). Rewards for this cycle will be distributed on October 1st.**
+
+Within any tracking period (e.g., July 1st to September 30th for the first cycle), any developer who contributes more than **30 meaningful commits** to any of Cherry Studio's open-source projects on GitHub is eligible for the following benefits:
+
+- **Cursor Subscription Sponsorship**: Receive a **$70 USD** credit or reimbursement for your [Cursor](https://cursor.sh/) subscription, making AI your most efficient coding partner.
+- **Unlimited Model Access**: Get **unlimited** API calls for the **DeepSeek** and **Qwen** models.
+- **Cutting-Edge Tech Access**: Enjoy occasional perks, including API access to models like **Claude**, **Gemini**, and **OpenAI**, keeping you at the forefront of technology.
+
+## Growing Together & Future Plans
+
+A vibrant community is the driving force behind any sustainable open-source project. As Cherry Studio grows, so will our rewards program. We are committed to continuously aligning our benefits with the best-in-class tools and resources in the industry. This ensures our core contributors receive meaningful support, creating a positive cycle where developers, the community, and the project grow together.
+
+**Moving forward, the project will also embrace an increasingly open stance to give back to the entire open-source community.**
+
+## How to Get Started?
+
+We look forward to your first Pull Request!
+
+You can start by exploring our repositories, picking up a `good first issue`, or proposing your own enhancements. Every commit is a testament to the spirit of open source.
+
+Thank you for your interest and contributions.
+
+Let's build together.
+
+# 🏢 Enterprise Edition
+
+Building on the Community Edition, we are proud to introduce **Cherry Studio Enterprise Edition**—a privately deployable AI productivity and management platform designed for modern teams and enterprises.
+
+The Enterprise Edition addresses core challenges in team collaboration by centralizing the management of AI resources, knowledge, and data. It empowers organizations to enhance efficiency, foster innovation, and ensure compliance, all while maintaining 100% control over their data in a secure environment.
+
+## Core Advantages
+
+- **Unified Model Management**: Centrally integrate and manage various cloud-based LLMs (e.g., OpenAI, Anthropic, Google Gemini) and locally deployed private models. Employees can use them out-of-the-box without individual configuration.
+- **Enterprise-Grade Knowledge Base**: Build, manage, and share team-wide knowledge bases. Ensure knowledge is retained and consistent, enabling team members to interact with AI based on unified and accurate information.
+- **Fine-Grained Access Control**: Easily manage employee accounts and assign role-based permissions for different models, knowledge bases, and features through a unified admin backend.
+- **Fully Private Deployment**: Deploy the entire backend service on your on-premises servers or private cloud, ensuring your data remains 100% private and under your control to meet the strictest security and compliance standards.
+- **Reliable Backend Services**: Provides stable API services, enterprise-grade data backup and recovery mechanisms to ensure business continuity.
+
+## ✨ Online Demo
+
+> 🚧 **Public Beta Notice**
+>
+> The Enterprise Edition is currently in its early public beta stage, and we are actively iterating and optimizing its features. We are aware that it may not be perfectly stable yet. If you encounter any issues or have valuable suggestions during your trial, we would be very grateful if you could contact us via email to provide feedback.
+
+**🔗 [Cherry Studio Enterprise](https://www.cherry-ai.com/enterprise)**
+
+## Version Comparison
+
+| Feature           | Community Edition                          | Enterprise Edition                                                                                                                      |
+| :---------------- | :----------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| **Open Source**   | ✅ Yes                                     | ⭕️ part. released to cust.                                                                                                             |
+| **Cost**          | Free for Personal Use / Commercial License | Buyout / Subscription Fee                                                                                                               |
+| **Admin Backend** | —                                          | ● Centralized **Model** Access<br>● **Employee** Management<br>● Shared **Knowledge Base**<br>● **Access** Control<br>● **Data** Backup |
+| **Server**        | —                                          | ✅ Dedicated Private Deployment                                                                                                         |
+
+## Get the Enterprise Edition
+
+We believe the Enterprise Edition will become your team's AI productivity engine. If you are interested in Cherry Studio Enterprise Edition and would like to learn more, request a quote, or schedule a demo, please contact us.
+
+- **For Business Inquiries & Purchasing**:
+  **📧 [bd@cherry-ai.com](mailto:bd@cherry-ai.com)**
 
 # 🔗 Related Projects
 
@@ -158,22 +282,37 @@ Thank you for your support and contributions!
 </a>
 <br /><br />
 
-# 🌐 Community
-
-[Telegram](https://t.me/CherryStudioAI) | [Email](mailto:support@cherry-ai.com) | [Twitter](https://x.com/kangfenmao)
-
-# ☕ Sponsor
-
-[Buy Me a Coffee](docs/sponsor.md)
-
-# 📃 License
-
-[LICENSE](./LICENSE)
-
-# ✉️ Contact
-
-<yinsenho@cherry-ai.com>
-
 # ⭐️ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=kangfenmao/cherry-studio&type=Timeline)](https://star-history.com/#kangfenmao/cherry-studio&Timeline)
+[![Star History Chart](https://api.star-history.com/svg?repos=CherryHQ/cherry-studio&type=Timeline)](https://star-history.com/#CherryHQ/cherry-studio&Timeline)
+
+<!-- Links & Images -->
+
+[deepwiki-shield]: https://img.shields.io/badge/Deepwiki-CherryHQ-0088CC?style=plastic
+[deepwiki-link]: https://deepwiki.com/CherryHQ/cherry-studio
+[twitter-shield]: https://img.shields.io/badge/Twitter-CherryStudioApp-0088CC?style=plastic&logo=x
+[twitter-link]: https://twitter.com/CherryStudioHQ
+[discord-shield]: https://img.shields.io/badge/Discord-@CherryStudio-0088CC?style=plastic&logo=discord
+[discord-link]: https://discord.gg/wez8HtpxqQ
+[telegram-shield]: https://img.shields.io/badge/Telegram-@CherryStudioAI-0088CC?style=plastic&logo=telegram
+[telegram-link]: https://t.me/CherryStudioAI
+
+<!-- Links & Images -->
+
+[github-stars-shield]: https://img.shields.io/github/stars/CherryHQ/cherry-studio?style=social
+[github-stars-link]: https://github.com/CherryHQ/cherry-studio/stargazers
+[github-forks-shield]: https://img.shields.io/github/forks/CherryHQ/cherry-studio?style=social
+[github-forks-link]: https://github.com/CherryHQ/cherry-studio/network
+[github-release-shield]: https://img.shields.io/github/v/release/CherryHQ/cherry-studio
+[github-release-link]: https://github.com/CherryHQ/cherry-studio/releases
+[github-contributors-shield]: https://img.shields.io/github/contributors/CherryHQ/cherry-studio
+[github-contributors-link]: https://github.com/CherryHQ/cherry-studio/graphs/contributors
+
+<!-- Links & Images -->
+
+[license-shield]: https://img.shields.io/badge/License-AGPLv3-important.svg?style=plastic&logo=gnu
+[license-link]: https://www.gnu.org/licenses/agpl-3.0
+[commercial-shield]: https://img.shields.io/badge/License-Contact-white.svg?style=plastic&logoColor=white&logo=telegram&color=blue
+[commercial-link]: mailto:license@cherry-ai.com?subject=Commercial%20License%20Inquiry
+[sponsor-shield]: https://img.shields.io/badge/Sponsor-FF6699.svg?style=plastic&logo=githubsponsors&logoColor=white
+[sponsor-link]: https://github.com/CherryHQ/cherry-studio/blob/main/docs/sponsor.md

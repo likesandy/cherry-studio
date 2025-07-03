@@ -16,21 +16,22 @@
 import * as fs from 'node:fs'
 import path from 'node:path'
 
-import { RAGApplication, RAGApplicationBuilder, TextLoader } from '@cherrystudio/embedjs'
+import { RAGApplication, RAGApplicationBuilder } from '@cherrystudio/embedjs'
 import type { ExtractChunkData } from '@cherrystudio/embedjs-interfaces'
 import { LibSqlDb } from '@cherrystudio/embedjs-libsql'
 import { SitemapLoader } from '@cherrystudio/embedjs-loader-sitemap'
 import { WebLoader } from '@cherrystudio/embedjs-loader-web'
-import Embeddings from '@main/embeddings/Embeddings'
-import { addFileLoader } from '@main/loader'
-import Reranker from '@main/reranker/Reranker'
+import Embeddings from '@main/knowledage/embeddings/Embeddings'
+import { addFileLoader } from '@main/knowledage/loader'
+import { NoteLoader } from '@main/knowledage/loader/noteLoader'
+import Reranker from '@main/knowledage/reranker/Reranker'
 import { windowService } from '@main/services/WindowService'
+import { getDataPath } from '@main/utils'
 import { getAllFiles } from '@main/utils/file'
 import { MB } from '@shared/config/constant'
 import type { LoaderReturn } from '@shared/config/types'
 import { IpcChannel } from '@shared/IpcChannel'
 import { FileType, KnowledgeBaseParams, KnowledgeItem } from '@types'
-import { app } from 'electron'
 import Logger from 'electron-log'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -88,7 +89,7 @@ const loaderTaskIntoOfSet = (loaderTask: LoaderTask): LoaderTaskOfSet => {
 }
 
 class KnowledgeService {
-  private storageDir = path.join(app.getPath('userData'), 'Data', 'KnowledgeBase')
+  private storageDir = path.join(getDataPath(), 'KnowledgeBase')
   // Byte based
   private workload = 0
   private processingItemCount = 0
@@ -110,13 +111,21 @@ class KnowledgeService {
   private getRagApplication = async ({
     id,
     model,
+    provider,
     apiKey,
     apiVersion,
     baseURL,
     dimensions
   }: KnowledgeBaseParams): Promise<RAGApplication> => {
     let ragApplication: RAGApplication
-    const embeddings = new Embeddings({ model, apiKey, apiVersion, baseURL, dimensions } as KnowledgeBaseParams)
+    const embeddings = new Embeddings({
+      model,
+      provider,
+      apiKey,
+      apiVersion,
+      baseURL,
+      dimensions
+    } as KnowledgeBaseParams)
     try {
       ragApplication = await new RAGApplicationBuilder()
         .setModel('NO_MODEL')
@@ -135,7 +144,7 @@ class KnowledgeService {
     this.getRagApplication(base)
   }
 
-  public reset = async (_: Electron.IpcMainInvokeEvent, { base }: { base: KnowledgeBaseParams }): Promise<void> => {
+  public reset = async (_: Electron.IpcMainInvokeEvent, base: KnowledgeBaseParams): Promise<void> => {
     const ragApplication = await this.getRagApplication(base)
     await ragApplication.reset()
   }
@@ -325,6 +334,7 @@ class KnowledgeService {
   ): LoaderTask {
     const { base, item, forceReload } = options
     const content = item.content as string
+    const sourceUrl = (item as any).sourceUrl
 
     const encoder = new TextEncoder()
     const contentBytes = encoder.encode(content)
@@ -334,7 +344,12 @@ class KnowledgeService {
           state: LoaderTaskItemState.PENDING,
           task: () => {
             const loaderReturn = ragApplication.addLoader(
-              new TextLoader({ text: content, chunkSize: base.chunkSize, chunkOverlap: base.chunkOverlap }),
+              new NoteLoader({
+                text: content,
+                sourceUrl,
+                chunkSize: base.chunkSize,
+                chunkOverlap: base.chunkOverlap
+              }),
               forceReload
             ) as Promise<LoaderReturn>
 

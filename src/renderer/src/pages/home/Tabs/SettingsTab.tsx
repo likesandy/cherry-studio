@@ -1,13 +1,8 @@
-import { CheckOutlined } from '@ant-design/icons'
+import EditableNumber from '@renderer/components/EditableNumber'
 import { HStack } from '@renderer/components/Layout'
 import Scrollbar from '@renderer/components/Scrollbar'
-import {
-  DEFAULT_CONTEXTCOUNT,
-  DEFAULT_MAX_TOKENS,
-  DEFAULT_TEMPERATURE,
-  isMac,
-  isWindows
-} from '@renderer/config/constant'
+import Selector from '@renderer/components/Selector'
+import { DEFAULT_CONTEXTCOUNT, DEFAULT_MAX_TOKENS, DEFAULT_TEMPERATURE } from '@renderer/config/constant'
 import {
   isOpenAIModel,
   isSupportedFlexServiceTier,
@@ -44,8 +39,8 @@ import {
   setPasteLongTextThreshold,
   setRenderInputMessageAsMarkdown,
   setShowInputEstimatedTokens,
-  setShowMessageDivider,
   setShowPrompt,
+  setShowTokens,
   setShowTranslateConfirm,
   setThoughtAutoCollapse
 } from '@renderer/store/settings'
@@ -58,8 +53,9 @@ import {
   TranslateLanguageVarious
 } from '@renderer/types'
 import { modalConfirm } from '@renderer/utils'
-import { Button, Col, InputNumber, Row, Select, Slider, Switch, Tooltip } from 'antd'
-import { CircleHelp, RotateCcw, Settings2 } from 'lucide-react'
+import { getSendMessageShortcutLabel } from '@renderer/utils/input'
+import { Button, Col, InputNumber, Row, Slider, Switch, Tooltip } from 'antd'
+import { CircleHelp, Settings2 } from 'lucide-react'
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -71,7 +67,7 @@ interface Props {
 }
 
 const SettingsTab: FC<Props> = (props) => {
-  const { assistant, updateAssistantSettings, updateAssistant } = useAssistant(props.assistant.id)
+  const { assistant, updateAssistantSettings } = useAssistant(props.assistant.id)
   const { provider } = useProvider(assistant.model.provider)
 
   const { messageStyle, fontSize, language } = useSettings()
@@ -90,7 +86,6 @@ const SettingsTab: FC<Props> = (props) => {
 
   const {
     showPrompt,
-    showMessageDivider,
     messageFont,
     showInputEstimatedTokens,
     sendMessageShortcut,
@@ -113,7 +108,8 @@ const SettingsTab: FC<Props> = (props) => {
     messageNavigation,
     enableQuickPanelTriggers,
     enableBackspaceDeleteModel,
-    showTranslateConfirm
+    showTranslateConfirm,
+    showTokens
   } = useSettings()
 
   const onUpdateAssistantSettings = (settings: Partial<AssistantSettings>) => {
@@ -136,24 +132,6 @@ const SettingsTab: FC<Props> = (props) => {
     if (!isNaN(value as number)) {
       onUpdateAssistantSettings({ maxTokens: value })
     }
-  }
-
-  const onReset = () => {
-    setTemperature(DEFAULT_TEMPERATURE)
-    setContextCount(DEFAULT_CONTEXTCOUNT)
-    updateAssistant({
-      ...assistant,
-      settings: {
-        ...assistant.settings,
-        temperature: DEFAULT_TEMPERATURE,
-        contextCount: DEFAULT_CONTEXTCOUNT,
-        enableMaxTokens: false,
-        maxTokens: DEFAULT_MAX_TOKENS,
-        streamOutput: true,
-        hideMessages: false,
-        customParameters: []
-      }
-    })
   }
 
   const codeStyle = useMemo(() => {
@@ -209,14 +187,6 @@ const SettingsTab: FC<Props> = (props) => {
         defaultExpanded={true}
         extra={
           <HStack alignItems="center" gap={2}>
-            <Tooltip title={t('chat.settings.reset')}>
-              <Button
-                type="text"
-                size="small"
-                onClick={onReset}
-                icon={<RotateCcw size={20} style={{ cursor: 'pointer', padding: '0 3px', opacity: 0.8 }} />}
-              />
-            </Tooltip>
             <Button
               type="text"
               size="small"
@@ -227,9 +197,9 @@ const SettingsTab: FC<Props> = (props) => {
         }>
         <SettingGroup style={{ marginTop: 5 }}>
           <Row align="middle">
-            <Label>{t('chat.settings.temperature')}</Label>
+            <SettingRowTitleSmall>{t('chat.settings.temperature')}</SettingRowTitleSmall>
             <Tooltip title={t('chat.settings.temperature.tip')}>
-              <CircleHelp size={14} color="var(--color-text-2)" />
+              <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
             </Tooltip>
           </Row>
           <Row align="middle" gutter={10}>
@@ -245,9 +215,9 @@ const SettingsTab: FC<Props> = (props) => {
             </Col>
           </Row>
           <Row align="middle">
-            <Label>{t('chat.settings.context_count')}</Label>
+            <SettingRowTitleSmall>{t('chat.settings.context_count')}</SettingRowTitleSmall>
             <Tooltip title={t('chat.settings.context_count.tip')}>
-              <CircleHelp size={14} color="var(--color-text-2)" />
+              <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
             </Tooltip>
           </Row>
           <Row align="middle" gutter={10}>
@@ -276,12 +246,12 @@ const SettingsTab: FC<Props> = (props) => {
           </SettingRow>
           <SettingDivider />
           <SettingRow>
-            <HStack alignItems="center">
-              <Label>{t('chat.settings.max_tokens')}</Label>
+            <Row align="middle">
+              <SettingRowTitleSmall>{t('chat.settings.max_tokens')}</SettingRowTitleSmall>
               <Tooltip title={t('chat.settings.max_tokens.tip')}>
-                <CircleHelp size={14} color="var(--color-text-2)" />
+                <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
               </Tooltip>
-            </HStack>
+            </Row>
             <Switch
               size="small"
               checked={enableMaxTokens}
@@ -337,12 +307,8 @@ const SettingsTab: FC<Props> = (props) => {
           </SettingRow>
           <SettingDivider />
           <SettingRow>
-            <SettingRowTitleSmall>{t('settings.messages.divider')}</SettingRowTitleSmall>
-            <Switch
-              size="small"
-              checked={showMessageDivider}
-              onChange={(checked) => dispatch(setShowMessageDivider(checked))}
-            />
+            <SettingRowTitleSmall>{t('settings.messages.tokens')}</SettingRowTitleSmall>
+            <Switch size="small" checked={showTokens} onChange={(checked) => dispatch(setShowTokens(checked))} />
           </SettingRow>
           <SettingDivider />
           <SettingRow>
@@ -370,56 +336,56 @@ const SettingsTab: FC<Props> = (props) => {
           <SettingDivider />
           <SettingRow>
             <SettingRowTitleSmall>{t('message.message.style')}</SettingRowTitleSmall>
-            <StyledSelect
+            <Selector
               value={messageStyle}
               onChange={(value) => dispatch(setMessageStyle(value as 'plain' | 'bubble'))}
-              style={{ width: 135 }}
-              size="small">
-              <Select.Option value="plain">{t('message.message.style.plain')}</Select.Option>
-              <Select.Option value="bubble">{t('message.message.style.bubble')}</Select.Option>
-            </StyledSelect>
+              options={[
+                { value: 'plain', label: t('message.message.style.plain') },
+                { value: 'bubble', label: t('message.message.style.bubble') }
+              ]}
+            />
           </SettingRow>
           <SettingDivider />
           <SettingRow>
             <SettingRowTitleSmall>{t('message.message.multi_model_style')}</SettingRowTitleSmall>
-            <StyledSelect
-              size="small"
+            <Selector
               value={multiModelMessageStyle}
               onChange={(value) =>
                 dispatch(setMultiModelMessageStyle(value as 'fold' | 'vertical' | 'horizontal' | 'grid'))
               }
-              style={{ width: 135 }}>
-              <Select.Option value="fold">{t('message.message.multi_model_style.fold')}</Select.Option>
-              <Select.Option value="vertical">{t('message.message.multi_model_style.vertical')}</Select.Option>
-              <Select.Option value="horizontal">{t('message.message.multi_model_style.horizontal')}</Select.Option>
-              <Select.Option value="grid">{t('message.message.multi_model_style.grid')}</Select.Option>
-            </StyledSelect>
+              options={[
+                { value: 'fold', label: t('message.message.multi_model_style.fold') },
+                { value: 'vertical', label: t('message.message.multi_model_style.vertical') },
+                { value: 'horizontal', label: t('message.message.multi_model_style.horizontal') },
+                { value: 'grid', label: t('message.message.multi_model_style.grid') }
+              ]}
+            />
           </SettingRow>
           <SettingDivider />
           <SettingRow>
             <SettingRowTitleSmall>{t('settings.messages.navigation')}</SettingRowTitleSmall>
-            <StyledSelect
-              size="small"
+            <Selector
               value={messageNavigation}
               onChange={(value) => dispatch(setMessageNavigation(value as 'none' | 'buttons' | 'anchor'))}
-              style={{ width: 135 }}>
-              <Select.Option value="none">{t('settings.messages.navigation.none')}</Select.Option>
-              <Select.Option value="buttons">{t('settings.messages.navigation.buttons')}</Select.Option>
-              <Select.Option value="anchor">{t('settings.messages.navigation.anchor')}</Select.Option>
-            </StyledSelect>
+              options={[
+                { value: 'none', label: t('settings.messages.navigation.none') },
+                { value: 'buttons', label: t('settings.messages.navigation.buttons') },
+                { value: 'anchor', label: t('settings.messages.navigation.anchor') }
+              ]}
+            />
           </SettingRow>
           <SettingDivider />
           <SettingRow>
             <SettingRowTitleSmall>{t('settings.messages.math_engine')}</SettingRowTitleSmall>
-            <StyledSelect
+            <Selector
               value={mathEngine}
               onChange={(value) => dispatch(setMathEngine(value as MathEngine))}
-              style={{ width: 135 }}
-              size="small">
-              <Select.Option value="KaTeX">KaTeX</Select.Option>
-              <Select.Option value="MathJax">MathJax</Select.Option>
-              <Select.Option value="none">{t('settings.messages.math_engine.none')}</Select.Option>
-            </StyledSelect>
+              options={[
+                { value: 'KaTeX', label: 'KaTeX' },
+                { value: 'MathJax', label: 'MathJax' },
+                { value: 'none', label: t('settings.messages.math_engine.none') }
+              ]}
+            />
           </SettingRow>
           <SettingDivider />
           <SettingRow>
@@ -449,17 +415,14 @@ const SettingsTab: FC<Props> = (props) => {
         <SettingGroup>
           <SettingRow>
             <SettingRowTitleSmall>{t('message.message.code_style')}</SettingRowTitleSmall>
-            <StyledSelect
+            <Selector
               value={codeStyle}
               onChange={(value) => onCodeStyleChange(value as CodeStyleVarious)}
-              style={{ width: 135 }}
-              size="small">
-              {themeNames.map((theme) => (
-                <Select.Option key={theme} value={theme}>
-                  {theme}
-                </Select.Option>
-              ))}
-            </StyledSelect>
+              options={themeNames.map((theme) => ({
+                value: theme,
+                label: theme
+              }))}
+            />
           </SettingRow>
           <SettingDivider />
           <SettingRow>
@@ -485,7 +448,7 @@ const SettingsTab: FC<Props> = (props) => {
                     <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
                   </Tooltip>
                 </SettingRowTitleSmall>
-                <InputNumber
+                <EditableNumber
                   size="small"
                   min={1}
                   max={60}
@@ -596,7 +559,7 @@ const SettingsTab: FC<Props> = (props) => {
               <SettingDivider />
               <SettingRow>
                 <SettingRowTitleSmall>{t('settings.messages.input.paste_long_text_threshold')}</SettingRowTitleSmall>
-                <InputNumber
+                <EditableNumber
                   size="small"
                   min={500}
                   max={10000}
@@ -660,11 +623,9 @@ const SettingsTab: FC<Props> = (props) => {
           <SettingDivider />
           <SettingRow>
             <SettingRowTitleSmall>{t('settings.input.target_language')}</SettingRowTitleSmall>
-            <StyledSelect
-              defaultValue={'english' as TranslateLanguageVarious}
-              size="small"
+            <Selector
               value={targetLanguage}
-              menuItemSelectedIcon={<CheckOutlined />}
+              onChange={(value) => setTargetLanguage(value as TranslateLanguageVarious)}
               options={[
                 { value: 'chinese', label: t('settings.input.target_language.chinese') },
                 { value: 'chinese-traditional', label: t('settings.input.target_language.chinese-traditional') },
@@ -672,25 +633,21 @@ const SettingsTab: FC<Props> = (props) => {
                 { value: 'japanese', label: t('settings.input.target_language.japanese') },
                 { value: 'russian', label: t('settings.input.target_language.russian') }
               ]}
-              onChange={(value) => setTargetLanguage(value as TranslateLanguageVarious)}
-              style={{ width: 135 }}
             />
           </SettingRow>
           <SettingDivider />
           <SettingRow>
             <SettingRowTitleSmall>{t('settings.messages.input.send_shortcuts')}</SettingRowTitleSmall>
-            <StyledSelect
-              size="small"
+            <Selector
               value={sendMessageShortcut}
-              menuItemSelectedIcon={<CheckOutlined />}
-              options={[
-                { value: 'Enter', label: 'Enter' },
-                { value: 'Shift+Enter', label: 'Shift + Enter' },
-                { value: 'Ctrl+Enter', label: 'Ctrl + Enter' },
-                { value: 'Command+Enter', label: `${isMac ? '⌘' : isWindows ? 'Win' : 'Super'} + Enter` }
-              ]}
               onChange={(value) => setSendMessageShortcut(value as SendMessageShortcut)}
-              style={{ width: 135 }}
+              options={[
+                { value: 'Enter', label: getSendMessageShortcutLabel('Enter') },
+                { value: 'Ctrl+Enter', label: getSendMessageShortcutLabel('Ctrl+Enter') },
+                { value: 'Alt+Enter', label: getSendMessageShortcutLabel('Alt+Enter') },
+                { value: 'Command+Enter', label: getSendMessageShortcutLabel('Command+Enter') },
+                { value: 'Shift+Enter', label: getSendMessageShortcutLabel('Shift+Enter') }
+              ]}
             />
           </SettingRow>
         </SettingGroup>
@@ -707,12 +664,7 @@ const Container = styled(Scrollbar)`
   padding-right: 0;
   padding-top: 2px;
   padding-bottom: 10px;
-`
-
-const Label = styled.p`
-  margin: 0;
-  font-size: 12px;
-  margin-right: 5px;
+  margin-top: 3px;
 `
 
 const SettingRowTitleSmall = styled(SettingRowTitle)`
@@ -725,14 +677,6 @@ const SettingGroup = styled.div<{ theme?: ThemeMode }>`
   margin-top: 0;
   border-radius: 8px;
   margin-bottom: 10px;
-`
-
-const StyledSelect = styled(Select)`
-  .ant-select-selector {
-    border-radius: 15px !important;
-    padding: 4px 10px !important;
-    height: 26px !important;
-  }
 `
 
 export default SettingsTab

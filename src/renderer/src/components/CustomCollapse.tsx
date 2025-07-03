@@ -1,5 +1,6 @@
 import { Collapse } from 'antd'
 import { merge } from 'lodash'
+import { ChevronRight } from 'lucide-react'
 import { FC, memo, useMemo, useState } from 'react'
 
 interface CustomCollapseProps {
@@ -66,6 +67,7 @@ const CustomCollapse: FC<CustomCollapseProps> = ({
   const collapseStyle = merge({}, defaultCollapseStyle, style)
   const collapseItemStyles = useMemo(() => {
     return merge({}, defaultCollapseItemStyles, styles)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeKeys])
 
   return (
@@ -77,6 +79,14 @@ const CustomCollapse: FC<CustomCollapseProps> = ({
       destroyInactivePanel={destroyInactivePanel}
       collapsible={collapsible}
       onChange={setActiveKeys}
+      expandIcon={({ isActive }) => (
+        <ChevronRight
+          size={16}
+          color="var(--color-text-3)"
+          strokeWidth={1.5}
+          style={{ transform: isActive ? 'rotate(90deg)' : 'rotate(0deg)' }}
+        />
+      )}
       items={[
         {
           styles: collapseItemStyles,

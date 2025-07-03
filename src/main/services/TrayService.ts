@@ -1,20 +1,22 @@
-import { isMac } from '@main/constant'
+import { isLinux, isMac, isWin } from '@main/constant'
 import { locales } from '@main/utils/locales'
 import { app, Menu, MenuItemConstructorOptions, nativeImage, nativeTheme, Tray } from 'electron'
 
 import icon from '../../../build/tray_icon.png?asset'
 import iconDark from '../../../build/tray_icon_dark.png?asset'
 import iconLight from '../../../build/tray_icon_light.png?asset'
-import { configManager } from './ConfigManager'
+import { ConfigKeys, configManager } from './ConfigManager'
+import selectionService from './SelectionService'
 import { windowService } from './WindowService'
 
 export class TrayService {
   private static instance: TrayService
   private tray: Tray | null = null
+  private contextMenu: Menu | null = null
 
   constructor() {
+    this.watchConfigChanges()
     this.updateTray()
-    this.watchTrayChanges()
     TrayService.instance = this
   }
 
@@ -28,14 +30,14 @@ export class TrayService {
     const iconPath = isMac ? (nativeTheme.shouldUseDarkColors ? iconLight : iconDark) : icon
     const tray = new Tray(iconPath)
 
-    if (process.platform === 'win32') {
+    if (isWin) {
       tray.setImage(iconPath)
-    } else if (process.platform === 'darwin') {
+    } else if (isMac) {
       const image = nativeImage.createFromPath(iconPath)
       const resizedImage = image.resize({ width: 16, height: 16 })
       resizedImage.setTemplateImage(true)
       tray.setImage(resizedImage)
-    } else if (process.platform === 'linux') {
+    } else if (isLinux) {
       const image = nativeImage.createFromPath(iconPath)
       const resizedImage = image.resize({ width: 16, height: 16 })
       tray.setImage(resizedImage)
@@ -43,19 +45,55 @@ export class TrayService {
 
     this.tray = tray
 
-    const locale = locales[configManager.getLanguage()]
-    const { tray: trayLocale } = locale.translation
+    this.updateContextMenu()
 
-    const enableQuickAssistant = configManager.getEnableQuickAssistant()
+    if (isLinux) {
+      this.tray.setContextMenu(this.contextMenu)
+    }
+
+    this.tray.setToolTip('Cherry Studio')
+
+    this.tray.on('right-click', () => {
+      if (this.contextMenu) {
+        this.tray?.popUpContextMenu(this.contextMenu)
+      }
+    })
+
+    this.tray.on('click', () => {
+      if (configManager.getEnableQuickAssistant() && configManager.getClickTrayToShowQuickAssistant()) {
+        windowService.showMiniWindow()
+      } else {
+        windowService.showMainWindow()
+      }
+    })
+  }
+
+  private updateContextMenu() {
+    const locale = locales[configManager.getLanguage()]
+    const { tray: trayLocale, selection: selectionLocale } = locale.translation
+
+    const quickAssistantEnabled = configManager.getEnableQuickAssistant()
+    const selectionAssistantEnabled = configManager.getSelectionAssistantEnabled()
 
     const template = [
       {
         label: trayLocale.show_window,
         click: () => windowService.showMainWindow()
       },
-      enableQuickAssistant && {
+      quickAssistantEnabled && {
         label: trayLocale.show_mini_window,
         click: () => windowService.showMiniWindow()
+      },
+      isWin && {
+        label: selectionLocale.name + (selectionAssistantEnabled ? ' - On' : ' - Off'),
+        // type: 'checkbox',
+        // checked: selectionAssistantEnabled,
+        click: () => {
+          if (selectionService) {
+            selectionService.toggleEnabled()
+            this.updateContextMenu()
+          }
+        }
       },
       { type: 'separator' },
       {
@@ -64,25 +102,7 @@ export class TrayService {
       }
     ].filter(Boolean) as MenuItemConstructorOptions[]
 
-    const contextMenu = Menu.buildFromTemplate(template)
-
-    if (process.platform === 'linux') {
-      this.tray.setContextMenu(contextMenu)
-    }
-
-    this.tray.setToolTip('Cherry Studio')
-
-    this.tray.on('right-click', () => {
-      this.tray?.popUpContextMenu(contextMenu)
-    })
-
-    this.tray.on('click', () => {
-      if (enableQuickAssistant && configManager.getClickTrayToShowQuickAssistant()) {
-        windowService.showMiniWindow()
-      } else {
-        windowService.showMainWindow()
-      }
-    })
+    this.contextMenu = Menu.buildFromTemplate(template)
   }
 
   private updateTray() {
@@ -94,13 +114,6 @@ export class TrayService {
     }
   }
 
-  public restartTray() {
-    if (configManager.getTray()) {
-      this.destroyTray()
-      this.createTray()
-    }
-  }
-
   private destroyTray() {
     if (this.tray) {
       this.tray.destroy()
@@ -108,8 +121,20 @@ export class TrayService {
     }
   }
 
-  private watchTrayChanges() {
-    configManager.subscribe<boolean>('tray', () => this.updateTray())
+  private watchConfigChanges() {
+    configManager.subscribe(ConfigKeys.Tray, () => this.updateTray())
+
+    configManager.subscribe(ConfigKeys.Language, () => {
+      this.updateContextMenu()
+    })
+
+    configManager.subscribe(ConfigKeys.EnableQuickAssistant, () => {
+      this.updateContextMenu()
+    })
+
+    configManager.subscribe(ConfigKeys.SelectionAssistantEnabled, () => {
+      this.updateContextMenu()
+    })
   }
 
   private quit() {

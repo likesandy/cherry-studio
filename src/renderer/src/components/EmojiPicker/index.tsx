@@ -1,4 +1,6 @@
+import TwemojiCountryFlagsWoff2 from '@renderer/assets/fonts/country-flag-fonts/TwemojiCountryFlags.woff2?url'
 import { useTheme } from '@renderer/context/ThemeProvider'
+import { polyfillCountryFlagEmojis } from 'country-flag-emoji-polyfill'
 import { FC, useEffect, useRef } from 'react'
 
 interface Props {
@@ -10,10 +12,14 @@ const EmojiPicker: FC<Props> = ({ onEmojiClick }) => {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    polyfillCountryFlagEmojis('Twemoji Mozilla', TwemojiCountryFlagsWoff2)
+  }, [])
+
+  useEffect(() => {
     if (ref.current) {
       ref.current.addEventListener('emoji-click', (event: any) => {
         event.stopPropagation()
-        onEmojiClick(event.detail.emoji.unicode)
+        onEmojiClick(event.detail.unicode || event.detail.emoji.unicode)
       })
     }
   }, [onEmojiClick])

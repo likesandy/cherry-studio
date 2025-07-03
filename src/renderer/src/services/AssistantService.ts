@@ -1,13 +1,9 @@
 import { DEFAULT_CONTEXTCOUNT, DEFAULT_MAX_TOKENS, DEFAULT_TEMPERATURE } from '@renderer/config/constant'
-import db from '@renderer/databases'
 import i18n from '@renderer/i18n'
 import store from '@renderer/store'
 import { addAssistant } from '@renderer/store/assistants'
 import type { Agent, Assistant, AssistantSettings, Model, Provider, Topic } from '@renderer/types'
-import type { Message, MessageBlock } from '@renderer/types/newMessage'
-import { AssistantMessageStatus, MessageBlockStatus } from '@renderer/types/newMessage'
 import { uuid } from '@renderer/utils'
-import { createMainTextBlock } from '@renderer/utils/messageUtils/create'
 
 export function getDefaultAssistant(): Assistant {
   return {
@@ -18,7 +14,17 @@ export function getDefaultAssistant(): Assistant {
     topics: [getDefaultTopic('default')],
     messages: [],
     type: 'assistant',
-    regularPhrases: [] // Added regularPhrases
+    regularPhrases: [], // Added regularPhrases
+    settings: {
+      temperature: DEFAULT_TEMPERATURE,
+      contextCount: DEFAULT_CONTEXTCOUNT,
+      enableMaxTokens: false,
+      maxTokens: 0,
+      streamOutput: true,
+      topP: 1,
+      toolUseMode: 'prompt',
+      customParameters: []
+    }
   }
 }
 
@@ -109,7 +115,6 @@ export const getAssistantSettings = (assistant: Assistant): AssistantSettings =>
     maxTokens: getAssistantMaxTokens(),
     streamOutput: assistant?.settings?.streamOutput ?? true,
     toolUseMode: assistant?.settings?.toolUseMode ?? 'prompt',
-    hideMessages: assistant?.settings?.hideMessages ?? false,
     defaultModel: assistant?.defaultModel ?? undefined,
     customParameters: assistant?.settings?.customParameters ?? []
   }
@@ -118,47 +123,6 @@ export const getAssistantSettings = (assistant: Assistant): AssistantSettings =>
 export function getAssistantById(id: string) {
   const assistants = store.getState().assistants.assistants
   return assistants.find((a) => a.id === id)
-}
-
-export async function addAssistantMessagesToTopic({ assistant, topic }: { assistant: Assistant; topic: Topic }) {
-  const newMessages: Message[] = []
-  const newBlocks: MessageBlock[] = []
-  const defaultModel = getDefaultModel()
-
-  for (const msg of assistant?.messages || []) {
-    const messageId = uuid()
-
-    const mainTextBlock = createMainTextBlock(messageId, msg.content, {
-      status: MessageBlockStatus.SUCCESS
-    })
-    newBlocks.push(mainTextBlock)
-
-    const message: Message = {
-      id: messageId,
-      assistantId: assistant.id,
-      role: msg.role,
-      topicId: topic.id,
-      createdAt: new Date().toISOString(),
-      status: AssistantMessageStatus.SUCCESS,
-      blocks: [mainTextBlock.id],
-      model: assistant.defaultModel || defaultModel,
-      isPreset: true
-    }
-
-    newMessages.push(message)
-  }
-
-  if (newBlocks.length > 0) {
-    await db.message_blocks.bulkPut(newBlocks)
-  }
-
-  if (await db.topics.get(topic.id)) {
-    await db.topics.update(topic.id, { messages: newMessages })
-  } else {
-    await db.topics.add({ id: topic.id, messages: newMessages })
-  }
-
-  return newMessages
 }
 
 export async function createAssistantFromAgent(agent: Agent) {
@@ -173,12 +137,20 @@ export async function createAssistantFromAgent(agent: Agent) {
     topics: [topic],
     model: agent.defaultModel,
     type: 'assistant',
-    regularPhrases: agent.regularPhrases || [] // Ensured regularPhrases
+    regularPhrases: agent.regularPhrases || [], // Ensured regularPhrases
+    settings: agent.settings || {
+      temperature: DEFAULT_TEMPERATURE,
+      contextCount: DEFAULT_CONTEXTCOUNT,
+      enableMaxTokens: false,
+      maxTokens: 0,
+      streamOutput: true,
+      topP: 1,
+      toolUseMode: 'prompt',
+      customParameters: []
+    }
   }
 
   store.dispatch(addAssistant(assistant))
-
-  await addAssistantMessagesToTopic({ assistant, topic })
 
   window.message.success({
     content: i18n.t('message.assistant.added.content'),

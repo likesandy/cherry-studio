@@ -7,6 +7,7 @@ import { useSettings } from '@renderer/hooks/useSettings'
 import { useShortcut } from '@renderer/hooks/useShortcuts'
 import { useShowTopics } from '@renderer/hooks/useStore'
 import { Assistant, Topic } from '@renderer/types'
+import { classNames } from '@renderer/utils'
 import { Flex } from 'antd'
 import { debounce } from 'lodash'
 import React, { FC, useMemo, useState } from 'react'
@@ -36,8 +37,8 @@ const Chat: FC<Props> = (props) => {
 
   const maxWidth = useMemo(() => {
     const showRightTopics = showTopics && topicPosition === 'right'
-    const minusAssistantsWidth = showAssistants ? `- var(--assistants-width) - var(--scrollbar-width)` : ''
-    const minusRightTopicsWidth = showRightTopics ? `- var(--assistants-width) - var(--scrollbar-width)` : ''
+    const minusAssistantsWidth = showAssistants ? '- var(--assistants-width)' : ''
+    const minusRightTopicsWidth = showRightTopics ? '- var(--assistants-width)' : ''
     return `calc(100vw - var(--sidebar-width) ${minusAssistantsWidth} ${minusRightTopicsWidth})`
   }, [showAssistants, showTopics, topicPosition])
 
@@ -54,28 +55,30 @@ const Chat: FC<Props> = (props) => {
     }
   })
 
-  const contentSearchFilter = (node: Node): boolean => {
-    if (node.parentNode) {
-      let parentNode: HTMLElement | null = node.parentNode as HTMLElement
-      while (parentNode?.parentNode) {
-        if (parentNode.classList.contains('MessageFooter')) {
-          return false
-        }
+  const contentSearchFilter: NodeFilter = {
+    acceptNode(node) {
+      if (node.parentNode) {
+        let parentNode: HTMLElement | null = node.parentNode as HTMLElement
+        while (parentNode?.parentNode) {
+          if (parentNode.classList.contains('MessageFooter')) {
+            return NodeFilter.FILTER_REJECT
+          }
 
-        if (filterIncludeUser) {
-          if (parentNode?.classList.contains('message-content-container')) {
-            return true
+          if (filterIncludeUser) {
+            if (parentNode?.classList.contains('message-content-container')) {
+              return NodeFilter.FILTER_ACCEPT
+            }
+          } else {
+            if (parentNode?.classList.contains('message-content-container-assistant')) {
+              return NodeFilter.FILTER_ACCEPT
+            }
           }
-        } else {
-          if (parentNode?.classList.contains('message-content-container-assistant')) {
-            return true
-          }
+          parentNode = parentNode.parentNode as HTMLElement
         }
-        parentNode = parentNode.parentNode as HTMLElement
+        return NodeFilter.FILTER_REJECT
+      } else {
+        return NodeFilter.FILTER_REJECT
       }
-      return false
-    } else {
-      return false
     }
   }
 
@@ -106,8 +109,16 @@ const Chat: FC<Props> = (props) => {
   }
 
   return (
-    <Container id="chat" className={messageStyle}>
+    <Container id="chat" className={classNames([messageStyle, { 'multi-select-mode': isMultiSelectMode }])}>
       <Main ref={mainRef} id="chat-main" vertical flex={1} justify="space-between" style={{ maxWidth }}>
+        <Messages
+          key={props.activeTopic.id}
+          assistant={assistant}
+          topic={props.activeTopic}
+          setActiveTopic={props.setActiveTopic}
+          onComponentUpdate={messagesComponentUpdateHandler}
+          onFirstUpdate={messagesComponentFirstUpdateHandler}
+        />
         <ContentSearch
           ref={contentSearchRef}
           searchTarget={mainRef as React.RefObject<HTMLElement>}
@@ -115,16 +126,6 @@ const Chat: FC<Props> = (props) => {
           includeUser={filterIncludeUser}
           onIncludeUserChange={userOutlinedItemClickHandler}
         />
-        <MessagesContainer>
-          <Messages
-            key={props.activeTopic.id}
-            assistant={assistant}
-            topic={props.activeTopic}
-            setActiveTopic={props.setActiveTopic}
-            onComponentUpdate={messagesComponentUpdateHandler}
-            onFirstUpdate={messagesComponentFirstUpdateHandler}
-          />
-        </MessagesContainer>
         <QuickPanelProvider>
           <Inputbar assistant={assistant} setActiveTopic={props.setActiveTopic} topic={props.activeTopic} />
           {isMultiSelectMode && <MultiSelectActionPopup topic={props.activeTopic} />}
@@ -142,13 +143,6 @@ const Chat: FC<Props> = (props) => {
     </Container>
   )
 }
-
-const MessagesContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  flex: 1;
-`
 
 const Container = styled.div`
   display: flex;

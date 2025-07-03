@@ -11,13 +11,19 @@ electronLanguages:
   - en # for macOS
 directories:
   buildResources: build
+
+protocols:
+  - name: Cherry Studio
+    schemes:
+      - cherrystudio
 files:
   - '**/*'
-  - '!{.vscode,.yarn,.yarn-lock,.github,.cursorrules,.prettierrc}'
-  - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,eslint.config.mjs,dev-app-update.yml,CHANGELOG.md,README.md}'
-  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
-  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!**/{.vscode,.yarn,.yarn-lock,.github,.cursorrules,.prettierrc}'
+  - '!electron.vite.config.{js,ts,mjs,cjs}}'
+  - '!**/{.eslintignore,.eslintrc.js,.eslintrc.json,.eslintcache,root.eslint.config.js,eslint.config.js,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,eslint.config.mjs,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!**/{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!**/{tsconfig.json,tsconfig.tsbuildinfo,tsconfig.node.json,tsconfig.web.json}'
+  - '!**/{.editorconfig,.jekyll-metadata}'
   - '!src'
   - '!scripts'
   - '!local'
@@ -36,8 +42,11 @@ files:
   - '!**/*.{spec,test}.{js,jsx,ts,tsx}'
   - '!**/*.min.*.map'
   - '!**/*.d.ts'
+  - '!**/dist/es6/**'
+  - '!**/dist/demo/**'
+  - '!**/amd/**'
   - '!**/{.DS_Store,Thumbs.db,thumbs.db,__pycache__}'
-  - '!**/{LICENSE,LICENSE.txt,LICENSE-MIT.txt,*.LICENSE.txt,NOTICE.txt,README.md,readme.md,CHANGELOG.md}'
+  - '!**/{LICENSE,license,LICENSE.*,*.LICENSE.txt,NOTICE.txt,README.md,readme.md,CHANGELOG.md}'
   - '!node_modules/rollup-plugin-visualizer'
   - '!node_modules/js-tiktoken'
   - '!node_modules/@tavily/core/node_modules/js-tiktoken'
@@ -89,6 +98,7 @@ linux:
   artifactName: ${productName}-${version}-${arch}.${ext}
   target:
     - target: AppImage
+    - target: deb
   maintainer: electronjs.org
   category: Utility
   desktop:
@@ -106,10 +116,10 @@ afterSign: scripts/notarize.js
 artifactBuildCompleted: scripts/artifact-build-completed.js
 releaseInfo:
   releaseNotes: |
-    ⚠️ 注意：升级前请备份数据，否则将无法降级
-    文生图新增服务商 DMXAPI（限时免费）
-    输入框按钮支持拖拽排序
-    修复知识库搜索结果 100% 问题
-    修复拖拽多选消息相关问题
-    修复翻译回复内容导致内存异常问题
-    常规错误修复和优化
+    界面优化：优化多处界面样式，气泡样式改版，自动调整代码预览边栏宽度
+    知识库：修复知识库引用不显示问题，修复部分嵌入模型适配问题
+    备份与恢复：修复超过 2GB 大文件无法恢复问题
+    文件处理：添加 .doc 文件支持
+    划词助手：支持自定义 CSS 样式
+    MCP：基于 Pyodide 实现 Python MCP 服务
+    其他错误修复和优化

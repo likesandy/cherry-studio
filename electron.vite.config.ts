@@ -1,4 +1,5 @@
 import react from '@vitejs/plugin-react-swc'
+import { CodeInspectorPlugin } from 'code-inspector-plugin'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import { resolve } from 'path'
 import { visualizer } from 'rollup-plugin-visualizer'
@@ -9,25 +10,7 @@ const visualizerPlugin = (type: 'renderer' | 'main') => {
 
 export default defineConfig({
   main: {
-    plugins: [
-      externalizeDepsPlugin({
-        exclude: [
-          '@cherrystudio/embedjs',
-          '@cherrystudio/embedjs-openai',
-          '@cherrystudio/embedjs-loader-web',
-          '@cherrystudio/embedjs-loader-markdown',
-          '@cherrystudio/embedjs-loader-msoffice',
-          '@cherrystudio/embedjs-loader-xml',
-          '@cherrystudio/embedjs-loader-pdf',
-          '@cherrystudio/embedjs-loader-sitemap',
-          '@cherrystudio/embedjs-libsql',
-          '@cherrystudio/embedjs-loader-image',
-          'p-queue',
-          'webdav'
-        ]
-      }),
-      ...visualizerPlugin('main')
-    ],
+    plugins: [externalizeDepsPlugin(), ...visualizerPlugin('main')],
     resolve: {
       alias: {
         '@main': resolve('src/main'),
@@ -38,7 +21,13 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
-        external: ['@libsql/client', 'bufferutil', 'utf-8-validate']
+        external: ['@libsql/client', 'bufferutil', 'utf-8-validate'],
+        output: {
+          // 彻底禁用代码分割 - 返回 null 强制单文件打包
+          manualChunks: undefined,
+          // 内联所有动态导入，这是关键配置
+          inlineDynamicImports: true
+        }
       },
       sourcemap: process.env.NODE_ENV === 'development'
     },
@@ -72,6 +61,14 @@ export default defineConfig({
           ]
         ]
       }),
+      // 只在开发环境下启用 CodeInspectorPlugin
+      ...(process.env.NODE_ENV === 'development'
+        ? [
+            CodeInspectorPlugin({
+              bundler: 'vite'
+            })
+          ]
+        : []),
       ...visualizerPlugin('renderer')
     ],
     resolve: {
@@ -81,12 +78,16 @@ export default defineConfig({
       }
     },
     optimizeDeps: {
-      exclude: ['pyodide']
+      exclude: ['pyodide'],
+      esbuildOptions: {
+        target: 'esnext' // for dev
+      }
     },
     worker: {
       format: 'es'
     },
     build: {
+      target: 'esnext', // for build
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/renderer/index.html'),

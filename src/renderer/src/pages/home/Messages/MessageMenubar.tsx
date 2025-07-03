@@ -1,25 +1,28 @@
-import { CheckOutlined, EditOutlined, MenuOutlined, QuestionCircleOutlined, SyncOutlined } from '@ant-design/icons'
+import { CheckOutlined, EditOutlined, QuestionCircleOutlined, SyncOutlined } from '@ant-design/icons'
 import ObsidianExportPopup from '@renderer/components/Popups/ObsidianExportPopup'
 import SelectModelPopup from '@renderer/components/Popups/SelectModelPopup'
+import { isVisionModel } from '@renderer/config/models'
 import { TranslateLanguageOptions } from '@renderer/config/translate'
 import { useMessageEditing } from '@renderer/context/MessageEditingContext'
 import { useChatContext } from '@renderer/hooks/useChatContext'
 import { useMessageOperations, useTopicLoading } from '@renderer/hooks/useMessageOperations'
+import { useMessageStyle } from '@renderer/hooks/useSettings'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
 import { getMessageTitle } from '@renderer/services/MessagesService'
 import { translateText } from '@renderer/services/TranslateService'
 import store, { RootState } from '@renderer/store'
 import { messageBlocksSelectors } from '@renderer/store/messageBlock'
-import type { Model } from '@renderer/types'
-import type { Assistant, Topic } from '@renderer/types'
-import type { Message } from '@renderer/types/newMessage'
+import { selectMessagesForTopic } from '@renderer/store/newMessage'
+import type { Assistant, Model, Topic } from '@renderer/types'
+import { type Message, MessageBlockType } from '@renderer/types/newMessage'
 import { captureScrollableDivAsBlob, captureScrollableDivAsDataURL } from '@renderer/utils'
+import { copyMessageAsPlainText } from '@renderer/utils/copy'
 import {
   exportMarkdownToJoplin,
-  exportMarkdownToNotion,
   exportMarkdownToSiyuan,
   exportMarkdownToYuque,
   exportMessageAsMarkdown,
+  exportMessageToNotion,
   messageToMarkdown
 } from '@renderer/utils/export'
 // import { withMessageThought } from '@renderer/utils/formats'
@@ -27,8 +30,20 @@ import { removeTrailingDoubleSpaces } from '@renderer/utils/markdown'
 import { findMainTextBlocks, findTranslationBlocks, getMainTextContent } from '@renderer/utils/messageUtils/find'
 import { Dropdown, Popconfirm, Tooltip } from 'antd'
 import dayjs from 'dayjs'
-import { AtSign, Copy, Languages, Menu, RefreshCw, Save, Share, Split, ThumbsUp, Trash } from 'lucide-react'
-import { FilePenLine } from 'lucide-react'
+import {
+  AtSign,
+  Copy,
+  FilePenLine,
+  Languages,
+  ListChecks,
+  Menu,
+  RefreshCw,
+  Save,
+  Share,
+  Split,
+  ThumbsUp,
+  Trash
+} from 'lucide-react'
 import { FC, memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -66,6 +81,9 @@ const MessageMenubar: FC<Props> = (props) => {
     appendAssistantResponse,
     removeMessageBlock
   } = useMessageOperations(topic)
+
+  const { isBubbleStyle } = useMessageStyle()
+
   const loading = useTopicLoading(topic)
 
   const isUserMessage = message.role === 'user'
@@ -119,10 +137,13 @@ const MessageMenubar: FC<Props> = (props) => {
   const handleResendUserMessage = useCallback(
     async (messageUpdate?: Message) => {
       if (!loading) {
-        await resendMessage(messageUpdate ?? message, assistant)
+        const assistantWithTopicPrompt = topic.prompt
+          ? { ...assistant, prompt: `${assistant.prompt}\n${topic.prompt}` }
+          : assistant
+        await resendMessage(messageUpdate ?? message, assistantWithTopicPrompt)
       }
     },
-    [assistant, loading, message, resendMessage]
+    [assistant, loading, message, resendMessage, topic.prompt]
   )
 
   const { startEditing } = useMessageEditing()
@@ -154,7 +175,7 @@ const MessageMenubar: FC<Props> = (props) => {
   )
 
   const isEditable = useMemo(() => {
-    return findMainTextBlocks(message).length === 1
+    return findMainTextBlocks(message).length > 0 // 使用 MCP Server 后会有大于一段 MatinTextBlock
   }, [message])
 
   const dropdownItems = useMemo(
@@ -187,7 +208,7 @@ const MessageMenubar: FC<Props> = (props) => {
       {
         label: t('chat.multiple.select'),
         key: 'multi-select',
-        icon: <MenuOutlined size={16} />,
+        icon: <ListChecks size={16} />,
         onClick: () => {
           toggleMultiSelectMode(true)
         }
@@ -197,6 +218,11 @@ const MessageMenubar: FC<Props> = (props) => {
         key: 'export',
         icon: <Share size={16} color="var(--color-icon)" style={{ marginTop: 3 }} />,
         children: [
+          exportMenuOptions.plain_text && {
+            label: t('chat.topics.copy.plain_text'),
+            key: 'copy_message_plain_text',
+            onClick: () => copyMessageAsPlainText(message)
+          },
           exportMenuOptions.image && {
             label: t('chat.topics.copy.image'),
             key: 'img',
@@ -244,7 +270,7 @@ const MessageMenubar: FC<Props> = (props) => {
             onClick: async () => {
               const title = await getMessageTitle(message)
               const markdown = messageToMarkdown(message)
-              exportMarkdownToNotion(title, markdown)
+              exportMessageToNotion(title, markdown, message)
             }
           },
           exportMenuOptions.yuque && {
@@ -260,9 +286,8 @@ const MessageMenubar: FC<Props> = (props) => {
             label: t('chat.topics.export.obsidian'),
             key: 'obsidian',
             onClick: async () => {
-              const markdown = messageToMarkdown(message)
               const title = topic.name?.replace(/\//g, '_') || 'Untitled'
-              await ObsidianExportPopup.show({ title, markdown, processingMethod: '1' })
+              await ObsidianExportPopup.show({ title, message, processingMethod: '1' })
             }
           },
           exportMenuOptions.joplin && {
@@ -270,8 +295,7 @@ const MessageMenubar: FC<Props> = (props) => {
             key: 'joplin',
             onClick: async () => {
               const title = await getMessageTitle(message)
-              const markdown = messageToMarkdown(message)
-              exportMarkdownToJoplin(title, markdown)
+              exportMarkdownToJoplin(title, message)
             }
           },
           exportMenuOptions.siyuan && {
@@ -308,17 +332,55 @@ const MessageMenubar: FC<Props> = (props) => {
     // const _message = resetAssistantMessage(message, selectedModel)
     // editMessage(message.id, { ..._message }) // REMOVED
 
+    const assistantWithTopicPrompt = topic.prompt
+      ? { ...assistant, prompt: `${assistant.prompt}\n${topic.prompt}` }
+      : assistant
+
     // Call the function from the hook
-    regenerateAssistantMessage(message, assistant)
+    regenerateAssistantMessage(message, assistantWithTopicPrompt)
   }
 
-  const onMentionModel = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (loading) return
-    const selectedModel = await SelectModelPopup.show({ model })
-    if (!selectedModel) return
-    appendAssistantResponse(message, selectedModel, { ...assistant, model: selectedModel })
-  }
+  // 按条件筛选能够提及的模型，该函数仅在isAssistantMessage时会用到
+  const mentionModelFilter = useMemo(() => {
+    if (!isAssistantMessage) {
+      return () => true
+    }
+    const state = store.getState()
+    const topicMessages: Message[] = selectMessagesForTopic(state, topic.id)
+    // 理论上助手消息只会关联一条用户消息
+    const relatedUserMessage = topicMessages.find((msg) => {
+      return msg.role === 'user' && message.askId === msg.id
+    })
+    // 无关联用户消息时，默认返回所有模型
+    if (!relatedUserMessage) {
+      return () => true
+    }
+
+    const relatedUserMessageBlocks = relatedUserMessage.blocks.map((msgBlockId) =>
+      messageBlocksSelectors.selectById(store.getState(), msgBlockId)
+    )
+
+    if (!relatedUserMessageBlocks) {
+      return () => true
+    }
+
+    if (relatedUserMessageBlocks.some((block) => block && block.type === MessageBlockType.IMAGE)) {
+      return (m: Model) => isVisionModel(m)
+    } else {
+      return () => true
+    }
+  }, [isAssistantMessage, message.askId, topic.id])
+
+  const onMentionModel = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation()
+      if (loading) return
+      const selectedModel = await SelectModelPopup.show({ model, modelFilter: mentionModelFilter })
+      if (!selectedModel) return
+      appendAssistantResponse(message, selectedModel, { ...assistant, model: selectedModel })
+    },
+    [appendAssistantResponse, assistant, loading, mentionModelFilter, message, model]
+  )
 
   const onUseful = useCallback(
     (e: React.MouseEvent) => {
@@ -334,24 +396,29 @@ const MessageMenubar: FC<Props> = (props) => {
     return translationBlocks.length > 0
   }, [message])
 
+  const softHoverBg = isBubbleStyle && !isLastMessage
+
   return (
     <MenusBar className={`menubar ${isLastMessage && 'show'}`}>
       {message.role === 'user' && (
         <Tooltip title={t('common.regenerate')} mouseEnterDelay={0.8}>
-          <ActionButton className="message-action-button" onClick={() => handleResendUserMessage()}>
+          <ActionButton
+            className="message-action-button"
+            onClick={() => handleResendUserMessage()}
+            $softHoverBg={isBubbleStyle}>
             <SyncOutlined />
           </ActionButton>
         </Tooltip>
       )}
       {message.role === 'user' && (
         <Tooltip title={t('common.edit')} mouseEnterDelay={0.8}>
-          <ActionButton className="message-action-button" onClick={onEdit}>
+          <ActionButton className="message-action-button" onClick={onEdit} $softHoverBg={softHoverBg}>
             <EditOutlined />
           </ActionButton>
         </Tooltip>
       )}
       <Tooltip title={t('common.copy')} mouseEnterDelay={0.8}>
-        <ActionButton className="message-action-button" onClick={onCopy}>
+        <ActionButton className="message-action-button" onClick={onCopy} $softHoverBg={softHoverBg}>
           {!copied && <Copy size={16} />}
           {copied && <CheckOutlined style={{ color: 'var(--color-primary)' }} />}
         </ActionButton>
@@ -368,7 +435,7 @@ const MessageMenubar: FC<Props> = (props) => {
             mouseEnterDelay={0.8}
             open={showRegenerateTooltip}
             onOpenChange={setShowRegenerateTooltip}>
-            <ActionButton className="message-action-button">
+            <ActionButton className="message-action-button" $softHoverBg={softHoverBg}>
               <RefreshCw size={16} />
             </ActionButton>
           </Tooltip>
@@ -376,7 +443,7 @@ const MessageMenubar: FC<Props> = (props) => {
       )}
       {isAssistantMessage && (
         <Tooltip title={t('message.mention.title')} mouseEnterDelay={0.8}>
-          <ActionButton className="message-action-button" onClick={onMentionModel}>
+          <ActionButton className="message-action-button" onClick={onMentionModel} $softHoverBg={softHoverBg}>
             <AtSign size={16} />
           </ActionButton>
         </Tooltip>
@@ -384,6 +451,11 @@ const MessageMenubar: FC<Props> = (props) => {
       {!isUserMessage && (
         <Dropdown
           menu={{
+            style: {
+              maxHeight: 250,
+              overflowY: 'auto',
+              backgroundClip: 'border-box'
+            },
             items: [
               ...TranslateLanguageOptions.map((item) => ({
                 label: item.emoji + ' ' + item.label,
@@ -439,10 +511,13 @@ const MessageMenubar: FC<Props> = (props) => {
             onClick: (e) => e.domEvent.stopPropagation()
           }}
           trigger={['click']}
-          placement="topRight"
+          placement="top"
           arrow>
           <Tooltip title={t('chat.translate')} mouseEnterDelay={1.2}>
-            <ActionButton className="message-action-button" onClick={(e) => e.stopPropagation()}>
+            <ActionButton
+              className="message-action-button"
+              onClick={(e) => e.stopPropagation()}
+              $softHoverBg={softHoverBg}>
               <Languages size={16} />
             </ActionButton>
           </Tooltip>
@@ -450,7 +525,7 @@ const MessageMenubar: FC<Props> = (props) => {
       )}
       {isAssistantMessage && isGrouped && (
         <Tooltip title={t('chat.message.useful')} mouseEnterDelay={0.8}>
-          <ActionButton className="message-action-button" onClick={onUseful}>
+          <ActionButton className="message-action-button" onClick={onUseful} $softHoverBg={softHoverBg}>
             {message.useful ? (
               <ThumbsUp size={17.5} fill="var(--color-primary)" strokeWidth={0} />
             ) : (
@@ -465,7 +540,7 @@ const MessageMenubar: FC<Props> = (props) => {
         icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
         onOpenChange={(open) => open && setShowDeleteTooltip(false)}
         onConfirm={() => deleteMessage(message.id)}>
-        <ActionButton className="message-action-button" onClick={(e) => e.stopPropagation()}>
+        <ActionButton className="message-action-button" onClick={(e) => e.stopPropagation()} $softHoverBg={softHoverBg}>
           <Tooltip
             title={t('common.delete')}
             mouseEnterDelay={1}
@@ -479,9 +554,11 @@ const MessageMenubar: FC<Props> = (props) => {
         <Dropdown
           menu={{ items: dropdownItems, onClick: (e) => e.domEvent.stopPropagation() }}
           trigger={['click']}
-          placement="topRight"
-          arrow>
-          <ActionButton className="message-action-button" onClick={(e) => e.stopPropagation()}>
+          placement="topRight">
+          <ActionButton
+            className="message-action-button"
+            onClick={(e) => e.stopPropagation()}
+            $softHoverBg={softHoverBg}>
             <Menu size={19} />
           </ActionButton>
         </Dropdown>
@@ -498,7 +575,7 @@ const MenusBar = styled.div`
   gap: 6px;
 `
 
-const ActionButton = styled.div`
+const ActionButton = styled.div<{ $softHoverBg?: boolean }>`
   cursor: pointer;
   border-radius: 8px;
   display: flex;
@@ -509,8 +586,11 @@ const ActionButton = styled.div`
   height: 30px;
   transition: all 0.2s ease;
   &:hover {
-    background-color: var(--color-background-mute);
-    .anticon {
+    background-color: ${(props) =>
+      props.$softHoverBg ? 'var(--color-background-soft)' : 'var(--color-background-mute)'};
+    color: var(--color-text-1);
+    .anticon,
+    .lucide {
       color: var(--color-text-1);
     }
   }
@@ -519,9 +599,6 @@ const ActionButton = styled.div`
     cursor: pointer;
     font-size: 14px;
     color: var(--color-icon);
-  }
-  &:hover {
-    color: var(--color-text-1);
   }
   .icon-at {
     font-size: 16px;

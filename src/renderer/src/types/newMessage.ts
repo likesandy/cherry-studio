@@ -1,4 +1,4 @@
-import { CompletionUsage } from 'openai/resources'
+import type { CompletionUsage } from 'openai/resources'
 
 import type {
   Assistant,
@@ -170,10 +170,12 @@ export type Message = {
   modelId?: string
   model?: Model
   type?: 'clear'
-  isPreset?: boolean
   useful?: boolean
   askId?: string // 关联的问题消息ID
   mentions?: Model[]
+  /**
+   * @deprecated
+   */
   enabledMCPs?: MCPServer[]
 
   usage?: Usage
@@ -205,8 +207,14 @@ export interface MessageInputBaseParams {
   topic: Topic
   content?: string
   files?: FileType[]
+  /**
+   * @deprecated
+   */
   knowledgeBaseIds?: string[]
   mentions?: Model[]
+  /**
+   * @deprecated
+   */
   enabledMCPs?: MCPServer[]
   usage?: CompletionUsage
 }

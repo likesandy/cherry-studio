@@ -15,9 +15,11 @@ import * as fs from 'fs'
 import { writeFileSync } from 'fs'
 import { readFile } from 'fs/promises'
 import officeParser from 'officeparser'
+import { getDocument } from 'officeparser/pdfjs-dist-build/pdf.js'
 import * as path from 'path'
 import { chdir } from 'process'
 import { v4 as uuidv4 } from 'uuid'
+import WordExtractor from 'word-extractor'
 
 class FileStorage {
   private storageDir = getFilesDir()
@@ -219,10 +221,20 @@ class FileStorage {
   public readFile = async (_: Electron.IpcMainInvokeEvent, id: string): Promise<string> => {
     const filePath = path.join(this.storageDir, id)
 
-    if (documentExts.includes(path.extname(filePath))) {
+    const fileExtension = path.extname(filePath)
+
+    if (documentExts.includes(fileExtension)) {
       const originalCwd = process.cwd()
       try {
         chdir(this.tempDir)
+
+        if (fileExtension === '.doc') {
+          const extractor = new WordExtractor()
+          const extracted = await extractor.extract(filePath)
+          chdir(originalCwd)
+          return extracted.getBody()
+        }
+
         const data = await officeParser.parseOfficeAsync(filePath)
         chdir(originalCwd)
         return data
@@ -268,12 +280,67 @@ class FileStorage {
     }
   }
 
+  public saveBase64Image = async (_: Electron.IpcMainInvokeEvent, base64Data: string): Promise<FileType> => {
+    try {
+      if (!base64Data) {
+        throw new Error('Base64 data is required')
+      }
+
+      // 移除 base64 头部信息（如果存在）
+      const base64String = base64Data.replace(/^data:.*;base64,/, '')
+      const buffer = Buffer.from(base64String, 'base64')
+      const uuid = uuidv4()
+      const ext = '.png'
+      const destPath = path.join(this.storageDir, uuid + ext)
+
+      logger.info('[FileStorage] Saving base64 image:', {
+        storageDir: this.storageDir,
+        destPath,
+        bufferSize: buffer.length
+      })
+
+      // 确保目录存在
+      if (!fs.existsSync(this.storageDir)) {
+        fs.mkdirSync(this.storageDir, { recursive: true })
+      }
+
+      await fs.promises.writeFile(destPath, buffer)
+
+      const fileMetadata: FileType = {
+        id: uuid,
+        origin_name: uuid + ext,
+        name: uuid + ext,
+        path: destPath,
+        created_at: new Date().toISOString(),
+        size: buffer.length,
+        ext: ext.slice(1),
+        type: getFileType(ext),
+        count: 1
+      }
+
+      return fileMetadata
+    } catch (error) {
+      logger.error('[FileStorage] Failed to save base64 image:', error)
+      throw error
+    }
+  }
+
   public base64File = async (_: Electron.IpcMainInvokeEvent, id: string): Promise<{ data: string; mime: string }> => {
     const filePath = path.join(this.storageDir, id)
     const buffer = await fs.promises.readFile(filePath)
     const base64 = buffer.toString('base64')
     const mime = `application/${path.extname(filePath).slice(1)}`
     return { data: base64, mime }
+  }
+
+  public pdfPageCount = async (_: Electron.IpcMainInvokeEvent, id: string): Promise<number> => {
+    const filePath = path.join(this.storageDir, id)
+    const buffer = await fs.promises.readFile(filePath)
+
+    const doc = await getDocument({ data: buffer }).promise
+    const pages = doc.numPages
+    await doc.destroy()
+    return pages
   }
 
   public binaryImage = async (_: Electron.IpcMainInvokeEvent, id: string): Promise<{ data: Buffer; mime: string }> => {
@@ -296,7 +363,7 @@ class FileStorage {
   public open = async (
     _: Electron.IpcMainInvokeEvent,
     options: OpenDialogOptions
-  ): Promise<{ fileName: string; filePath: string; content: Buffer } | null> => {
+  ): Promise<{ fileName: string; filePath: string; content?: Buffer; size: number } | null> => {
     try {
       const result: OpenDialogReturnValue = await dialog.showOpenDialog({
         title: '打开文件',
@@ -308,8 +375,16 @@ class FileStorage {
       if (!result.canceled && result.filePaths.length > 0) {
         const filePath = result.filePaths[0]
         const fileName = filePath.split('/').pop() || ''
-        const content = await readFile(filePath)
-        return { fileName, filePath, content }
+        const stats = await fs.promises.stat(filePath)
+
+        // If the file is less than 2GB, read the content
+        if (stats.size < 2 * 1024 * 1024 * 1024) {
+          const content = await readFile(filePath)
+          return { fileName, filePath, content, size: stats.size }
+        }
+
+        // For large files, only return file information, do not read content
+        return { fileName, filePath, size: stats.size }
       }
 
       return null

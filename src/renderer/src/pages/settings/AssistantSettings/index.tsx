@@ -11,7 +11,6 @@ import styled from 'styled-components'
 
 import AssistantKnowledgeBaseSettings from './AssistantKnowledgeBaseSettings'
 import AssistantMCPSettings from './AssistantMCPSettings'
-import AssistantMessagesSettings from './AssistantMessagesSettings'
 import AssistantModelSettings from './AssistantModelSettings'
 import AssistantPromptSettings from './AssistantPromptSettings'
 import AssistantRegularPromptsSettings from './AssistantRegularPromptsSettings'
@@ -63,10 +62,6 @@ const AssistantSettingPopupContainer: React.FC<Props> = ({ resolve, tab, ...prop
       key: 'model',
       label: t('assistants.settings.model')
     },
-    {
-      key: 'messages',
-      label: t('assistants.settings.preset_messages')
-    },
     showKnowledgeIcon && {
       key: 'knowledge_base',
       label: t('assistants.settings.knowledge_base')
@@ -94,12 +89,14 @@ const AssistantSettingPopupContainer: React.FC<Props> = ({ resolve, tab, ...prop
       styles={{
         content: {
           padding: 0,
-          overflow: 'hidden',
-          background: 'var(--color-background)'
+          overflow: 'hidden'
         },
-        header: { padding: '10px 15px', borderBottom: '0.5px solid var(--color-border)', margin: 0 }
+        header: { padding: '10px 15px', borderBottom: '0.5px solid var(--color-border)', margin: 0, borderRadius: 0 },
+        body: {
+          padding: 0
+        }
       }}
-      width="70vw"
+      width="min(800px, 70vw)"
       height="80vh"
       centered>
       <HStack>
@@ -121,13 +118,6 @@ const AssistantSettingPopupContainer: React.FC<Props> = ({ resolve, tab, ...prop
           )}
           {menu === 'model' && (
             <AssistantModelSettings
-              assistant={assistant}
-              updateAssistant={updateAssistant}
-              updateAssistantSettings={updateAssistantSettings}
-            />
-          )}
-          {menu === 'messages' && (
-            <AssistantMessagesSettings
               assistant={assistant}
               updateAssistant={updateAssistant}
               updateAssistantSettings={updateAssistantSettings}
@@ -157,15 +147,14 @@ const AssistantSettingPopupContainer: React.FC<Props> = ({ resolve, tab, ...prop
 }
 
 const LeftMenu = styled.div`
-  background-color: var(--color-background);
   height: calc(80vh - 20px);
   border-right: 0.5px solid var(--color-border);
 `
 
 const Settings = styled.div`
   flex: 1;
-  padding: 10px 20px;
-  height: calc(80vh - 20px);
+  padding: 16px 16px;
+  height: calc(80vh - 16px);
   overflow-y: scroll;
 `
 
@@ -175,6 +164,7 @@ const StyledModal = styled(Modal)`
   }
   .ant-modal-close {
     top: 4px;
+    right: 4px;
   }
   .ant-menu-item {
     height: 36px;
