@@ -2,6 +2,7 @@ import EditableNumber from '@renderer/components/EditableNumber'
 import Scrollbar from '@renderer/components/Scrollbar'
 import Selector from '@renderer/components/Selector'
 import { isMac, isWin } from '@renderer/config/constant'
+import { translateLanguageOptions } from '@renderer/config/translate'
 import { useSettings } from '@renderer/hooks/useSettings'
 import { SettingDivider, SettingRow, SettingRowTitle } from '@renderer/pages/settings'
 import { useAppDispatch } from '@renderer/store'
@@ -131,17 +132,97 @@ const SettingsTab: FC = () => {
         </SettingRow>
         <SettingDivider />
         <SettingRow>
+          <SettingRowTitleSmall>{t('settings.messages.input.show_estimated_tokens')}</SettingRowTitleSmall>
+          <Switch
+            size="small"
+            checked={showInputEstimatedTokens}
+            onChange={(checked) => dispatch(setShowInputEstimatedTokens(checked))}
+          />
+        </SettingRow>
+        <SettingDivider />
+        <SettingRow>
+          <SettingRowTitleSmall>{t('settings.messages.input.paste_long_text_as_file')}</SettingRowTitleSmall>
+          <Switch
+            size="small"
+            checked={pasteLongTextAsFile}
+            onChange={(checked) => dispatch(setPasteLongTextAsFile(checked))}
+          />
+        </SettingRow>
+        {pasteLongTextAsFile && (
+          <>
+            <SettingDivider />
+            <SettingRow>
+              <SettingRowTitleSmall>{t('settings.messages.input.paste_long_text_threshold')}</SettingRowTitleSmall>
+              <EditableNumber
+                size="small"
+                min={500}
+                max={10000}
+                step={100}
+                value={pasteLongTextThreshold}
+                onChange={(value) => dispatch(setPasteLongTextThreshold(value ?? 500))}
+                style={{ width: 80, backgroundColor: 'transparent' }}
+              />
+            </SettingRow>
+          </>
+        )}
+        <SettingDivider />
+        <SettingRow>
+          <SettingRowTitleSmall>{t('settings.messages.markdown_rendering_input_message')}</SettingRowTitleSmall>
+          <Switch
+            size="small"
+            checked={renderInputMessageAsMarkdown}
+            onChange={(checked) => dispatch(setRenderInputMessageAsMarkdown(checked))}
+          />
+        </SettingRow>
+        <SettingDivider />
+        {!language.startsWith('en') && (
+          <>
+            <SettingRow>
+              <SettingRowTitleSmall>{t('settings.input.auto_translate_with_space')}</SettingRowTitleSmall>
+              <Switch
+                size="small"
+                checked={autoTranslateWithSpace}
+                onChange={(checked) => dispatch(setAutoTranslateWithSpace(checked))}
+              />
+            </SettingRow>
+            <SettingDivider />
+          </>
+        )}
+        <SettingRow>
+          <SettingRowTitleSmall>{t('settings.input.show_translate_confirm')}</SettingRowTitleSmall>
+          <Switch
+            size="small"
+            checked={showTranslateConfirm}
+            onChange={(checked) => dispatch(setShowTranslateConfirm(checked))}
+          />
+        </SettingRow>
+        <SettingDivider />
+        <SettingRow>
+          <SettingRowTitleSmall>{t('settings.messages.input.enable_quick_triggers')}</SettingRowTitleSmall>
+          <Switch
+            size="small"
+            checked={enableQuickPanelTriggers}
+            onChange={(checked) => dispatch(setEnableQuickPanelTriggers(checked))}
+          />
+        </SettingRow>
+        <SettingDivider />
+        <SettingRow>
+          <SettingRowTitleSmall>{t('settings.messages.input.enable_delete_model')}</SettingRowTitleSmall>
+          <Switch
+            size="small"
+            checked={enableBackspaceDeleteModel}
+            onChange={(checked) => dispatch(setEnableBackspaceDeleteModel(checked))}
+          />
+        </SettingRow>
+        <SettingDivider />
+        <SettingRow>
           <SettingRowTitleSmall>{t('settings.input.target_language')}</SettingRowTitleSmall>
           <Selector
-            value={targetLanguage || 'english'}
-            options={[
-              { value: 'chinese', label: t('settings.input.target_language.chinese') },
-              { value: 'chinese-traditional', label: t('settings.input.target_language.chinese-traditional') },
-              { value: 'english', label: t('settings.input.target_language.english') },
-              { value: 'japanese', label: t('settings.input.target_language.japanese') },
-              { value: 'russian', label: t('settings.input.target_language.russian') }
-            ]}
-            onChange={(value) => setTargetLanguage(value as TranslateLanguageVarious)}
+            value={targetLanguage}
+            onChange={(value) => setTargetLanguage(value)}
+            options={translateLanguageOptions.map((item) => {
+              return { value: item.langCode, label: item.emoji + ' ' + item.label() }
+            })}
           />
         </SettingRow>
         <SettingDivider />

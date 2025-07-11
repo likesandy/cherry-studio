@@ -6,7 +6,7 @@ import { TRANSLATE_PROMPT } from '@renderer/config/prompts'
 import db from '@renderer/databases'
 import i18n from '@renderer/i18n'
 import { getDefaultTopic } from '@renderer/services/AssistantService'
-import { Assistant, Provider, Topic, WebSearchProvider } from '@renderer/types'
+import { Assistant, LanguageCode, Provider, Topic, WebSearchProvider } from '@renderer/types'
 import { getDefaultGroupName, getLeadingEmoji, runAsyncFunction, uuid } from '@renderer/utils'
 import { UpgradeChannel } from '@shared/config/constant'
 import { isEmpty } from 'lodash'
@@ -898,6 +898,7 @@ const migrateConfig = {
   },
   '65': (state: RootState) => {
     try {
+      // @ts-ignore expect error
       state.settings.targetLanguage = 'english'
       return state
     } catch (error) {
@@ -1191,7 +1192,6 @@ const migrateConfig = {
       console.error(error)
       return state
     }
-
     return state
   },
   '87': (state: RootState) => {
@@ -1685,12 +1685,86 @@ const migrateConfig = {
           apiHost: 'https://api.ppinfra.com/v3/openai/'
         })
       }
+      state.assistants.assistants.forEach((assistant) => {
+        if (assistant.settings && assistant.settings.streamOutput === undefined) {
+          assistant.settings = {
+            ...assistant.settings,
+            streamOutput: true
+          }
+        }
+      })
       return state
     } catch (error) {
       return state
     }
   },
   '118': (state: RootState) => {
+    try {
+      addProvider(state, 'ph8')
+      state.llm.providers = moveProvider(state.llm.providers, 'ph8', 14)
+
+      if (!state.settings.userId) {
+        state.settings.userId = uuid()
+      }
+
+      state.llm.providers.forEach((provider) => {
+        if (provider.id === 'mistral') {
+          provider.type = 'mistral'
+        }
+      })
+
+      return state
+    } catch (error) {
+      return state
+    }
+  },
+  '119': (state: RootState) => {
+    try {
+      addProvider(state, 'new-api')
+      state.llm.providers = moveProvider(state.llm.providers, 'new-api', 16)
+      state.settings.disableHardwareAcceleration = false
+
+      return state
+    } catch (error) {
+      return state
+    }
+  },
+  '120': (state: RootState) => {
+    try {
+      if (!state.settings.s3) {
+        state.settings.s3 = settingsInitialState.s3
+      }
+
+      const langMap: Record<string, LanguageCode> = {
+        english: 'en-us',
+        chinese: 'zh-cn',
+        'chinese-traditional': 'zh-tw',
+        japanese: 'ja-jp',
+        russian: 'ru-ru'
+      }
+
+      const origin = state.settings.targetLanguage
+      const newLang = langMap[origin]
+      if (newLang) state.settings.targetLanguage = newLang
+      else state.settings.targetLanguage = 'en-us'
+
+      state.llm.providers.forEach((provider) => {
+        if (provider.id === 'azure-openai') {
+          provider.type = 'azure-openai'
+        }
+      })
+
+      state.settings.localBackupMaxBackups = 0
+      state.settings.localBackupSkipBackupFile = false
+      state.settings.localBackupDir = ''
+      state.settings.localBackupAutoSync = false
+      state.settings.localBackupSyncInterval = 0
+      return state
+    } catch (error) {
+      return state
+    }
+  },
+  '121': (state: RootState) => {
     try {
       // Step 1: 把默认助手模板下面的话题合并到主页列表的默认助手Id下面，保持默认助手模板的纯粹性
 
@@ -1780,13 +1854,6 @@ const migrateConfig = {
         topicIdsByAssistant
       }
 
-      return state
-    } catch (error) {
-      return state
-    }
-  },
-  '119': (state: RootState) => {
-    try {
       if (
         state.assistants &&
         state.assistants.defaultAssistant &&
@@ -1811,6 +1878,7 @@ const migrateConfig = {
 
       // @ts-ignore eslint-disable-next-line
       delete state.agents
+
       return state
     } catch (error) {
       return state

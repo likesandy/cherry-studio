@@ -102,7 +102,6 @@ const MessageItem: FC<Props> = ({
   const isAssistantMessage = message.role === 'assistant'
   const showMenubar = !hideMenuBar && !isStreaming && !message.status.includes('ing') && !isEditing
 
-  const messageBorder = showMessageDivider ? undefined : 'none'
   const messageBackground = getMessageBackground(isBubbleStyle, isAssistantMessage)
 
   const messageHighlightHandler = useCallback((highlight: boolean = true) => {
@@ -165,16 +164,10 @@ const MessageItem: FC<Props> = ({
         'message-user': !isAssistantMessage
       })}
       ref={messageContainerRef}
-      style={{ ...style, alignItems: isBubbleStyle ? (isAssistantMessage ? undefined : 'end') : undefined }}>
+      style={style}>
       <MessageHeader message={message} assistant={assistant} model={model} key={getModelUniqId(model)} topic={topic} />
       <MessageContentContainer
-        className={
-          message.role === 'user'
-            ? 'message-content-container message-content-container-user'
-            : message.role === 'assistant'
-              ? 'message-content-container message-content-container-assistant'
-              : 'message-content-container'
-        }
+        className="message-content-container"
         style={{
           fontFamily: messageFont === 'serif' ? 'var(--font-family-serif)' : 'var(--font-family)',
           fontSize,
@@ -186,13 +179,7 @@ const MessageItem: FC<Props> = ({
         </MessageErrorBoundary>
       </MessageContentContainer>
       {showMenubar && (
-        <MessageFooter
-          className="MessageFooter"
-          style={{
-            border: messageBorder,
-            flexDirection: isLastMessage || isBubbleStyle ? 'row-reverse' : undefined
-          }}>
-          <MessageTokens message={message} isLastMessage={isLastMessage} />
+        <MessageFooter className="MessageFooter" $isLastMessage={isLastMessage} $messageStyle={messageStyle}>
           <MessageMenubar
             message={message}
             assistant={assistant}
@@ -227,7 +214,7 @@ const MessageContainer = styled.div`
   padding: 0 24px;
   transform: translateZ(0);
   will-change: transform;
-  padding: 10px 10px 0 10px;
+  padding: 10px;
   border-radius: 10px;
   &.message-highlight {
     background-color: var(--color-primary-mute);
@@ -255,14 +242,15 @@ const MessageContentContainer = styled(Scrollbar)`
   overflow-y: auto;
 `
 
-const MessageFooter = styled.div`
+const MessageFooter = styled.div<{ $isLastMessage: boolean; $messageStyle: 'plain' | 'bubble' }>`
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  flex-direction: ${({ $isLastMessage, $messageStyle }) =>
+    $isLastMessage && $messageStyle === 'plain' ? 'row-reverse' : 'row'};
   align-items: center;
-  gap: 20px;
+  justify-content: space-between;
+  gap: 10px;
   margin-left: 46px;
-  margin-top: 2px;
+  margin-top: 8px;
   border-top: 0.5px dotted var(--color-border);
 `
 

@@ -1,6 +1,6 @@
 import { DownOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { Draggable, Droppable, DropResult } from '@hello-pangea/dnd'
-import DragableList from '@renderer/components/DragableList'
+import { DraggableList } from '@renderer/components/DraggableList'
 import AddAssistantPopup from '@renderer/components/Popups/AddAssistantPopup'
 import Scrollbar from '@renderer/components/Scrollbar'
 import { useAssistants, useDefaultAssistant } from '@renderer/hooks/useAssistant'
@@ -182,7 +182,7 @@ const Assistants: FC<AssistantsTabProps> = ({ searchValue }) => {
   if (assistantsTabSortType === 'tags') {
     return (
       <Container className="assistants-tab" ref={containerRef}>
-        <DragableList
+        <DraggableList
           droppableProps={{ type: 'TAG' }}
           list={filteredGroupedAssistants.map((_) => ({ ..._, disabled: _.tag === t('assistants.tags.untagged') }))}
           onUpdate={() => {}}
@@ -238,7 +238,7 @@ const Assistants: FC<AssistantsTabProps> = ({ searchValue }) => {
               )}
             </Droppable>
           )}
-        </DragableList>
+        </DraggableList>
         <AssistantAddItem onClick={onCreateAssistant}>
           <AssistantName>
             <PlusOutlined style={{ color: 'var(--color-text-2)', marginRight: 4 }} />
@@ -251,7 +251,7 @@ const Assistants: FC<AssistantsTabProps> = ({ searchValue }) => {
 
   return (
     <Container className="assistants-tab" ref={containerRef}>
-      <DragableList
+      <DraggableList
         list={filteredAssistants}
         onUpdate={updateAssistants}
         onDragStart={() => setDragging(true)}
@@ -269,7 +269,7 @@ const Assistants: FC<AssistantsTabProps> = ({ searchValue }) => {
             handleSortByChange={handleSortByChange}
           />
         )}
-      </DragableList>
+      </DraggableList>
       {!dragging && (
         <AssistantAddItem onClick={onCreateAssistant}>
           <AssistantName>
@@ -288,6 +288,7 @@ const Container = styled(Scrollbar)`
   display: flex;
   flex-direction: column;
   padding: 0 10px;
+  margin-top: 3px;
 `
 
 const TagsContainer = styled.div`
@@ -316,6 +317,12 @@ const GroupTitle = styled.div`
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  height: 24px;
+  margin: 5px 0;
   display: flex;
   flex-direction: row;
   justify-content: space-between;

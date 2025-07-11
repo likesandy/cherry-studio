@@ -1,4 +1,4 @@
-import { FileType, FileTypes } from '@renderer/types'
+import { FileMetadata, FileTypes } from '@renderer/types'
 import { t } from 'i18next'
 import VirtualList from 'rc-virtual-list'
 import React, { memo } from 'react'
@@ -11,14 +11,14 @@ interface FileListProps {
   list: {
     key: FileTypes | 'all' | string
     file: React.ReactNode
-    files?: FileType[]
+    files?: FileMetadata[]
     count?: number
     size: string
     ext: string
     created_at: string
     actions: React.ReactNode
   }[]
-  files?: FileType[]
+  files?: FileMetadata[]
 }
 
 const FileList: React.FC<FileListProps> = ({ id, list, files }) => {

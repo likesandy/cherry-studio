@@ -4,6 +4,7 @@ import {
   SendMessageShortcut,
   setAssistantIconType,
   setAutoCheckUpdate as _setAutoCheckUpdate,
+  setDisableHardwareAcceleration,
   setLaunchOnBoot,
   setLaunchToTray,
   setPinTopicsToTop,
@@ -96,6 +97,10 @@ export function useSettings() {
     },
     setTransparentWindow(transparentWindow: boolean) {
       dispatch(setTransparentWindow(transparentWindow))
+    },
+    setDisableHardwareAcceleration(disableHardwareAcceleration: boolean) {
+      dispatch(setDisableHardwareAcceleration(disableHardwareAcceleration))
+      window.api.setDisableHardwareAcceleration(disableHardwareAcceleration)
     }
   }
 }

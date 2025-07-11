@@ -11,7 +11,7 @@ import db from '@renderer/databases'
 import { handleDelete, handleRename, sortFiles, tempFilesSort } from '@renderer/services/FileAction'
 import FileManager from '@renderer/services/FileManager'
 import store from '@renderer/store'
-import { FileType, FileTypes } from '@renderer/types'
+import { FileMetadata, FileTypes } from '@renderer/types'
 import { formatFileSize } from '@renderer/utils'
 import { Button, Checkbox, Dropdown, Empty, Flex, Popconfirm } from 'antd'
 import dayjs from 'dayjs'
@@ -37,7 +37,7 @@ const FilesPage: FC = () => {
     setSelectedFileIds([])
   }, [fileType])
 
-  const files = useLiveQuery<FileType[]>(() => {
+  const files = useLiveQuery<FileMetadata[]>(() => {
     if (fileType === 'all') {
       return db.files.orderBy('count').toArray().then(tempFilesSort)
     }

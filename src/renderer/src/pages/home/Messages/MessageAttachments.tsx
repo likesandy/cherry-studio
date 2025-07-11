@@ -24,6 +24,13 @@ interface Props {
 }
 
 const MessageAttachments: FC<Props> = ({ block }) => {
+  // const handleCopyImage = async (image: FileMetadata) => {
+  //   const data = await FileManager.readFile(image)
+  //   const blob = new Blob([data], { type: 'image/png' })
+  //   const item = new ClipboardItem({ [blob.type]: blob })
+  //   await navigator.clipboard.write([item])
+  // }
+
   if (!block.file) {
     return null
   }

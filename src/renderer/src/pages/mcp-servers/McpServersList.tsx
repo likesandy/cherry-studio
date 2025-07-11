@@ -1,6 +1,6 @@
 import { EditOutlined } from '@ant-design/icons'
 import { nanoid } from '@reduxjs/toolkit'
-import DragableList from '@renderer/components/DragableList'
+import { DraggableList } from '@renderer/components/DraggableList'
 import Scrollbar from '@renderer/components/Scrollbar'
 import { useMCPServers } from '@renderer/hooks/useMCPServers'
 import { SettingTitle } from '@renderer/pages/settings'
@@ -14,7 +14,9 @@ import { useNavigate } from 'react-router'
 import styled from 'styled-components'
 
 import AddMcpServerModal from './AddMcpServerModal'
+import BuiltinMCPServersSection from './BuiltinMCPServersSection'
 import EditMcpJsonPopup from './EditMcpJsonPopup'
+import McpResourcesSection from './McpResourcesSection'
 import SyncServersPopup from './SyncServersPopup'
 
 const McpServersList: FC = () => {
@@ -117,7 +119,11 @@ const McpServersList: FC = () => {
           </Button>
         </ButtonGroup>
       </ListHeader>
-      <DragableList list={mcpServers} onUpdate={updateMcpServers} listStyle={{ marginBottom: 12 }}>
+      <DraggableList
+        style={{ width: '100%' }}
+        list={mcpServers}
+        onUpdate={updateMcpServers}
+        listStyle={{ marginBottom: 12 }}>
         {(server: MCPServer) => (
           <ServerCard key={server.id} onClick={() => navigate(`/mcp-servers/settings`, { state: { server } })}>
             <ServerHeader>
@@ -171,7 +177,7 @@ const McpServersList: FC = () => {
             </ServerFooter>
           </ServerCard>
         )}
-      </DragableList>
+      </DraggableList>
       {mcpServers.length === 0 && (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -179,6 +185,10 @@ const McpServersList: FC = () => {
           style={{ marginTop: 20 }}
         />
       )}
+
+      <McpResourcesSection />
+      <BuiltinMCPServersSection />
+
       <AddMcpServerModal
         visible={isAddModalVisible}
         onClose={() => setIsAddModalVisible(false)}
@@ -296,6 +306,7 @@ const ServerFooter = styled.div`
 
 const ButtonGroup = styled.div`
   display: flex;
+  align-items: center;
   gap: 8px;
 `
 

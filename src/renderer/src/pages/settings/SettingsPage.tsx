@@ -3,13 +3,14 @@ import { Spin } from 'antd'
 import {
   Cloud,
   Command,
-  Globe,
   HardDrive,
   Info,
   MonitorCog,
   Package,
+  PencilRuler,
   Rocket,
   Settings2,
+  SquareTerminal,
   TextCursorInput,
   Zap
 } from 'lucide-react'
@@ -27,7 +28,7 @@ import QuickAssistantSettings from './QuickAssistantSettings'
 import QuickPhraseSettings from './QuickPhraseSettings'
 import SelectionAssistantSettings from './SelectionAssistantSettings/SelectionAssistantSettings'
 import ShortcutSettings from './ShortcutSettings'
-import WebSearchSettings from './WebSearchSettings'
+import ToolSettings from './ToolSettings'
 
 const SettingsPage: FC = () => {
   const { pathname } = useLocation()
@@ -51,12 +52,6 @@ const SettingsPage: FC = () => {
               {t('settings.model')}
             </MenuItem>
           </MenuItemLink>
-          <MenuItemLink to="/settings/web-search">
-            <MenuItem className={isRoute('/settings/web-search')}>
-              <Globe size={18} />
-              {t('settings.websearch.title')}
-            </MenuItem>
-          </MenuItemLink>
           <MenuItemLink to="/settings/general">
             <MenuItem className={isRoute('/settings/general')}>
               <Settings2 size={18} />
@@ -67,6 +62,18 @@ const SettingsPage: FC = () => {
             <MenuItem className={isRoute('/settings/display')}>
               <MonitorCog size={18} />
               {t('settings.display.title')}
+            </MenuItem>
+          </MenuItemLink>
+          <MenuItemLink to="/settings/mcp">
+            <MenuItem className={isRoute('/settings/mcp')}>
+              <SquareTerminal size={18} />
+              {t('settings.mcp.title')}
+            </MenuItem>
+          </MenuItemLink>
+          <MenuItemLink to="/settings/tool">
+            <MenuItem className={isRoute('/settings/tool')}>
+              <PencilRuler size={18} />
+              {t('settings.tool.title')}
             </MenuItem>
           </MenuItemLink>
           <MenuItemLink to="/settings/shortcut">
@@ -117,8 +124,8 @@ const SettingsPage: FC = () => {
               }
             />
             <Route path="model" element={<ModelSettings />} />
-            <Route path="web-search" element={<WebSearchSettings />} />
-            <Route path="general" element={<GeneralSettings />} />
+            <Route path="tool/*" element={<ToolSettings />} />
+            <Route path="general/*" element={<GeneralSettings />} />
             <Route path="display" element={<DisplaySettings />} />
             <Route path="shortcut" element={<ShortcutSettings />} />
             <Route path="quickAssistant" element={<QuickAssistantSettings />} />

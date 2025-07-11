@@ -10,7 +10,7 @@ interface MessageTokensProps {
   isLastMessage?: boolean
 }
 
-const MessgeTokens: React.FC<MessageTokensProps> = ({ message }) => {
+const MessageTokens: React.FC<MessageTokensProps> = ({ message }) => {
   // const { generating } = useRuntime()
   const locateMessage = () => {
     EventEmitter.emit(EVENT_NAMES.LOCATE_MESSAGE + ':' + message.id, false)
@@ -107,4 +107,4 @@ const MessageMetadata = styled.div`
   }
 `
 
-export default MessgeTokens
+export default MessageTokens

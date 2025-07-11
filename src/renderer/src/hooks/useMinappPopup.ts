@@ -1,3 +1,4 @@
+import { DEFAULT_MIN_APPS } from '@renderer/config/minapps'
 import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useSettings } from '@renderer/hooks/useSettings' // 使用设置中的值
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
@@ -76,12 +77,10 @@ export const useMinappPopup = () => {
   /** Open a minapp by id (look up the minapp in DEFAULT_MIN_APPS) */
   const openMinappById = useCallback(
     (id: string, keepAlive: boolean = false) => {
-      import('@renderer/config/minapps').then(({ DEFAULT_MIN_APPS }) => {
-        const app = DEFAULT_MIN_APPS.find((app) => app?.id === id)
-        if (app) {
-          openMinapp(app, keepAlive)
-        }
-      })
+      const app = DEFAULT_MIN_APPS.find((app) => app?.id === id)
+      if (app) {
+        openMinapp(app, keepAlive)
+      }
     },
     [openMinapp]
   )
