@@ -1,4 +1,4 @@
-import DragableList from '@renderer/components/DragableList'
+import { DraggableList } from '@renderer/components/DraggableList'
 import MinAppIcon from '@renderer/components/Icons/MinAppIcon'
 import IndicatorLight from '@renderer/components/IndicatorLight'
 import { Center } from '@renderer/components/Layout'
@@ -84,7 +84,7 @@ const OpenedMinapps: FC = () => {
     <TabsContainer className="TabsContainer" style={{ marginBottom: 4 }}>
       <Divider />
       <TabsWrapper>
-        <DragableList
+        <DraggableList
           list={sortedApps}
           onUpdate={(newList) => {
             // 只更新固定应用的顺序
@@ -144,7 +144,7 @@ const OpenedMinapps: FC = () => {
               </Dropdown>
             )
           }}
-        </DragableList>
+        </DraggableList>
         {isEmpty(sortedApps) && (
           <Center>
             <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />

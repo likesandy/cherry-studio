@@ -1,5 +1,6 @@
-import { isLinux, isWin } from '@renderer/config/constant'
+import { isLinux, isMac, isWin } from '@renderer/config/constant'
 import { useFullscreen } from '@renderer/hooks/useFullscreen'
+import { useShowAssistants } from '@renderer/hooks/useStore'
 import type { FC, HTMLAttributes, PropsWithChildren } from 'react'
 import styled from 'styled-components'
 
@@ -24,9 +25,10 @@ export const NavbarRight: FC<Props> = ({ children, ...props }) => {
 
 export const NavbarMain: FC<Props> = ({ children, ...props }) => {
   const isFullscreen = useFullscreen()
+  const { showAssistants } = useShowAssistants()
 
   return (
-    <NavbarMainContainer {...props} $isFullscreen={isFullscreen}>
+    <NavbarMainContainer {...props} $isFullscreen={isFullscreen} $showAssistants={showAssistants}>
       {children}
     </NavbarMainContainer>
   )
@@ -51,7 +53,7 @@ const NavbarRightContainer = styled.div<{ $isFullscreen: boolean }>`
   justify-content: flex-end;
 `
 
-const NavbarMainContainer = styled.div<{ $isFullscreen: boolean }>`
+const NavbarMainContainer = styled.div<{ $isFullscreen: boolean; $showAssistants: boolean }>`
   flex: 1;
   display: flex;
   flex-direction: row;
@@ -65,6 +67,7 @@ const NavbarMainContainer = styled.div<{ $isFullscreen: boolean }>`
   color: var(--color-text-1);
   -webkit-app-region: drag;
   padding: 0 12px;
+  padding-left: ${({ $showAssistants }) => (isMac && !$showAssistants ? '70px' : '10px')};
 `
 
 const NavbarCenterContainer = styled.div`

@@ -266,7 +266,7 @@ const MainSidebar: FC = () => {
                 key: 'settings',
                 label: t('settings.title'),
                 icon: <Settings size={16} className="icon" />,
-                onClick: () => navigate('/settings/provider')
+                onClick: () => window.api.showSettingsWindow({ defaultTab: 'provider' })
               }
             ]
           }}>

@@ -42,6 +42,7 @@ import { findIndex } from 'lodash'
 import { FC, startTransition, useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
+import { useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 interface TopicsTabProps {
@@ -49,12 +50,14 @@ interface TopicsTabProps {
   style?: React.CSSProperties
 }
 
-const Topics: FC<TopicsTabProps> = ({ searchValue, style }) => {
+const Topics: FC<TopicsTabProps> = ({ searchValue }) => {
   const { activeAssistant, activeTopic, setActiveTopic } = useChat()
   const { assistants } = useAssistants()
   const { assistant, removeTopic, moveTopic, updateTopic, updateTopics } = useAssistant(activeAssistant.id)
   const { t } = useTranslation()
-  const { showTopicTime, pinTopicsToTop, topicPosition } = useSettings()
+  const { showTopicTime, pinTopicsToTop } = useSettings()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const topics = useTopicsForAssistant(activeAssistant.id)
 
@@ -173,9 +176,13 @@ const Topics: FC<TopicsTabProps> = ({ searchValue, style }) => {
       // await modelGenerating()
       startTransition(() => {
         setActiveTopic(topic)
+        // 如果当前不在聊天页面，导航到聊天页面
+        if (location.pathname !== '/') {
+          navigate('/')
+        }
       })
     },
-    [setActiveTopic]
+    [setActiveTopic, location.pathname, navigate]
   )
 
   const exportMenuOptions = useSelector((state: RootState) => state.settings.exportMenuOptions)

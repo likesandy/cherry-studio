@@ -31,6 +31,7 @@ import { pythonService } from './services/PythonService'
 import { FileServiceManager } from './services/remotefile/FileServiceManager'
 import { searchService } from './services/SearchService'
 import { SelectionService } from './services/SelectionService'
+import { SettingsWindowService } from './services/SettingsWindowService'
 import { registerShortcuts, unregisterAllShortcuts } from './services/ShortcutService'
 import storeSyncService from './services/StoreSyncService'
 import { themeService } from './services/ThemeService'
@@ -583,4 +584,7 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   ipcMain.handle(IpcChannel.Navigation_Url, (_, url: string) => {
     CacheService.set('navigation-url', url)
   })
+
+  // Settings Window
+  SettingsWindowService.registerIpcHandler()
 }

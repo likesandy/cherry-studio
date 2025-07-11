@@ -5,10 +5,12 @@ import Logger from 'electron-log'
 
 import { configManager } from './ConfigManager'
 import selectionService from './SelectionService'
+import { settingsWindowService } from './SettingsWindowService'
 import { windowService } from './WindowService'
 
 let showAppAccelerator: string | null = null
 let showMiniWindowAccelerator: string | null = null
+let showSettingsAccelerator: string | null = null
 let selectionAssistantToggleAccelerator: string | null = null
 let selectionAssistantSelectTextAccelerator: string | null = null
 
@@ -26,6 +28,10 @@ function getShortcutHandler(shortcut: Shortcut) {
       return (window: BrowserWindow) => handleZoomFactor([window], -0.1)
     case 'zoom_reset':
       return (window: BrowserWindow) => handleZoomFactor([window], 0, true)
+    case 'show_settings':
+      return () => {
+        settingsWindowService.showSettingsWindow()
+      }
     case 'show_app':
       return () => {
         windowService.toggleMainWindow()
@@ -146,9 +152,13 @@ export function registerShortcuts(window: BrowserWindow) {
         // only register universal shortcuts when needed
         if (
           onlyUniversalShortcuts &&
-          !['show_app', 'mini_window', 'selection_assistant_toggle', 'selection_assistant_select_text'].includes(
-            shortcut.key
-          )
+          ![
+            'show_app',
+            'mini_window',
+            'show_settings',
+            'selection_assistant_toggle',
+            'selection_assistant_select_text'
+          ].includes(shortcut.key)
         ) {
           return
         }
@@ -169,6 +179,10 @@ export function registerShortcuts(window: BrowserWindow) {
               return
             }
             showMiniWindowAccelerator = formatShortcutKey(shortcut.shortcut)
+            break
+
+          case 'show_settings':
+            showSettingsAccelerator = formatShortcutKey(shortcut.shortcut)
             break
 
           case 'selection_assistant_toggle':
@@ -222,6 +236,12 @@ export function registerShortcuts(window: BrowserWindow) {
         handler && globalShortcut.register(accelerator, () => handler(window))
       }
 
+      if (showSettingsAccelerator) {
+        const handler = getShortcutHandler({ key: 'show_settings' } as Shortcut)
+        const accelerator = convertShortcutFormat(showSettingsAccelerator)
+        handler && globalShortcut.register(accelerator, () => handler(window))
+      }
+
       if (selectionAssistantToggleAccelerator) {
         const handler = getShortcutHandler({ key: 'selection_assistant_toggle' } as Shortcut)
         const accelerator = convertShortcutFormat(selectionAssistantToggleAccelerator)
@@ -258,6 +278,7 @@ export function unregisterAllShortcuts() {
   try {
     showAppAccelerator = null
     showMiniWindowAccelerator = null
+    showSettingsAccelerator = null
     selectionAssistantToggleAccelerator = null
     selectionAssistantSelectTextAccelerator = null
     windowOnHandlers.forEach((handlers, window) => {

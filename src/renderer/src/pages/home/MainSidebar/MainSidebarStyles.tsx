@@ -52,8 +52,8 @@ export const Container = styled.div<{ transparent?: boolean }>`
   width: var(--assistants-width);
   max-width: var(--assistants-width);
   border-right: 0.5px solid var(--color-border);
-  height: var(--main-height);
-  min-height: var(--main-height);
+  height: calc(var(--main-height) - 50px);
+  min-height: calc(var(--main-height) - 50px);
   background: var(--color-background);
   padding-top: 10px;
   margin-top: 50px;

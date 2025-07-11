@@ -246,5 +246,8 @@ export enum IpcChannel {
 
   // Navigation
   Navigation_Url = 'navigation:url',
-  Navigation_Close = 'navigation:close'
+  Navigation_Close = 'navigation:close',
+
+  // Settings Window
+  SettingsWindow_Show = 'settings-window:show'
 }

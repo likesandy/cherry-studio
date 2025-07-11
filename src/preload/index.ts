@@ -322,7 +322,21 @@ const api = {
     url: (url: string) => ipcRenderer.invoke(IpcChannel.Navigation_Url, url)
   },
   setDisableHardwareAcceleration: (isDisable: boolean) =>
-    ipcRenderer.invoke(IpcChannel.App_SetDisableHardwareAcceleration, isDisable)
+    ipcRenderer.invoke(IpcChannel.App_SetDisableHardwareAcceleration, isDisable),
+
+  // Settings Window
+  showSettingsWindow: (options?: { defaultTab?: string }) =>
+    ipcRenderer.invoke(IpcChannel.SettingsWindow_Show, options),
+
+  on: (channel: string, func: any) => {
+    const listener = (_event: Electron.IpcRendererEvent, ...args: any[]) => {
+      func(...args)
+    }
+    ipcRenderer.on(channel, listener)
+    return () => {
+      ipcRenderer.off(channel, listener)
+    }
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
