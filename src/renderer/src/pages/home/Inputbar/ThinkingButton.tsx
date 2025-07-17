@@ -84,11 +84,7 @@ const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): Re
     if (isDoubaoModel) return 'doubao'
     if (isDeepResearchModel) return 'openai_deep_research'
     return 'default'
-<<<<<<< HEAD
-  }, [isGeminiModel, isGrokModel, isQwenModel, isDoubaoModel, isDeepResearchModel])
-=======
-  }, [isGeminiModel, isGrokModel, isQwenModel, isDoubaoModel, isGeminiFlashModel])
->>>>>>> main
+  }, [isGeminiModel, isGrokModel, isQwenModel, isDoubaoModel, isDeepResearchModel, isGeminiFlashModel])
 
   // 获取当前模型支持的选项
   const supportedOptions = useMemo(() => {
