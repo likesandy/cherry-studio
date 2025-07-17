@@ -17,6 +17,7 @@ import {
   MCPCallToolResponse,
   MCPTool,
   MCPToolResponse,
+  MemoryItem,
   Model,
   OpenAIServiceTier,
   Provider,
@@ -214,12 +215,14 @@ export abstract class BaseApiClient<
 
   public async getMessageContent(message: Message): Promise<string> {
     const content = getMainTextContent(message)
+
     if (isEmpty(content)) {
       return ''
     }
 
     const webSearchReferences = await this.getWebSearchReferencesFromCache(message)
     const knowledgeReferences = await this.getKnowledgeBaseReferencesFromCache(message)
+    const memoryReferences = this.getMemoryReferencesFromCache(message)
 
     // 添加偏移量以避免ID冲突
     const reindexedKnowledgeReferences = knowledgeReferences.map((ref) => ({
@@ -227,7 +230,7 @@ export abstract class BaseApiClient<
       id: ref.id + webSearchReferences.length // 为知识库引用的ID添加网络搜索引用的数量作为偏移量
     }))
 
-    const allReferences = [...webSearchReferences, ...reindexedKnowledgeReferences]
+    const allReferences = [...webSearchReferences, ...reindexedKnowledgeReferences, ...memoryReferences]
 
     Logger.log(`Found ${allReferences.length} references for ID: ${message.id}`, allReferences)
 
@@ -257,7 +260,7 @@ export abstract class BaseApiClient<
 
         for (const fileBlock of textFileBlocks) {
           const file = fileBlock.file
-          const fileContent = (await window.api.file.read(file.id + file.ext)).trim()
+          const fileContent = (await window.api.file.read(file.id + file.ext, true)).trim()
           const fileNameRow = 'file: ' + file.origin_name + '\n\n'
           text = text + fileNameRow + fileContent + divider
         }
@@ -269,6 +272,20 @@ export abstract class BaseApiClient<
     return ''
   }
 
+  private getMemoryReferencesFromCache(message: Message) {
+    const memories = window.keyv.get(`memory-search-${message.id}`) as MemoryItem[] | undefined
+    if (memories) {
+      const memoryReferences: KnowledgeReference[] = memories.map((mem, index) => ({
+        id: index + 1,
+        content: `${mem.memory} -- Created at: ${mem.createdAt}`,
+        sourceUrl: '',
+        type: 'memory'
+      }))
+      return memoryReferences
+    }
+    return []
+  }
+
   private async getWebSearchReferencesFromCache(message: Message) {
     const content = getMainTextContent(message)
     if (isEmpty(content)) {
@@ -277,6 +294,7 @@ export abstract class BaseApiClient<
     const webSearch: WebSearchResponse = window.keyv.get(`web-search-${message.id}`)
 
     if (webSearch) {
+      window.keyv.remove(`web-search-${message.id}`)
       return (webSearch.results as WebSearchProviderResponse).results.map(
         (result, index) =>
           ({
@@ -302,6 +320,7 @@ export abstract class BaseApiClient<
     const knowledgeReferences: KnowledgeReference[] = window.keyv.get(`knowledge-search-${message.id}`)
 
     if (!isEmpty(knowledgeReferences)) {
+      window.keyv.remove(`knowledge-search-${message.id}`)
       // Logger.log(`Found ${knowledgeReferences.length} knowledge base references in cache for ID: ${message.id}`)
       return knowledgeReferences
     }

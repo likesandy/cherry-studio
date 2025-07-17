@@ -7,6 +7,7 @@ import {
 } from '@renderer/components/Icons/SVGIcon'
 import { useQuickPanel } from '@renderer/components/QuickPanel'
 import {
+  GEMINI_FLASH_MODEL_REGEX,
   isDoubaoThinkingAutoModel,
   isOpenAIDeepResearchModel,
   isSupportedReasoningEffortGrokModel,
@@ -36,8 +37,9 @@ interface Props {
 // 模型类型到支持选项的映射表
 const MODEL_SUPPORTED_OPTIONS: Record<string, ThinkingOption[]> = {
   default: ['off', 'low', 'medium', 'high'],
-  grok: ['off', 'low', 'high'],
+  grok: ['low', 'high'],
   gemini: ['off', 'low', 'medium', 'high', 'auto'],
+  gemini_pro: ['low', 'medium', 'high', 'auto'],
   qwen: ['off', 'low', 'medium', 'high'],
   doubao: ['off', 'auto', 'high'],
   openai_deep_research: ['off', 'medium']
@@ -45,7 +47,7 @@ const MODEL_SUPPORTED_OPTIONS: Record<string, ThinkingOption[]> = {
 
 // 选项转换映射表：当选项不支持时使用的替代选项
 const OPTION_FALLBACK: Record<ThinkingOption, ThinkingOption> = {
-  off: 'off',
+  off: 'low', // off -> low (for Gemini Pro models)
   low: 'high',
   medium: 'high', // medium -> high (for Grok models)
   high: 'medium',
@@ -59,6 +61,7 @@ const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): Re
 
   const isGrokModel = isSupportedReasoningEffortGrokModel(model)
   const isGeminiModel = isSupportedThinkingTokenGeminiModel(model)
+  const isGeminiFlashModel = GEMINI_FLASH_MODEL_REGEX.test(model.id)
   const isQwenModel = isSupportedThinkingTokenQwenModel(model)
   const isDoubaoModel = isSupportedThinkingTokenDoubaoModel(model)
   const isDeepResearchModel = isOpenAIDeepResearchModel(model)
@@ -69,13 +72,23 @@ const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): Re
 
   // 确定当前模型支持的选项类型
   const modelType = useMemo(() => {
-    if (isGeminiModel) return 'gemini'
+    if (isGeminiModel) {
+      if (isGeminiFlashModel) {
+        return 'gemini'
+      } else {
+        return 'gemini_pro'
+      }
+    }
     if (isGrokModel) return 'grok'
     if (isQwenModel) return 'qwen'
     if (isDoubaoModel) return 'doubao'
     if (isDeepResearchModel) return 'openai_deep_research'
     return 'default'
+<<<<<<< HEAD
   }, [isGeminiModel, isGrokModel, isQwenModel, isDoubaoModel, isDeepResearchModel])
+=======
+  }, [isGeminiModel, isGrokModel, isQwenModel, isDoubaoModel, isGeminiFlashModel])
+>>>>>>> main
 
   // 获取当前模型支持的选项
   const supportedOptions = useMemo(() => {
@@ -185,7 +198,7 @@ const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): Re
   }))
 
   return (
-    <Tooltip placement="top" title={t('assistants.settings.reasoning_effort')} arrow>
+    <Tooltip placement="top" title={t('assistants.settings.reasoning_effort')} mouseLeaveDelay={0} arrow>
       <ToolbarButton type="text" onClick={handleOpenQuickPanel}>
         {getThinkingIcon()}
       </ToolbarButton>
