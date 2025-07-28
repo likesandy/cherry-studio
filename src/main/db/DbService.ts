@@ -1,12 +1,14 @@
+import { loggerService } from '@logger'
 import { drizzle } from 'drizzle-orm/libsql'
 import { migrate } from 'drizzle-orm/libsql/migrator'
 import { app } from 'electron'
-import Logger from 'electron-log'
 import path from 'path'
 import { pathToFileURL } from 'url'
 
 import Seeding from './seeding'
 import type { DbType } from './types'
+
+const logger = loggerService.withContext('DbService')
 
 const DB_NAME = 'cherrystudio.sqlite'
 const MIGRATIONS_BASE_PATH = 'migrations/sqlite-drizzle'
@@ -44,7 +46,7 @@ class DbService {
       await new Seed().migrate(this.db)
       return true
     } catch (error) {
-      Logger.error(error)
+      logger.error('migration seeding failed', error as Error)
       return false
     }
   }
