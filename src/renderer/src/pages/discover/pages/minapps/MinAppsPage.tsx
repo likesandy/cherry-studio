@@ -39,7 +39,8 @@ const AppsPage: FC = () => {
     <Container onContextMenu={handleContextMenu}>
       <Navbar>
         <NavbarMain>
-          {t('minapp.title')}
+          {/* {t('minapp.title')} */}
+          {/* <div className="p-2"> */}
           <Input
             placeholder={t('common.search')}
             className="nodrag"
@@ -63,6 +64,7 @@ const AppsPage: FC = () => {
             icon={<SettingsIcon size={18} color="var(--color-text-2)" />}
             onClick={MinappSettingsPopup.show}
           />
+          {/* </div> */}
         </NavbarMain>
       </Navbar>
       <ContentContainer id="content-container">
@@ -131,7 +133,6 @@ const MainContainer = styled.div`
   display: flex;
   flex: 1;
   flex-direction: row;
-  height: calc(100vh - var(--navbar-height));
 `
 
 const RightContainer = styled(Scrollbar)`
@@ -140,7 +141,6 @@ const RightContainer = styled(Scrollbar)`
   flex-direction: column;
   height: 100%;
   align-items: center;
-  height: calc(100vh - var(--navbar-height));
 `
 
 const AppsContainerWrapper = styled(Scrollbar)`

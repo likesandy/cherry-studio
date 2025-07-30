@@ -1935,6 +1935,27 @@ const migrateConfig = {
       logger.error('migrate 125 error', error as Error)
       return state
     }
+  },
+  '126': (state: RootState) => {
+    try {
+      const visibleIcons = state.settings.sidebarIcons.visible
+      if (visibleIcons.includes('discover')) {
+        return state
+      }
+      const filteredIcons = visibleIcons.filter((icon) => icon !== 'agents' && icon !== 'minapp')
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          sidebarIcons: {
+            ...state.settings.sidebarIcons,
+            visible: [...filteredIcons, 'discover']
+          }
+        }
+      }
+    } catch (error) {
+      return state
+    }
   }
 }
 
