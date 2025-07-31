@@ -6,6 +6,7 @@ export interface PocMessage {
   content: string
   timestamp: number
   commandId?: string // Links output to originating command
+  sessionId?: string // Links message to specific session
   isComplete: boolean // For streaming messages
 }
 

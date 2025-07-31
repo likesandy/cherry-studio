@@ -52,10 +52,10 @@ const CherryAgentPage: React.FC = () => {
   const { isLeftNavbar } = useNavbarPosition()
 
   // Initialize hooks
-  const messagesHook = usePocMessages()
+  const agentManagement = useAgentManagement()
+  const messagesHook = usePocMessages(agentManagement.currentSession?.id)
   const commandHook = usePocCommand()
   const historyHook = useCommandHistory()
-  const agentManagement = useAgentManagement()
 
   // Local state for command count tracking
   const [commandCount, setCommandCount] = useState(0)
@@ -80,7 +80,7 @@ const CherryAgentPage: React.FC = () => {
       const commandId = await commandHook.executeCommand(command, workingDirectory)
       if (commandId) {
         // Add user command message
-        messagesHook.addUserCommand(command, commandId)
+        messagesHook.addUserCommand(command, commandId, agentManagement.currentSession?.id)
         setCommandCount((prev) => prev + 1)
       }
     },
@@ -94,10 +94,10 @@ const CherryAgentPage: React.FC = () => {
       // Note: The type determination (stdout vs stderr) is handled in usePocMessages
       // based on the command output type from AgentCommandService
       if (isBuffered && output) {
-        messagesHook.appendOutput(commandId, output, 'output', false)
+        messagesHook.appendOutput(commandId, output, 'output', false, agentManagement.currentSession?.id)
       }
     })
-  }, [commandHook, messagesHook])
+  }, [commandHook, messagesHook, agentManagement.currentSession?.id])
 
   // Determine current status for status bar
   const getCommandStatus = useCallback(() => {
@@ -267,10 +267,10 @@ const CherryAgentPage: React.FC = () => {
     if (commandHook.currentCommandId) {
       const success = await commandHook.interruptCommand(commandHook.currentCommandId)
       if (success) {
-        messagesHook.appendOutput(commandHook.currentCommandId, '\n[Command cancelled by user]', 'error', true)
+        messagesHook.appendOutput(commandHook.currentCommandId, '\n[Command cancelled by user]', 'error', true, agentManagement.currentSession?.id)
       }
     }
-  }, [commandHook, messagesHook])
+  }, [commandHook, messagesHook, agentManagement.currentSession?.id])
 
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsed((prev) => !prev)
@@ -302,17 +302,6 @@ const CherryAgentPage: React.FC = () => {
     (session) => agentManagement.currentAgent && session.agent_ids.includes(agentManagement.currentAgent.id)
   )
 
-  // Create a default agent if none exists
-  useEffect(() => {
-    if (!agentManagement.loadingAgents && agentManagement.agents.length === 0) {
-      agentManagement.createAgent({
-        name: 'Assistant',
-        model: '',
-        description: 'General-purpose AI assistant',
-        instructions: 'You are a helpful assistant that can execute commands and help with tasks.'
-      })
-    }
-  }, [agentManagement])
 
   // Set the first agent as current if none is selected
   useEffect(() => {
@@ -350,13 +339,24 @@ const CherryAgentPage: React.FC = () => {
             <SidebarHeader>
               <HeaderLabel>agents</HeaderLabel>
               <HeaderActions>
-                <ActionButton
-                  type="text"
-                  icon={<PlusOutlined />}
-                  size="small"
-                  title="Agent Actions"
-                  onClick={handleCreateAgent}
-                />
+                {agentManagement.agents.length === 0 ? (
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    size="small"
+                    onClick={handleCreateAgent}
+                  >
+                    Create Agent
+                  </Button>
+                ) : (
+                  <ActionButton
+                    type="text"
+                    icon={<PlusOutlined />}
+                    size="small"
+                    title="Create New Agent"
+                    onClick={handleCreateAgent}
+                  />
+                )}
                 <CollapseButton type="text" icon={<MenuFoldOutlined />} onClick={toggleSidebar} size="small" />
               </HeaderActions>
             </SidebarHeader>
@@ -461,42 +461,64 @@ const CherryAgentPage: React.FC = () => {
 
         {/* Main Content Area */}
         <MainContent>
-          {/* Agent Info Header */}
-          <AgentHeader>
-            {sidebarCollapsed && (
-              <ToggleButton type="text" icon={<MenuUnfoldOutlined />} onClick={toggleSidebar} size="small" />
-            )}
-            {agentManagement.currentAgent && (
-              <CurrentAgentAvatar style={{ background: getAvatarGradient(agentManagement.currentAgent.name) }}>
-                {agentManagement.currentAgent.name.charAt(0).toUpperCase()}
-              </CurrentAgentAvatar>
-            )}
-            <AgentTitleSection>
-              <AgentNameInput
-                value={agentManagement.currentAgent?.name || ''}
-                onChange={(e) => handleAgentNameChange(e.target.value)}
-                onBlur={(e) => handleAgentNameChange(e.target.value)}
-                placeholder="Agent Name"
-              />
-              <AgentSubtitle>{agentManagement.currentAgent?.description || 'No description provided'}</AgentSubtitle>
-            </AgentTitleSection>
-          </AgentHeader>
+          {agentManagement.currentAgent ? (
+            <>
+              {/* Agent Info Header */}
+              <AgentHeader>
+                {sidebarCollapsed && (
+                  <ToggleButton type="text" icon={<MenuUnfoldOutlined />} onClick={toggleSidebar} size="small" />
+                )}
+                <CurrentAgentAvatar style={{ background: getAvatarGradient(agentManagement.currentAgent.name) }}>
+                  {agentManagement.currentAgent.name.charAt(0).toUpperCase()}
+                </CurrentAgentAvatar>
+                <AgentTitleSection>
+                  <AgentNameInput
+                    value={agentManagement.currentAgent.name}
+                    onChange={(e) => handleAgentNameChange(e.target.value)}
+                    onBlur={(e) => handleAgentNameChange(e.target.value)}
+                    placeholder="Agent Name"
+                  />
+                  <AgentSubtitle>{agentManagement.currentAgent.description || 'No description provided'}</AgentSubtitle>
+                </AgentTitleSection>
+              </AgentHeader>
 
-          <MessageArea>
-            <PocMessageList messages={messagesHook.messages} />
-          </MessageArea>
+              <MessageArea>
+                <PocMessageList 
+                  messages={agentManagement.currentSession 
+                    ? messagesHook.getMessagesForSession(agentManagement.currentSession.id) 
+                    : []
+                  } 
+                />
+              </MessageArea>
 
-          <InputArea>
-            <EnhancedCommandInput
-              status={getCommandStatus()}
-              activeCommand={getCurrentCommand()}
-              commandCount={commandCount}
-              onSendCommand={handleExecuteCommand}
-              onCancelCommand={commandHook.isExecuting ? handleCancelCommand : undefined}
-              onOpenSettings={handleOpenSettings}
-              disabled={commandHook.isExecuting}
-            />
-          </InputArea>
+              <InputArea>
+                <EnhancedCommandInput
+                  status={getCommandStatus()}
+                  activeCommand={getCurrentCommand()}
+                  commandCount={commandCount}
+                  onSendCommand={handleExecuteCommand}
+                  onCancelCommand={commandHook.isExecuting ? handleCancelCommand : undefined}
+                  onOpenSettings={handleOpenSettings}
+                  disabled={commandHook.isExecuting}
+                />
+              </InputArea>
+            </>
+          ) : (
+            <EmptyAgentState>
+              {sidebarCollapsed && (
+                <ToggleButton type="text" icon={<MenuUnfoldOutlined />} onClick={toggleSidebar} size="small" style={{ position: 'absolute', top: '20px', left: '20px' }} />
+              )}
+              <EmptyStateContent>
+                <EmptyStateTitle>No Agent Selected</EmptyStateTitle>
+                <EmptyStateDescription>
+                  Create an agent to get started with Cherry Agent. You can create different agents with specific roles and capabilities.
+                </EmptyStateDescription>
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateAgent} size="large">
+                  Create Your First Agent
+                </Button>
+              </EmptyStateContent>
+            </EmptyAgentState>
+          )}
         </MainContent>
       </ContentContainer>
       <CherryAgentSettingsModal
@@ -777,6 +799,35 @@ const EmptyState = styled.div`
   color: var(--color-text-tertiary);
   font-size: 14px;
   font-style: italic;
+`
+
+const EmptyAgentState = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+  background: linear-gradient(135deg, var(--color-background) 0%, var(--color-background-soft) 100%);
+`
+
+const EmptyStateContent = styled.div`
+  text-align: center;
+  max-width: 400px;
+  padding: 40px;
+`
+
+const EmptyStateTitle = styled.h2`
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 16px 0;
+`
+
+const EmptyStateDescription = styled.p`
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 32px 0;
 `
 
 const AgentTitleSection = styled.div`

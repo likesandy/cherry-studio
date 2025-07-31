@@ -15,31 +15,32 @@ const logger = loggerService.withContext('UsePocMessages')
  * - Handles message completion status
  * - Real-time updates from AgentCommandService events
  */
-export function usePocMessages() {
+export function usePocMessages(currentSessionId?: string) {
   const [messages, setMessages] = useState<PocMessage[]>([])
 
   /**
    * Adds a user command message to the list
    */
-  const addUserCommand = useCallback((command: string, commandId: string) => {
+  const addUserCommand = useCallback((command: string, commandId: string, sessionId?: string) => {
     const message: PocMessage = {
       id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type: 'user-command',
       content: command,
       timestamp: Date.now(),
       commandId,
+      sessionId,
       isComplete: true
     }
 
     setMessages((prev) => [...prev, message])
-    logger.debug('Added user command message', { commandId, command: command.substring(0, 50) })
+    logger.debug('Added user command message', { commandId, sessionId, command: command.substring(0, 50) })
   }, [])
 
   /**
    * Appends streaming output to existing message or creates new one
    */
   const appendOutput = useCallback(
-    (commandId: string, content: string, type: 'output' | 'error' = 'output', isComplete: boolean = false) => {
+    (commandId: string, content: string, type: 'output' | 'error' = 'output', isComplete: boolean = false, sessionId?: string) => {
       setMessages((prev) => {
         // Find existing output message for this command
         const existingIndex = prev.findIndex(
@@ -64,6 +65,7 @@ export function usePocMessages() {
             content,
             timestamp: Date.now(),
             commandId,
+            sessionId,
             isComplete
           }
           return [...prev, message]
@@ -74,7 +76,8 @@ export function usePocMessages() {
         commandId,
         type,
         contentLength: content.length,
-        isComplete
+        isComplete,
+        sessionId
       })
     },
     []
@@ -95,18 +98,19 @@ export function usePocMessages() {
   /**
    * Adds a system message (e.g., command completion notifications)
    */
-  const addSystemMessage = useCallback((content: string, commandId?: string) => {
+  const addSystemMessage = useCallback((content: string, commandId?: string, sessionId?: string) => {
     const message: PocMessage = {
       id: `system_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type: 'system',
       content,
       timestamp: Date.now(),
       commandId,
+      sessionId,
       isComplete: true
     }
 
     setMessages((prev) => [...prev, message])
-    logger.debug('Added system message', { content, commandId })
+    logger.debug('Added system message', { content, commandId, sessionId })
   }, [])
 
   /**
@@ -123,6 +127,16 @@ export function usePocMessages() {
   const getMessagesForCommand = useCallback(
     (commandId: string): PocMessage[] => {
       return messages.filter((msg) => msg.commandId === commandId)
+    },
+    [messages]
+  )
+
+  /**
+   * Gets messages for a specific session
+   */
+  const getMessagesForSession = useCallback(
+    (sessionId: string): PocMessage[] => {
+      return messages.filter((msg) => msg.sessionId === sessionId)
     },
     [messages]
   )
@@ -147,7 +161,7 @@ export function usePocMessages() {
 
       if (type === 'stdout' || type === 'stderr') {
         const messageType = type === 'stderr' ? 'error' : 'output'
-        appendOutput(commandId, data, messageType, false)
+        appendOutput(commandId, data, messageType, false, currentSessionId)
       } else if (type === 'exit') {
         // Complete any streaming messages when command exits
         completeMessage(commandId, 'output')
@@ -156,15 +170,15 @@ export function usePocMessages() {
         // Add system message for command completion
         const exitCode = output.exitCode ?? 0
         const statusMessage = exitCode === 0 ? 'Command completed successfully' : `Command exited with code ${exitCode}`
-        addSystemMessage(statusMessage, commandId)
+        addSystemMessage(statusMessage, commandId, currentSessionId)
       } else if (type === 'error') {
-        appendOutput(commandId, data, 'error', true)
+        appendOutput(commandId, data, 'error', true, currentSessionId)
       }
     })
 
     // Handle command errors
     const unsubscribeError = agentCommandService.on('commandError', ({ commandId, error }) => {
-      addSystemMessage(`Command error: ${error}`, commandId)
+      addSystemMessage(`Command error: ${error}`, commandId, currentSessionId)
     })
 
     // Cleanup on unmount
@@ -173,7 +187,7 @@ export function usePocMessages() {
       unsubscribeOutput()
       unsubscribeError()
     }
-  }, [appendOutput, completeMessage, addSystemMessage])
+  }, [appendOutput, completeMessage, addSystemMessage, currentSessionId])
 
   return {
     messages,
@@ -183,6 +197,7 @@ export function usePocMessages() {
     addSystemMessage,
     clearMessages,
     getMessagesForCommand,
+    getMessagesForSession,
     getStreamingMessage
   }
 }
