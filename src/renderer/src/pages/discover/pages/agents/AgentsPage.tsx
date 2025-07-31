@@ -185,7 +185,7 @@ const AgentsPage: FC = () => {
       {/* <Navbar> */}
       {/* <NavbarCenter style={{ borderRight: 'none', justifyContent: 'space-between' }}> */}
       {/* {t('agents.title')} */}
-      <div className="p-4">
+      {/* <div className="flex justify-center p-2">
         <Input
           placeholder={t('common.search')}
           className="nodrag"
@@ -201,8 +201,7 @@ const AgentsPage: FC = () => {
           onPressEnter={handleSearch}
           onBlur={handleSearchInputBlur}
         />
-        <div style={{ width: 80 }} />
-      </div>
+      </div> */}
       {/* </NavbarCenter> */}
       {/* </Navbar> */}
 

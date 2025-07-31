@@ -1,18 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { CATEGORY_REGISTRY, InternalCategory } from '../routers'
-
-// 导出接口供其他文件使用
-export type { InternalCategory }
-
-// Helper to find category by path
-const findCategoryByPath = (path: string | undefined): InternalCategory | undefined =>
-  CATEGORY_REGISTRY.find((cat) => cat.path === path)
-
-// Helper to find category by id (activeTab)
-const findCategoryById = (id: string | undefined): InternalCategory | undefined =>
-  CATEGORY_REGISTRY.find((cat) => cat.id === id)
+import { ROUTERS, ROUTERS_ENTRIES } from '../routers'
 
 export function useDiscoverCategories() {
   const [activeTab, setActiveTab] = useState<string>('')
@@ -34,8 +23,8 @@ export function useDiscoverCategories() {
 
     // 处理基础路径重定向
     if (location.pathname === '/discover' || location.pathname === '/discover/') {
-      if (CATEGORY_REGISTRY.length > 0) {
-        const firstCategory = CATEGORY_REGISTRY[0]
+      if (ROUTERS.length > 0) {
+        const firstCategory = ROUTERS[0]
         navigate(`/discover/${firstCategory.path}?category=${firstCategory.id}&subcategory=all`, { replace: true })
       }
       return
@@ -46,14 +35,14 @@ export function useDiscoverCategories() {
 
     // 如果没有 category 参数，尝试从路径推断
     if (!targetCategoryId && currentCategoryPath) {
-      const categoryFromPath = findCategoryByPath(currentCategoryPath)
+      const categoryFromPath = ROUTERS_ENTRIES[currentCategoryPath]
       targetCategoryId = categoryFromPath?.id || null
     }
 
     // 处理无效分类重定向
-    if (!targetCategoryId || !findCategoryById(targetCategoryId)) {
-      if (CATEGORY_REGISTRY.length > 0) {
-        const firstCategory = CATEGORY_REGISTRY[0]
+    if (!targetCategoryId || !ROUTERS_ENTRIES[targetCategoryId]) {
+      if (ROUTERS.length > 0) {
+        const firstCategory = ROUTERS[0]
         navigate(`/discover/${firstCategory.path}?category=${firstCategory.id}&subcategory=all`, { replace: true })
       }
       return
@@ -74,7 +63,7 @@ export function useDiscoverCategories() {
   }, [location.pathname, location.search, navigate]) // 故意不包含 activeTab 和 selectedSubcategory 以避免重复渲染
 
   const currentCategory = useMemo(() => {
-    return findCategoryById(activeTab)
+    return ROUTERS_ENTRIES[activeTab]
   }, [activeTab])
 
   // 优化的 Tab 选择处理，使用 useCallback 避免重复渲染
@@ -83,7 +72,7 @@ export function useDiscoverCategories() {
     (tabId: string) => {
       if (activeTab === tabId) return // 如果已经是当前 tab，直接返回
 
-      const categoryToSelect = findCategoryById(tabId)
+      const categoryToSelect = ROUTERS_ENTRIES[tabId]
       if (categoryToSelect?.path) {
         isUserNavigationRef.current = true
         navigate(`/discover/${categoryToSelect.path}?category=${tabId}&subcategory=all`)
@@ -97,7 +86,7 @@ export function useDiscoverCategories() {
     (subcategoryId: string) => {
       if (selectedSubcategory === subcategoryId) return // 如果已经是当前子分类，直接返回
 
-      const currentCatDetails = findCategoryById(activeTab)
+      const currentCatDetails = ROUTERS_ENTRIES[activeTab]
       if (currentCatDetails?.path) {
         isUserNavigationRef.current = true
         navigate(`/discover/${currentCatDetails.path}?category=${activeTab}&subcategory=${subcategoryId}`)
@@ -107,7 +96,6 @@ export function useDiscoverCategories() {
   )
 
   return {
-    categories: CATEGORY_REGISTRY, // 直接返回静态注册表
     activeTab,
     selectedSubcategory,
     currentCategory,

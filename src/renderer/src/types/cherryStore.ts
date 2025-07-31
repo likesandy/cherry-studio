@@ -1,13 +1,13 @@
 export enum CherryStoreType {
   ASSISTANT = 'Assistant',
-  MINI_APP = 'Mini-App',
-  KNOWLEDGE = 'Knowledge',
-  MCP_SERVER = 'MCP-Server',
-  MODEL_PROVIDER = 'Model-Provider',
-  AGENT = 'Agent',
-  TRANSLATE = 'Translate',
-  PAINTINGS = 'Paintings',
-  FILES = 'Files'
+  MINI_APP = 'Mini-App'
+  // KNOWLEDGE = 'Knowledge',
+  // MCP_SERVER = 'MCP-Server',
+  // MODEL_PROVIDER = 'Model-Provider',
+  // AGENT = 'Agent',
+  // TRANSLATE = 'Translate',
+  // PAINTINGS = 'Paintings',
+  // FILES = 'Files'
 }
 
 export interface SubCategoryItem {

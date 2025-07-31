@@ -6,19 +6,14 @@ import { useTranslation } from 'react-i18next'
 import DiscoverMain from './components/DiscoverMain'
 import DiscoverSidebar from './components/DiscoverSidebar'
 import { useDiscoverCategories } from './hooks/useDiscoverCategories'
+import { ROUTERS } from './routers'
 
 export default function DiscoverPage() {
   const { t } = useTranslation()
-  const { categories, activeTab, selectedSubcategory, currentCategory, handleSelectTab, handleSelectSubcategory } =
+  const { activeTab, selectedSubcategory, currentCategory, handleSelectTab, handleSelectSubcategory } =
     useDiscoverCategories()
 
-  // 使用 useMemo 优化 tabs 数据，避免每次渲染都创建新数组
-  const vercelTabsData = useMemo(() => {
-    return categories.map((category) => ({
-      id: category.id,
-      label: category.title
-    }))
-  }, [categories])
+  const tabs = useMemo(() => ROUTERS.map((router) => ({ id: router.id, label: router.title })), [])
 
   return (
     <div className="h-full w-full">
@@ -29,9 +24,9 @@ export default function DiscoverPage() {
           </NavbarCenter>
         </Navbar>
 
-        {categories.length > 0 && (
-          <div className="px-4 py-2">
-            <Tabs tabs={vercelTabsData} onTabChange={handleSelectTab} />
+        {ROUTERS.length > 0 && (
+          <div className="p-2 pl-0">
+            <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleSelectTab} />
           </div>
         )}
 
@@ -45,16 +40,9 @@ export default function DiscoverPage() {
               />
             </div>
           )}
-          {/* {!currentCategory && categories.length > 0 && (
-            <div className="w-64 flex-shrink-0 border-r p-4 text-muted-foreground">Select a category...</div>
-          )} */}
 
           <main className="w-full overflow-hidden">
-            <DiscoverMain
-              activeTabId={activeTab}
-              // selectedSubcategoryId={selectedSubcategory}
-              currentCategory={currentCategory}
-            />
+            <DiscoverMain activeTabId={activeTab} currentCategory={currentCategory} />
           </main>
         </div>
       </div>

@@ -2,18 +2,22 @@ import i18n from '@renderer/i18n'
 import { CherryStoreType } from '@renderer/types/cherryStore'
 import { lazy } from 'react'
 
-export const discoverRouters = [
+export const ROUTERS = [
   {
     id: CherryStoreType.ASSISTANT,
     title: i18n.t('assistants.title'),
     path: 'assistant',
-    component: lazy(() => import('./pages/agents/AgentsPage'))
+    component: lazy(() => import('./pages/agents/AgentsPage')),
+    hasSidebar: false, // 目前都没有侧边栏
+    items: [{ id: 'all', name: `All ${i18n.t('assistants.title')}` }] // 预设 "All" 子分类
   },
   {
     id: CherryStoreType.MINI_APP,
     title: i18n.t('minapp.title'),
     path: 'mini-app',
-    component: lazy(() => import('./pages/minapps/MinAppsPage'))
+    component: lazy(() => import('./pages/minapps/MinAppsPage')),
+    hasSidebar: false, // 目前都没有侧边栏
+    items: [{ id: 'all', name: `All ${i18n.t('minapp.title')}` }] // 预设 "All" 子分类
   }
   //   {
   //     id: CherryStoreType.TRANSLATE,
@@ -43,20 +47,10 @@ export const discoverRouters = [
   //   }
 ]
 
-// 静态注册表 - 避免每次渲染都重新生成
-export interface InternalCategory {
-  id: string
-  title: string
-  path: string
-  hasSidebar?: boolean
-  items: Array<{ id: string; name: string; count?: number }>
-}
-
-// 预生成的分类注册表
-export const CATEGORY_REGISTRY: InternalCategory[] = discoverRouters.map((router) => ({
-  id: router.id,
-  title: router.title,
-  path: router.path,
-  hasSidebar: false, // 目前都没有侧边栏
-  items: [{ id: 'all', name: `All ${router.title}` }] // 预设 "All" 子分类
-}))
+export const ROUTERS_ENTRIES = ROUTERS.reduce(
+  (acc, { id, ...rest }) => {
+    acc[id] = rest
+    return acc
+  },
+  {} as Record<(typeof ROUTERS)[number]['id'], Omit<(typeof ROUTERS)[number], 'id'>>
+)

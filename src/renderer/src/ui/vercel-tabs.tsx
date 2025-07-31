@@ -1,6 +1,6 @@
 import { cn } from '@renderer/utils'
 import * as React from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 interface Tab {
   id: string
@@ -13,19 +13,29 @@ interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
   onTabChange?: (tabId: string) => void
 }
 
-const Tabs = ({
+// 提取常用的性能优化类
+const PERFORMANCE_CLASSES = 'will-change-transform [backface-visibility:hidden] [transform-style:preserve-3d]'
+
+const TabsComponent = ({
   ref,
   className,
   tabs,
-  activeTab: _,
+  activeTab,
   onTabChange,
   ...props
 }: TabsProps & { ref?: React.RefObject<HTMLDivElement | null> }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [hoverStyle, setHoverStyle] = useState({})
-  const [activeStyle, setActiveStyle] = useState({ left: '0px', width: '0px' })
+  const [hoverStyle, setHoverStyle] = useState({ transform: 'translate3d(0px, 0px, 0px)', width: '0px' })
+  const [activeStyle, setActiveStyle] = useState({ transform: 'translate3d(0px, 0px, 0px)', width: '0px' })
   const tabRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  const activeIndex = useMemo(() => {
+    if (activeTab) {
+      const index = tabs.findIndex((tab) => tab.id === activeTab)
+      return index !== -1 ? index : 0
+    }
+    return 0
+  }, [activeTab, tabs])
 
   useEffect(() => {
     if (hoveredIndex !== null) {
@@ -33,7 +43,7 @@ const Tabs = ({
       if (hoveredElement) {
         const { offsetLeft, offsetWidth } = hoveredElement
         setHoverStyle({
-          left: `${offsetLeft}px`,
+          transform: `translate3d(${offsetLeft}px, 0px, 0px)`,
           width: `${offsetWidth}px`
         })
       }
@@ -41,45 +51,48 @@ const Tabs = ({
   }, [hoveredIndex])
 
   useEffect(() => {
-    const activeElement = tabRefs.current[activeIndex]
-    if (activeElement) {
-      const { offsetLeft, offsetWidth } = activeElement
-      setActiveStyle({
-        left: `${offsetLeft}px`,
-        width: `${offsetWidth}px`
-      })
-    }
-  }, [activeIndex])
-
-  useEffect(() => {
     requestAnimationFrame(() => {
-      const firstElement = tabRefs.current[0]
-      if (firstElement) {
-        const { offsetLeft, offsetWidth } = firstElement
+      const activeElement = tabRefs.current[activeIndex]
+      if (activeElement) {
+        const { offsetLeft, offsetWidth } = activeElement
         setActiveStyle({
-          left: `${offsetLeft}px`,
+          transform: `translate3d(${offsetLeft}px, 0px, 0px)`,
           width: `${offsetWidth}px`
         })
       }
     })
-  }, [])
+  }, [activeIndex]) // 使用 translate3d 强制启用硬件加速
 
   return (
     <div ref={ref} className={cn('relative', className)} {...props}>
       <div className="relative">
         {/* Hover Highlight */}
         <div
-          className="absolute flex h-[30px] items-center rounded-[6px] bg-[#0e0f1114] transition-all duration-300 ease-out dark:bg-[#ffffff1a]"
+          className={cn(
+            'absolute flex h-[30px] items-center rounded-[6px]',
+            'bg-[#0e0f1114] dark:bg-[#ffffff1a]',
+            'transition-all duration-300 ease-out',
+            PERFORMANCE_CLASSES,
+            hoveredIndex !== null ? 'opacity-100' : 'opacity-0'
+          )}
           style={{
-            ...hoverStyle,
-            opacity: hoveredIndex !== null ? 1 : 0
+            transform: hoverStyle.transform,
+            width: hoverStyle.width
           }}
         />
 
         {/* Active Indicator */}
         <div
-          className="absolute bottom-[-6px] h-[2px] bg-[#0e0f11] transition-all duration-300 ease-out dark:bg-white"
-          style={activeStyle}
+          className={cn(
+            'absolute bottom-[-6px] h-[2px]',
+            'bg-[#0e0f11] dark:bg-white',
+            'transition-all duration-300 ease-out',
+            PERFORMANCE_CLASSES
+          )}
+          style={{
+            transform: activeStyle.transform,
+            width: activeStyle.width
+          }}
         />
 
         {/* Tabs */}
@@ -97,7 +110,6 @@ const Tabs = ({
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
               onClick={() => {
-                setActiveIndex(index)
                 onTabChange?.(tab.id)
               }}>
               <div className="flex h-full items-center justify-center text-sm leading-5 font-medium whitespace-nowrap">
@@ -110,6 +122,9 @@ const Tabs = ({
     </div>
   )
 }
+
+const Tabs = React.memo(TabsComponent)
+
 Tabs.displayName = 'Tabs'
 
 export { Tabs }

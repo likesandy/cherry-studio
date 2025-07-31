@@ -9,7 +9,7 @@ import {
   SidebarProvider
 } from '@renderer/ui/sidebar'
 
-import { InternalCategory } from '../hooks/useDiscoverCategories'
+import { InternalCategory } from '../type'
 
 interface DiscoverSidebarProps {
   activeCategory: InternalCategory | undefined
