@@ -24,6 +24,30 @@ import EnhancedCommandInput from './components/EnhancedCommandInput'
 import PocMessageList from './components/PocMessageList'
 import SessionManagementModal from './components/SessionManagementModal'
 
+// Utility function to generate consistent colors for agent avatars
+const getAvatarGradient = (name: string) => {
+  const gradients = [
+    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+    'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+    'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+    'linear-gradient(135deg, #ff8a80 0%, #ea6e6e 100%)',
+    'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)'
+  ]
+
+  // Simple hash function to get consistent color based on name
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+
+  return gradients[Math.abs(hash) % gradients.length]
+}
+
 const CherryAgentPage: React.FC = () => {
   const { isLeftNavbar } = useNavbarPosition()
 
@@ -196,6 +220,29 @@ const CherryAgentPage: React.FC = () => {
     [editingSession, agentManagement, handleCloseSessionModal]
   )
 
+  const handleDeleteAgent = useCallback(
+    async (agent: AgentResponse) => {
+      Modal.confirm({
+        title: 'Delete Agent',
+        content: `Are you sure you want to delete the agent "${agent.name}"?`,
+        okText: 'Delete',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        onOk: async () => {
+          await agentManagement.deleteAgent(agent.id)
+          // If we deleted the current agent, switch to another one
+          if (agentManagement.currentAgent?.id === agent.id && agentManagement.agents.length > 1) {
+            const remainingAgents = agentManagement.agents.filter((a) => a.id !== agent.id)
+            if (remainingAgents.length > 0) {
+              agentManagement.setCurrentAgent(remainingAgents[0])
+            }
+          }
+        }
+      })
+    },
+    [agentManagement]
+  )
+
   const handleDeleteSession = useCallback(
     async (session: SessionResponse) => {
       Modal.confirm({
@@ -247,24 +294,29 @@ const CherryAgentPage: React.FC = () => {
     [agentManagement]
   )
 
+  // Filter sessions for the current agent
+  const filteredSessions = agentManagement.sessions.filter(
+    (session) => agentManagement.currentAgent && session.agent_ids.includes(agentManagement.currentAgent.id)
+  )
+
   // Create a default agent if none exists
   useEffect(() => {
     if (!agentManagement.loadingAgents && agentManagement.agents.length === 0) {
       agentManagement.createAgent({
-        name: 'My Agent',
-        model: 'gpt-4',
-        description: 'Default agent for command execution',
+        name: 'Assistant',
+        model: '',
+        description: 'General-purpose AI assistant',
         instructions: 'You are a helpful assistant that can execute commands and help with tasks.'
       })
     }
-  }, [agentManagement.loadingAgents, agentManagement.agents.length, agentManagement])
+  }, [agentManagement])
 
   // Set the first agent as current if none is selected
   useEffect(() => {
     if (!agentManagement.currentAgent && agentManagement.agents.length > 0) {
       agentManagement.setCurrentAgent(agentManagement.agents[0])
     }
-  }, [agentManagement.currentAgent, agentManagement.agents, agentManagement])
+  }, [agentManagement])
 
   // Create a default session for the current agent if none exists
   useEffect(() => {
@@ -281,14 +333,7 @@ const CherryAgentPage: React.FC = () => {
         agentManagement.setCurrentSession(agentManagement.sessions[0])
       }
     }
-  }, [
-    agentManagement.currentAgent,
-    agentManagement.currentSession,
-    agentManagement.sessions,
-    agentManagement.loadingSessions,
-    currentWorkingDirectory,
-    agentManagement
-  ])
+  }, [agentManagement, currentWorkingDirectory])
 
   return (
     <Container id="cherry-agent-page">
@@ -302,39 +347,81 @@ const CherryAgentPage: React.FC = () => {
             <SidebarHeader>
               <HeaderLabel>agents</HeaderLabel>
               <HeaderActions>
-                <Dropdown
-                  overlay={
-                    <Menu>
-                      <Menu.Item key="create" icon={<PlusOutlined />} onClick={handleCreateAgent}>
-                        Create Agent
-                      </Menu.Item>
-                      {agentManagement.currentAgent && (
-                        <Menu.Item
-                          key="edit"
-                          icon={<UserOutlined />}
-                          onClick={() => handleEditAgent(agentManagement.currentAgent!)}>
-                          Edit Current Agent
-                        </Menu.Item>
-                      )}
-                    </Menu>
-                  }
-                  trigger={['click']}
-                  placement="bottomRight">
-                  <ActionButton type="text" icon={<PlusOutlined />} size="small" title="Agent Actions" />
-                </Dropdown>
+                <ActionButton
+                  type="text"
+                  icon={<PlusOutlined />}
+                  size="small"
+                  title="Agent Actions"
+                  onClick={handleCreateAgent}
+                />
                 <CollapseButton type="text" icon={<MenuFoldOutlined />} onClick={toggleSidebar} size="small" />
               </HeaderActions>
             </SidebarHeader>
             <SidebarContent>
-              <SectionHeader>
+              {/* Agents Section */}
+              <AgentsList>
+                {agentManagement.agents.map((agent) => (
+                  <Dropdown
+                    key={agent.id}
+                    overlay={
+                      <Menu>
+                        <Menu.Item key="edit" icon={<EditOutlined />} onClick={() => handleEditAgent(agent)}>
+                          Edit Agent
+                        </Menu.Item>
+                        <Menu.Item
+                          key="delete"
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleDeleteAgent(agent)}
+                          danger>
+                          Delete Agent
+                        </Menu.Item>
+                      </Menu>
+                    }
+                    trigger={['contextMenu']}>
+                    <AgentItem
+                      active={agentManagement.currentAgent?.id === agent.id}
+                      onClick={() => agentManagement.setCurrentAgent(agent)}>
+                      <AgentAvatar style={{ background: getAvatarGradient(agent.name) }}>
+                        {agent.name.charAt(0).toUpperCase()}
+                      </AgentAvatar>
+                      <AgentInfo>
+                        <AgentName>{agent.name}</AgentName>
+                        <AgentDescription>{agent.description || 'No description'}</AgentDescription>
+                      </AgentInfo>
+                    </AgentItem>
+                  </Dropdown>
+                ))}
+                {agentManagement.agents.length === 0 && !agentManagement.loadingAgents && (
+                  <EmptyState>No agents available</EmptyState>
+                )}
+              </AgentsList>
+
+              {/* Sessions Section */}
+              <SectionHeader style={{ marginTop: '32px' }}>
                 <SessionsLabel>sessions</SessionsLabel>
                 <Tooltip title="Create new session">
                   <ActionButton type="text" icon={<PlusOutlined />} onClick={handleCreateSession} size="small" />
                 </Tooltip>
               </SectionHeader>
               <SessionsList>
-                {agentManagement.sessions.map((session) => (
-                  <SessionItemWrapper key={session.id}>
+                {filteredSessions.map((session) => (
+                  <Dropdown
+                    key={session.id}
+                    overlay={
+                      <Menu>
+                        <Menu.Item key="edit" icon={<EditOutlined />} onClick={() => handleEditSession(session)}>
+                          Edit Session
+                        </Menu.Item>
+                        <Menu.Item
+                          key="delete"
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleDeleteSession(session)}
+                          danger>
+                          Delete Session
+                        </Menu.Item>
+                      </Menu>
+                    }
+                    trigger={['contextMenu']}>
                     <SessionItem
                       active={agentManagement.currentSession?.id === session.id}
                       onClick={() => handleSessionSelect(session)}>
@@ -345,35 +432,14 @@ const CherryAgentPage: React.FC = () => {
                         </SessionMeta>
                       </SessionInfo>
                     </SessionItem>
-                    <SessionActions>
-                      <Tooltip title="Edit session">
-                        <ActionButton
-                          type="text"
-                          icon={<EditOutlined />}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleEditSession(session)
-                          }}
-                          size="small"
-                        />
-                      </Tooltip>
-                      <Tooltip title="Delete session">
-                        <ActionButton
-                          type="text"
-                          icon={<DeleteOutlined />}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleDeleteSession(session)
-                          }}
-                          size="small"
-                          danger
-                        />
-                      </Tooltip>
-                    </SessionActions>
-                  </SessionItemWrapper>
+                  </Dropdown>
                 ))}
-                {agentManagement.sessions.length === 0 && !agentManagement.loadingSessions && (
-                  <EmptyState>No sessions available</EmptyState>
+                {filteredSessions.length === 0 && !agentManagement.loadingSessions && (
+                  <EmptyState>
+                    {agentManagement.currentAgent
+                      ? `No sessions for ${agentManagement.currentAgent.name}`
+                      : 'No sessions available'}
+                  </EmptyState>
                 )}
               </SessionsList>
             </SidebarContent>
@@ -397,12 +463,20 @@ const CherryAgentPage: React.FC = () => {
             {sidebarCollapsed && (
               <ToggleButton type="text" icon={<MenuUnfoldOutlined />} onClick={toggleSidebar} size="small" />
             )}
-            <AgentNameInput
-              value={agentManagement.currentAgent?.name || ''}
-              onChange={(e) => handleAgentNameChange(e.target.value)}
-              onBlur={(e) => handleAgentNameChange(e.target.value)}
-              placeholder="Agent Name & some Info"
-            />
+            {agentManagement.currentAgent && (
+              <CurrentAgentAvatar style={{ background: getAvatarGradient(agentManagement.currentAgent.name) }}>
+                {agentManagement.currentAgent.name.charAt(0).toUpperCase()}
+              </CurrentAgentAvatar>
+            )}
+            <AgentTitleSection>
+              <AgentNameInput
+                value={agentManagement.currentAgent?.name || ''}
+                onChange={(e) => handleAgentNameChange(e.target.value)}
+                onBlur={(e) => handleAgentNameChange(e.target.value)}
+                placeholder="Agent Name"
+              />
+              <AgentSubtitle>{agentManagement.currentAgent?.description || 'No description provided'}</AgentSubtitle>
+            </AgentTitleSection>
           </AgentHeader>
 
           <MessageArea>
@@ -542,6 +616,8 @@ const ActionButton = styled(Button)`
   height: 32px;
   border-radius: 8px;
   transition: all 0.2s ease;
+  border: none;
+  box-shadow: none;
 
   &:hover {
     color: var(--color-text);
@@ -551,6 +627,11 @@ const ActionButton = styled(Button)`
 
   &:active {
     transform: scale(0.95);
+  }
+
+  &:focus {
+    box-shadow: none;
+    border: none;
   }
 `
 
@@ -646,25 +727,6 @@ const SessionsList = styled.div`
   gap: 8px;
 `
 
-const SessionActions = styled.div`
-  display: flex;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  gap: 4px;
-`
-
-const SessionItemWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  &:hover {
-    ${SessionActions} {
-      opacity: 1;
-    }
-  }
-`
-
 const SessionItem = styled.div<{ active: boolean }>`
   flex: 1;
   padding: 12px 16px;
@@ -715,36 +777,132 @@ const EmptyState = styled.div`
   font-style: italic;
 `
 
-const AgentNameInput = styled.input`
+const AgentTitleSection = styled.div`
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`
+
+const AgentNameInput = styled.input`
   border: 2px solid var(--color-border);
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-size: 16px;
-  font-weight: 500;
-  background-color: var(--color-background);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 18px;
+  font-weight: 600;
+  background-color: transparent;
   color: var(--color-text);
   outline: none;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 100%;
 
   &:focus {
     border-color: var(--color-primary);
-    box-shadow:
-      0 0 0 3px rgba(24, 144, 255, 0.1),
-      0 4px 12px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
+    box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
   }
 
   &:hover {
     border-color: var(--color-primary-hover);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
   }
 
   &::placeholder {
     color: var(--color-text-tertiary);
     font-weight: 400;
   }
+`
+
+const AgentSubtitle = styled.div`
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+`
+
+const CurrentAgentAvatar = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+  flex-shrink: 0;
+`
+
+const AgentsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+  overflow: auto;
+`
+
+const AgentItem = styled.div<{ active: boolean }>`
+  flex: 1;
+  width: 100%;
+  padding: 6px;
+  border-radius: 4px;
+  background-color: ${(props) => (props.active ? 'var(--color-primary)' : 'var(--color-background-soft)')};
+  color: ${(props) => (props.active ? 'white' : 'var(--color-text)')};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: ${(props) => (props.active ? 'none' : '1px solid transparent')};
+  box-shadow: ${(props) => (props.active ? '0 2px 8px rgba(24, 144, 255, 0.2)' : 'none')};
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    background-color: ${(props) => (props.active ? 'var(--color-primary)' : 'var(--color-background-hover)')};
+    border-color: ${(props) => (props.active ? 'transparent' : 'var(--color-border)')};
+    transform: translateY(-1px);
+    box-shadow: ${(props) => (props.active ? '0 4px 12px rgba(24, 144, 255, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)')};
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`
+
+const AgentAvatar = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+`
+
+const AgentInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`
+
+const AgentName = styled.div`
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
+
+const AgentDescription = styled.div`
+  font-size: 12px;
+  opacity: 0.8;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `
 
 export default CherryAgentPage

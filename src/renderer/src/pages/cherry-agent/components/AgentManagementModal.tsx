@@ -212,7 +212,7 @@ const AgentManagementModal: FC<AgentManagementModalProps> = ({ visible, onClose,
           name: '',
           description: '',
           instructions: '',
-          model: 'gpt-4o',
+          model: '',
           tools: [],
           knowledges: []
         }}>
