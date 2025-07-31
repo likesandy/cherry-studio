@@ -83,25 +83,28 @@
       "restart": {
         "button": "Reiniciar",
         "tooltip": "Reiniciar Servidor"
-      }
+      },
+      "start": "[to be translated]:启动",
+      "stop": "[to be translated]:停止"
+    },
+    "authHeader": {
+      "title": "[to be translated]:授权标头"
     },
     "authHeaderText": "Usar en el encabezado de autorización:",
     "configuration": "Configuración",
     "description": "Expone las capacidades de IA de Cherry Studio a través de APIs HTTP compatibles con OpenAI",
     "documentation": {
-      "title": "Documentación API",
-      "unavailable": {
-        "description": "Inicia el servidor API para ver la documentación interactiva",
-        "title": "Documentación API No Disponible"
-      }
+      "title": "Documentación API"
     },
     "fields": {
       "apiKey": {
         "copyTooltip": "Copiar Clave API",
+        "description": "[to be translated]:用于 API 访问的安全认证令牌",
         "label": "Clave API",
         "placeholder": "La clave API se generará automáticamente"
       },
       "port": {
+        "description": "[to be translated]:HTTP 服务器的 TCP 端口号 (1000-65535)",
         "helpText": "Detén el servidor para cambiar el puerto",
         "label": "Puerto"
       },
@@ -725,6 +728,13 @@
     "topics": "Temas",
     "warning": "Advertencia",
     "you": "Usuario"
+  },
+  "discover": {
+    "install": "[to be translated]:安装",
+    "title": "[to be translated]:发现",
+    "uninstall": "[to be translated]:卸载",
+    "update": "[to be translated]:更新",
+    "update_all": "[to be translated]:全部更新"
   },
   "docs": {
     "title": "Documentación de Ayuda"
@@ -1647,6 +1657,7 @@
     "aihubmix": "AiHubMix",
     "alayanew": "Alaya NeW",
     "anthropic": "Antropológico",
+    "aws-bedrock": "[to be translated]:AWS Bedrock",
     "azure-openai": "Azure OpenAI",
     "baichuan": "BaiChuan",
     "baidu-cloud": "Baidu Nube Qiánfān",
@@ -3088,6 +3099,16 @@
         "tip": "Separar múltiples claves con comas"
       },
       "api_version": "Versión API",
+      "aws-bedrock": {
+        "access_key_id": "[to be translated]:AWS 访问密钥 ID",
+        "access_key_id_help": "[to be translated]:您的 AWS 访问密钥 ID，用于访问 AWS Bedrock 服务",
+        "description": "[to be translated]:AWS Bedrock 是亚马逊提供的全托管基础模型服务，支持多种先进的大语言模型",
+        "region": "[to be translated]:AWS 区域",
+        "region_help": "[to be translated]:您的 AWS 服务区域，例如 us-east-1",
+        "secret_access_key": "[to be translated]:AWS 访问密钥",
+        "secret_access_key_help": "[to be translated]:您的 AWS 访问密钥，请妥善保管",
+        "title": "[to be translated]:AWS Bedrock 配置"
+      },
       "azure": {
         "apiversion": {
           "tip": "Versión de la API de Azure OpenAI; si desea usar la API de respuesta, ingrese una versión de vista previa"

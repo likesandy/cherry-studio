@@ -729,6 +729,13 @@
     "warning": "Warning",
     "you": "You"
   },
+  "discover": {
+    "install": "[to be translated]:安装",
+    "title": "[to be translated]:发现",
+    "uninstall": "[to be translated]:卸载",
+    "update": "[to be translated]:更新",
+    "update_all": "[to be translated]:全部更新"
+  },
   "docs": {
     "title": "Docs"
   },

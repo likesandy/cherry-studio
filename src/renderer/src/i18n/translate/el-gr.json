@@ -83,25 +83,28 @@
       "restart": {
         "button": "Επανεκκίνηση",
         "tooltip": "Επανεκκίνηση Διακομιστή"
-      }
+      },
+      "start": "[to be translated]:启动",
+      "stop": "[to be translated]:停止"
+    },
+    "authHeader": {
+      "title": "[to be translated]:授权标头"
     },
     "authHeaderText": "Χρήση στην κεφαλίδα εξουσιοδότησης:",
     "configuration": "Διαμόρφωση",
     "description": "Εκθέτει τις δυνατότητες AI του Cherry Studio μέσω API HTTP συμβατών με OpenAI",
     "documentation": {
-      "title": "Τεκμηρίωση API",
-      "unavailable": {
-        "description": "Ξεκινήστε τον διακομιστή API για να δείτε την διαδραστική τεκμηρίωση",
-        "title": "Τεκμηρίωση API Μη Διαθέσιμη"
-      }
+      "title": "Τεκμηρίωση API"
     },
     "fields": {
       "apiKey": {
         "copyTooltip": "Αντιγραφή Κλειδιού API",
+        "description": "[to be translated]:用于 API 访问的安全认证令牌",
         "label": "Κλειδί API",
         "placeholder": "Το κλειδί API θα δημιουργηθεί αυτόματα"
       },
       "port": {
+        "description": "[to be translated]:HTTP 服务器的 TCP 端口号 (1000-65535)",
         "helpText": "Σταματήστε τον διακομιστή για να αλλάξετε τη θύρα",
         "label": "Θύρα"
       },
@@ -725,6 +728,13 @@
     "topics": "Θέματα",
     "warning": "Προσοχή",
     "you": "Εσείς"
+  },
+  "discover": {
+    "install": "[to be translated]:安装",
+    "title": "[to be translated]:发现",
+    "uninstall": "[to be translated]:卸载",
+    "update": "[to be translated]:更新",
+    "update_all": "[to be translated]:全部更新"
   },
   "docs": {
     "title": "Βοήθεια"
@@ -1647,6 +1657,7 @@
     "aihubmix": "AiHubMix",
     "alayanew": "Alaya NeW",
     "anthropic": "Anthropic",
+    "aws-bedrock": "[to be translated]:AWS Bedrock",
     "azure-openai": "Azure OpenAI",
     "baichuan": "Παράκειμαι",
     "baidu-cloud": "Baidu Cloud Qianfan",
@@ -3088,6 +3099,16 @@
         "tip": "Χωριστά με κόμμα περισσότερα κλειδιά API"
       },
       "api_version": "Έκδοση API",
+      "aws-bedrock": {
+        "access_key_id": "[to be translated]:AWS 访问密钥 ID",
+        "access_key_id_help": "[to be translated]:您的 AWS 访问密钥 ID，用于访问 AWS Bedrock 服务",
+        "description": "[to be translated]:AWS Bedrock 是亚马逊提供的全托管基础模型服务，支持多种先进的大语言模型",
+        "region": "[to be translated]:AWS 区域",
+        "region_help": "[to be translated]:您的 AWS 服务区域，例如 us-east-1",
+        "secret_access_key": "[to be translated]:AWS 访问密钥",
+        "secret_access_key_help": "[to be translated]:您的 AWS 访问密钥，请妥善保管",
+        "title": "[to be translated]:AWS Bedrock 配置"
+      },
       "azure": {
         "apiversion": {
           "tip": "Η έκδοση του API για Azure OpenAI. Αν θέλετε να χρησιμοποιήσετε το Response API, εισάγετε μια προεπισκόπηση έκδοσης"
