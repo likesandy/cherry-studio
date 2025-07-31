@@ -391,6 +391,7 @@ export const initialState: SettingsState = {
   navbarPosition: 'left',
   // API Server
   apiServer: {
+    enabled: false,
     host: 'localhost',
     port: 23333,
     apiKey: `cs-sk-${uuid()}`
@@ -800,6 +801,12 @@ const settingsSlice = createSlice({
       state.navbarPosition = action.payload
     },
     // API Server actions
+    setApiServerEnabled: (state, action: PayloadAction<boolean>) => {
+      state.apiServer = {
+        ...state.apiServer,
+        enabled: action.payload
+      }
+    },
     setApiServerPort: (state, action: PayloadAction<number>) => {
       state.apiServer = {
         ...state.apiServer,
@@ -935,6 +942,7 @@ export const {
   setEnableDeveloperMode,
   setNavbarPosition,
   // API Server actions
+  setApiServerEnabled,
   setApiServerPort,
   setApiServerApiKey
 } = settingsSlice.actions
