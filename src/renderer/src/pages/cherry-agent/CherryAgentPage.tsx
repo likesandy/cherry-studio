@@ -73,15 +73,18 @@ const CherryAgentPage: React.FC = () => {
       // Add to history
       historyHook.addToHistory(command)
 
+      // Get working directory from current session
+      const workingDirectory = agentManagement.currentSession?.accessible_paths?.[0] || currentWorkingDirectory
+
       // Execute command
-      const commandId = await commandHook.executeCommand(command, currentWorkingDirectory)
+      const commandId = await commandHook.executeCommand(command, workingDirectory)
       if (commandId) {
         // Add user command message
         messagesHook.addUserCommand(command, commandId)
         setCommandCount((prev) => prev + 1)
       }
     },
-    [commandHook, messagesHook, historyHook, currentWorkingDirectory]
+    [commandHook, messagesHook, historyHook, agentManagement.currentSession, currentWorkingDirectory]
   )
 
   // Set up output callback to connect command hook with messages hook
@@ -486,7 +489,6 @@ const CherryAgentPage: React.FC = () => {
           <InputArea>
             <EnhancedCommandInput
               status={getCommandStatus()}
-              currentWorkingDirectory={currentWorkingDirectory}
               activeCommand={getCurrentCommand()}
               commandCount={commandCount}
               onSendCommand={handleExecuteCommand}

@@ -1,7 +1,6 @@
 import {
   ClearOutlined,
   CloseOutlined,
-  FolderOutlined,
   HistoryOutlined,
   PlayCircleOutlined,
   SettingOutlined
@@ -95,13 +94,6 @@ const StatusIndicator = styled.div<{ $status: 'idle' | 'running' | 'error' }>`
   }
 `
 
-const WorkingDirectory = styled.span`
-  font-family: var(--font-mono);
-  background: var(--color-background);
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-size: 10px;
-`
 
 const ActiveCommand = styled.span`
   font-family: var(--font-mono);
@@ -255,7 +247,6 @@ const HintText = styled.span`
 
 interface EnhancedCommandInputProps {
   status?: 'idle' | 'running' | 'error'
-  currentWorkingDirectory?: string
   activeCommand?: string
   commandCount?: number
   onSendCommand?: (command: string) => void
@@ -266,7 +257,6 @@ interface EnhancedCommandInputProps {
 
 const EnhancedCommandInput: React.FC<EnhancedCommandInputProps> = ({
   status = 'idle',
-  currentWorkingDirectory = '~',
   activeCommand,
   commandCount = 0,
   onSendCommand = () => {},
@@ -364,10 +354,6 @@ const EnhancedCommandInput: React.FC<EnhancedCommandInputProps> = ({
       <StatusRow>
         <StatusLeft>
           <StatusIndicator $status={status}>{getStatusText()}</StatusIndicator>
-          <WorkingDirectory>
-            <FolderOutlined style={{ fontSize: 10, marginRight: 2 }} />
-            {currentWorkingDirectory}
-          </WorkingDirectory>
           {isRunning && activeCommand && <ActiveCommand title={activeCommand}>Running: {activeCommand}</ActiveCommand>}
         </StatusLeft>
         <StatusRight>
