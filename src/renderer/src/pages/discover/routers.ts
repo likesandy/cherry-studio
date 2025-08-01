@@ -6,7 +6,7 @@ export const ROUTERS = [
   {
     id: CherryStoreType.ASSISTANT,
     title: i18n.t('assistants.title'),
-    path: 'assistant',
+    path: CherryStoreType.ASSISTANT,
     component: lazy(() => import('./pages/agents/AgentsPage')),
     hasSidebar: false, // 目前都没有侧边栏
     items: [{ id: 'all', name: `All ${i18n.t('assistants.title')}` }] // 预设 "All" 子分类
@@ -14,7 +14,7 @@ export const ROUTERS = [
   {
     id: CherryStoreType.MINI_APP,
     title: i18n.t('minapp.title'),
-    path: 'mini-app',
+    path: CherryStoreType.MINI_APP,
     component: lazy(() => import('./pages/minapps/MinAppsPage')),
     hasSidebar: false, // 目前都没有侧边栏
     items: [{ id: 'all', name: `All ${i18n.t('minapp.title')}` }] // 预设 "All" 子分类
@@ -47,10 +47,4 @@ export const ROUTERS = [
   //   }
 ]
 
-export const ROUTERS_ENTRIES = ROUTERS.reduce(
-  (acc, { id, ...rest }) => {
-    acc[id] = rest
-    return acc
-  },
-  {} as Record<(typeof ROUTERS)[number]['id'], Omit<(typeof ROUTERS)[number], 'id'>>
-)
+export const ROUTERS_MAP = new Map(ROUTERS.map((router) => [router.id, router]))

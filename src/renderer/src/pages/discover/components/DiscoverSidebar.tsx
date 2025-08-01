@@ -1,4 +1,5 @@
-import { SubCategoryItem } from '@renderer/types/cherryStore'
+// 还没测,目前助手和小程序用不到这个
+
 import { Badge } from '@renderer/ui/badge'
 import {
   Sidebar,
@@ -13,15 +14,9 @@ import { InternalCategory } from '../type'
 
 interface DiscoverSidebarProps {
   activeCategory: InternalCategory | undefined
-  selectedSubcategory: string
-  onSelectSubcategory: (subcategoryId: string, row?: SubCategoryItem) => void
 }
 
-export default function DiscoverSidebar({
-  activeCategory,
-  selectedSubcategory,
-  onSelectSubcategory
-}: DiscoverSidebarProps) {
+export default function DiscoverSidebar({ activeCategory }: DiscoverSidebarProps) {
   if (!activeCategory) {
     return (
       <Sidebar className="absolute top-0 left-0 h-full border-r">
@@ -42,9 +37,9 @@ export default function DiscoverSidebar({
               activeCategory.items.map((subItem) => (
                 <SidebarMenuSubItem key={subItem.id}>
                   <SidebarMenuButton
-                    isActive={subItem.id === selectedSubcategory}
+                    isActive={subItem.id === activeCategory.items[0]?.id}
                     onClick={() => {
-                      onSelectSubcategory(subItem.id, subItem)
+                      // onSelectSubcategory(subItem.id, subItem)
                     }}
                     size="sm">
                     <span className="truncate">{subItem.name}</span>

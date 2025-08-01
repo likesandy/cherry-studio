@@ -114,7 +114,7 @@ const ContentContainer = styled.div`
   flex: 1;
   flex-direction: row;
   justify-content: center;
-  height: 100%;
+  overflow: hidden;
 `
 
 // const HeaderContainer = styled.div`

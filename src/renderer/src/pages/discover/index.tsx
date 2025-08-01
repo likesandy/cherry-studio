@@ -10,8 +10,7 @@ import { ROUTERS } from './routers'
 
 export default function DiscoverPage() {
   const { t } = useTranslation()
-  const { activeTab, selectedSubcategory, currentCategory, handleSelectTab, handleSelectSubcategory } =
-    useDiscoverCategories()
+  const { activeTabId, currentCategory, handleSelectTab } = useDiscoverCategories()
 
   const tabs = useMemo(() => ROUTERS.map((router) => ({ id: router.id, label: router.title })), [])
 
@@ -26,23 +25,19 @@ export default function DiscoverPage() {
 
         {ROUTERS.length > 0 && (
           <div className="p-2 pl-0">
-            <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleSelectTab} />
+            <Tabs tabs={tabs} activeTab={activeTabId} onTabChange={handleSelectTab} />
           </div>
         )}
 
         <div className="flex flex-row overflow-hidden">
           {currentCategory?.hasSidebar && (
             <div className="w-64 flex-shrink-0 border-r">
-              <DiscoverSidebar
-                activeCategory={currentCategory}
-                selectedSubcategory={selectedSubcategory}
-                onSelectSubcategory={handleSelectSubcategory}
-              />
+              <DiscoverSidebar activeCategory={currentCategory} />
             </div>
           )}
 
           <main className="w-full overflow-hidden">
-            <DiscoverMain activeTabId={activeTab} currentCategory={currentCategory} />
+            <DiscoverMain />
           </main>
         </div>
       </div>
