@@ -7841,7 +7841,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react-swc@npm:^3.9.0":
+"@vitejs/plugin-react-swc@npm:^3.11.0":
   version: 3.11.0
   resolution: "@vitejs/plugin-react-swc@npm:3.11.0"
   dependencies:
@@ -8201,7 +8201,7 @@ __metadata:
     "@uiw/codemirror-extensions-langs": "npm:^4.23.14"
     "@uiw/codemirror-themes-all": "npm:^4.23.14"
     "@uiw/react-codemirror": "npm:^4.23.14"
-    "@vitejs/plugin-react-swc": "npm:^3.9.0"
+    "@vitejs/plugin-react-swc": "npm:^3.11.0"
     "@vitest/browser": "npm:^3.2.4"
     "@vitest/coverage-v8": "npm:^3.2.4"
     "@vitest/ui": "npm:^3.2.4"
