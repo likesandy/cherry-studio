@@ -732,11 +732,11 @@
     "you": "Вы"
   },
   "discover": {
-    "install": "[to be translated]:安装",
-    "title": "[to be translated]:发现",
-    "uninstall": "[to be translated]:卸载",
-    "update": "[to be translated]:更新",
-    "update_all": "[to be translated]:全部更新"
+    "install": "Установка",
+    "title": "Установлено",
+    "uninstall": "десинь",
+    "update": "обновление",
+    "update_all": "Все обновления"
   },
   "docs": {
     "title": "Документация"

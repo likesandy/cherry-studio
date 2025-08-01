@@ -84,11 +84,11 @@
         "button": "Redémarrer",
         "tooltip": "Redémarrer le Serveur"
       },
-      "start": "[to be translated]:启动",
-      "stop": "[to be translated]:停止"
+      "start": "démarrer",
+      "stop": "arrêter"
     },
     "authHeader": {
-      "title": "[to be translated]:授权标头"
+      "title": "En-tête d'autorisation"
     },
     "authHeaderText": "Utiliser dans l'en-tête d'autorisation :",
     "configuration": "Configuration",
@@ -99,12 +99,12 @@
     "fields": {
       "apiKey": {
         "copyTooltip": "Copier la Clé API",
-        "description": "[to be translated]:用于 API 访问的安全认证令牌",
+        "description": "TOKEN D'AUTHENTIFICATION SÉCURISÉ POUR L'ACCÈS À L'API",
         "label": "Clé API",
         "placeholder": "La clé API sera générée automatiquement"
       },
       "port": {
-        "description": "[to be translated]:HTTP 服务器的 TCP 端口号 (1000-65535)",
+        "description": "Numéro du port TCP du serveur HTTP (1000-65535)",
         "helpText": "Arrêtez le serveur pour changer le port",
         "label": "Port"
       },
@@ -730,11 +730,11 @@
     "you": "Vous"
   },
   "discover": {
-    "install": "[to be translated]:安装",
-    "title": "[to be translated]:发现",
-    "uninstall": "[to be translated]:卸载",
-    "update": "[to be translated]:更新",
-    "update_all": "[to be translated]:全部更新"
+    "install": "installer",
+    "title": "découvrir",
+    "uninstall": "désinstaller",
+    "update": "Mise à jour",
+    "update_all": "Mises à jour complètes"
   },
   "docs": {
     "title": "Documentation d'aide"
@@ -1657,7 +1657,7 @@
     "aihubmix": "AiHubMix",
     "alayanew": "Alaya NeW",
     "anthropic": "Anthropic",
-    "aws-bedrock": "[to be translated]:AWS Bedrock",
+    "aws-bedrock": "AWS Bedrock",
     "azure-openai": "Azure OpenAI",
     "baichuan": "BaiChuan",
     "baidu-cloud": "Baidu Cloud Qianfan",
@@ -3100,14 +3100,14 @@
       },
       "api_version": "Version API",
       "aws-bedrock": {
-        "access_key_id": "[to be translated]:AWS 访问密钥 ID",
-        "access_key_id_help": "[to be translated]:您的 AWS 访问密钥 ID，用于访问 AWS Bedrock 服务",
-        "description": "[to be translated]:AWS Bedrock 是亚马逊提供的全托管基础模型服务，支持多种先进的大语言模型",
-        "region": "[to be translated]:AWS 区域",
-        "region_help": "[to be translated]:您的 AWS 服务区域，例如 us-east-1",
-        "secret_access_key": "[to be translated]:AWS 访问密钥",
-        "secret_access_key_help": "[to be translated]:您的 AWS 访问密钥，请妥善保管",
-        "title": "[to be translated]:AWS Bedrock 配置"
+        "access_key_id": "ID de clé d'accès AWS",
+        "access_key_id_help": "Votre ID de clé d'accès AWS, utilisé pour accéder au service AWS Bedrock",
+        "description": "AWS Bedrock est un service de modèles de base entièrement géré par Amazon, proposant un large éventail de modèles linguistiques de pointe.",
+        "region": "Régions AWS",
+        "region_help": "Votre région de service AWS, par exemple us-east-1",
+        "secret_access_key": "Clé d'accès AWS",
+        "secret_access_key_help": "Votre clé d'accès AWS, veuillez la conserver soigneusement.",
+        "title": "Configuration d'AWS Bedrock"
       },
       "azure": {
         "apiversion": {
@@ -3319,11 +3319,6 @@
         "provider": "Fournisseur OCR",
         "provider_placeholder": "Sélectionnez un fournisseur OCR",
         "title": "Reconnaissance de texte OCR"
-      },
-      "preprocess": {
-        "provider": "Fournisseur de traitement préalable de documents",
-        "provider_placeholder": "Sélectionnez un fournisseur de traitement préalable de documents",
-        "title": "Traitement Préliminaire de Documents"
       },
       "preprocess": {
         "tooltip": "Configurer un fournisseur de prétraitement de documents ou OCR dans Paramètres -> Outils. Le prétraitement des documents améliore efficacement la précision de recherche pour les documents à format complexe ou les versions scannées, tandis que l'OCR permet uniquement d'extraire le texte contenu dans les images ou les PDF scannés."

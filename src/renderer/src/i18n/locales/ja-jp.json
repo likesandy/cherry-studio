@@ -732,11 +732,11 @@
     "you": "あなた"
   },
   "discover": {
-    "install": "[to be translated]:安装",
-    "title": "[to be translated]:发现",
-    "uninstall": "[to be translated]:卸载",
-    "update": "[to be translated]:更新",
-    "update_all": "[to be translated]:全部更新"
+    "install": "インストール",
+    "title": "発見",
+    "uninstall": "アンインストール",
+    "update": "更新",
+    "update_all": "すべて更新"
   },
   "docs": {
     "title": "ドキュメント"
