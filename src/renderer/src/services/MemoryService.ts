@@ -12,6 +12,8 @@ import {
   MemorySearchResult
 } from '@types'
 
+import { getAssistantById } from './AssistantService'
+
 const logger = loggerService.withContext('MemoryService')
 
 // Main process SearchResult type (matches what the IPC actually returns)
@@ -185,6 +187,16 @@ class MemoryService {
       ...options,
       userId: this.currentUserId
     }
+
+    // If agentId is provided, resolve userId from assistant's memoryUserId
+    if (optionsWithUser.agentId) {
+      const assistant = getAssistantById(optionsWithUser.agentId)
+      if (assistant) {
+        optionsWithUser.userId = assistant.memoryUserId || this.currentUserId
+      }
+    }
+
+    logger.debug('Searching memories start with options', { query: query, options: optionsWithUser })
 
     try {
       const result: SearchResult = await window.api.memory.search(query, optionsWithUser)
