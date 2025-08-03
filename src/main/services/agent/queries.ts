@@ -30,6 +30,7 @@ export const AgentQueries = {
         user_prompt TEXT, -- Initial user goal for the session
         status TEXT NOT NULL DEFAULT 'idle', -- 'idle', 'running', 'completed', 'failed', 'stopped'
         accessible_paths TEXT, -- JSON array of directory paths
+        claude_session_id TEXT, -- Claude SDK session ID for continuity
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         is_deleted INTEGER DEFAULT 0
@@ -103,13 +104,13 @@ export const AgentQueries = {
   // Session operations
   sessions: {
     insert: `
-      INSERT INTO sessions (id, agent_ids, user_prompt, status, accessible_paths, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO sessions (id, agent_ids, user_prompt, status, accessible_paths, claude_session_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     update: `
       UPDATE sessions 
-      SET agent_ids = ?, user_prompt = ?, status = ?, accessible_paths = ?, updated_at = ?
+      SET agent_ids = ?, user_prompt = ?, status = ?, accessible_paths = ?, claude_session_id = ?, updated_at = ?
       WHERE id = ? AND is_deleted = 0
     `,
 

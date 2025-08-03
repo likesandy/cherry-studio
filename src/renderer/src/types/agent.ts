@@ -24,6 +24,7 @@ export interface SessionEntity {
   user_prompt?: string // Initial user goal for the session
   status: SessionStatus
   accessible_paths?: string[] // Array of directory paths the agent can access
+  claude_session_id?: string // Claude SDK session ID for continuity
   created_at: string
   updated_at: string
   is_deleted: number
@@ -81,6 +82,7 @@ export interface UpdateSessionInput {
   user_prompt?: string
   status?: SessionStatus
   accessible_paths?: string[]
+  claude_session_id?: string
 }
 
 export interface CreateSessionLogInput {
@@ -101,6 +103,7 @@ export interface AgentResponse extends Omit<AgentEntity, 'tools' | 'knowledges' 
 export interface SessionResponse extends Omit<SessionEntity, 'agent_ids' | 'accessible_paths' | 'is_deleted'> {
   agent_ids: string[]
   accessible_paths: string[]
+  claude_session_id?: string
 }
 
 export interface SessionLogResponse extends SessionLogEntity {}

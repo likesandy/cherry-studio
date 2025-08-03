@@ -353,6 +353,7 @@ export class AgentService {
           input.user_prompt || null,
           input.status || 'idle',
           input.accessible_paths ? JSON.stringify(input.accessible_paths) : null,
+          null, // claude_session_id - initially null
           now,
           now
         ]
@@ -409,6 +410,7 @@ export class AgentService {
           input.accessible_paths
             ? JSON.stringify(input.accessible_paths)
             : JSON.stringify(currentSession.accessible_paths),
+          input.claude_session_id ?? currentSession.claude_session_id ?? null,
           now,
           input.id
         ]
@@ -490,6 +492,7 @@ export class AgentService {
         user_prompt: row.user_prompt as string,
         status: row.status as any,
         accessible_paths: row.accessible_paths ? JSON.parse(row.accessible_paths as string) : [],
+        claude_session_id: row.claude_session_id as string,
         created_at: row.created_at as string,
         updated_at: row.updated_at as string
       }
@@ -544,6 +547,7 @@ export class AgentService {
         user_prompt: row.user_prompt as string,
         status: row.status as any,
         accessible_paths: row.accessible_paths ? JSON.parse(row.accessible_paths as string) : [],
+        claude_session_id: row.claude_session_id as string,
         created_at: row.created_at as string,
         updated_at: row.updated_at as string
       }))
