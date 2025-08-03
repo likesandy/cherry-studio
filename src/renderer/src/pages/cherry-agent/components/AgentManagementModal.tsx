@@ -86,8 +86,8 @@ const AgentManagementModal: FC<AgentManagementModalProps> = ({ visible, onClose,
 
   const isEditMode = Boolean(agent)
   const modalTitle = isEditMode
-    ? t('agent.modal.edit.title', 'Edit Agent')
-    : t('agent.modal.create.title', 'Create Agent')
+    ? t('cherryAgent.modal.edit.title', 'Edit Agent')
+    : t('cherryAgent.modal.create.title', 'Create Agent')
 
   // Initialize form when agent changes
   useEffect(() => {
@@ -189,7 +189,7 @@ const AgentManagementModal: FC<AgentManagementModalProps> = ({ visible, onClose,
       centered
       width={600}
       confirmLoading={isSubmitting}
-      okText={isEditMode ? t('common.save', 'Save') : t('common.create', 'Create')}
+      okText={isEditMode ? t('common.save', 'Save') : t('agents.add.title', 'Create Agent')}
       cancelText={t('common.cancel', 'Cancel')}
       styles={{
         header: {
@@ -217,11 +217,11 @@ const AgentManagementModal: FC<AgentManagementModalProps> = ({ visible, onClose,
           knowledges: []
         }}>
         {/* Basic Information Section */}
-        <SectionTitle>{t('agent.modal.section.basic', 'Basic Information')}</SectionTitle>
+        <SectionTitle>{t('cherryAgent.modal.section.basic', 'Basic Information')}</SectionTitle>
 
         <Space direction="horizontal" size={24} style={{ width: '100%', alignItems: 'flex-start' }}>
           <AvatarSection>
-            <Form.Item label={t('agent.modal.avatar', 'Avatar')}>
+            <Form.Item label={t('cherryAgent.modal.avatar', 'Avatar')}>
               <Upload
                 name="avatar"
                 listType="picture-circle"
@@ -236,7 +236,7 @@ const AgentManagementModal: FC<AgentManagementModalProps> = ({ visible, onClose,
                   <AvatarPlaceholder>
                     <UserOutlined style={{ fontSize: 24, color: 'var(--color-text-tertiary)' }} />
                     <div style={{ marginTop: 8, fontSize: 12, color: 'var(--color-text-tertiary)' }}>
-                      {t('agent.modal.avatar.upload', 'Upload')}
+                      {t('cherryAgent.modal.avatar.upload', 'Upload')}
                     </div>
                   </AvatarPlaceholder>
                 )}
@@ -246,28 +246,31 @@ const AgentManagementModal: FC<AgentManagementModalProps> = ({ visible, onClose,
 
           <FormFieldsSection>
             <Form.Item
-              label={t('agent.modal.name', 'Agent Name')}
+              label={t('cherryAgent.modal.name', 'Agent Name')}
               name="name"
               rules={[
                 {
                   required: true,
-                  message: t('agent.modal.name.required', 'Please enter agent name')
+                  message: t('cherryAgent.modal.name.required', 'Please enter agent name')
                 },
                 {
                   max: 50,
-                  message: t('agent.modal.name.maxLength', 'Agent name cannot exceed 50 characters')
+                  message: t('cherryAgent.modal.name.maxLength', 'Agent name cannot exceed 50 characters')
                 }
               ]}>
               <Input
-                placeholder={t('agent.modal.name.placeholder', 'Enter a name for your agent')}
+                placeholder={t('cherryAgent.modal.name.placeholder', 'Enter a name for your agent')}
                 showCount
                 maxLength={50}
               />
             </Form.Item>
 
-            <Form.Item label={t('agent.modal.description', 'Description')} name="description">
+            <Form.Item label={t('cherryAgent.modal.description', 'Description')} name="description">
               <Input.TextArea
-                placeholder={t('agent.modal.description.placeholder', 'Brief description of what this agent does')}
+                placeholder={t(
+                  'cherryAgent.modal.description.placeholder',
+                  'Brief description of what this agent does'
+                )}
                 rows={2}
                 showCount
                 maxLength={200}
@@ -277,19 +280,21 @@ const AgentManagementModal: FC<AgentManagementModalProps> = ({ visible, onClose,
         </Space>
 
         {/* Configuration Section */}
-        <SectionTitle style={{ marginTop: 24 }}>{t('agent.modal.section.configuration', 'Configuration')}</SectionTitle>
+        <SectionTitle style={{ marginTop: 24 }}>
+          {t('cherryAgent.modal.section.configuration', 'Configuration')}
+        </SectionTitle>
 
         <Form.Item
-          label={t('agent.modal.model', 'Language Model')}
+          label={t('cherryAgent.modal.model', 'Language Model')}
           name="model"
           rules={[
             {
               required: true,
-              message: t('agent.modal.model.required', 'Please select a language model')
+              message: t('cherryAgent.modal.model.required', 'Please select a language model')
             }
           ]}>
           <Select
-            placeholder={t('agent.modal.model.placeholder', 'Select a language model')}
+            placeholder={t('cherryAgent.modal.model.placeholder', 'Select a language model')}
             showSearch
             optionFilterProp="label"
             options={models}
@@ -297,14 +302,14 @@ const AgentManagementModal: FC<AgentManagementModalProps> = ({ visible, onClose,
         </Form.Item>
 
         <Form.Item
-          label={t('agent.modal.instructions', 'System Instructions')}
+          label={t('cherryAgent.modal.instructions', 'System Instructions')}
           name="instructions"
           tooltip={t(
-            'agent.modal.instructions.tooltip',
+            'cherryAgent.modal.instructions.tooltip',
             'These instructions guide how the agent behaves and responds'
           )}>
           <Input.TextArea
-            placeholder={t('agent.modal.instructions.placeholder', 'You are a helpful assistant that...')}
+            placeholder={t('cherryAgent.modal.instructions.placeholder', 'You are a helpful assistant that...')}
             rows={4}
             showCount
             maxLength={2000}
@@ -312,27 +317,29 @@ const AgentManagementModal: FC<AgentManagementModalProps> = ({ visible, onClose,
         </Form.Item>
 
         {/* Capabilities Section */}
-        <SectionTitle style={{ marginTop: 24 }}>{t('agent.modal.section.capabilities', 'Capabilities')}</SectionTitle>
+        <SectionTitle style={{ marginTop: 24 }}>
+          {t('cherryAgent.modal.section.capabilities', 'Capabilities')}
+        </SectionTitle>
 
         <Form.Item
-          label={t('agent.modal.tools', 'Available Tools')}
+          label={t('cherryAgent.modal.tools', 'Available Tools')}
           name="tools"
-          tooltip={t('agent.modal.tools.tooltip', 'Select tools that this agent can use')}>
+          tooltip={t('cherryAgent.modal.tools.tooltip', 'Select tools that this agent can use')}>
           <Select
             mode="multiple"
-            placeholder={t('agent.modal.tools.placeholder', 'Select tools for your agent')}
+            placeholder={t('cherryAgent.modal.tools.placeholder', 'Select tools for your agent')}
             options={tools}
             maxTagCount="responsive"
           />
         </Form.Item>
 
         <Form.Item
-          label={t('agent.modal.knowledges', 'Knowledge Bases')}
+          label={t('cherryAgent.modal.knowledges', 'Knowledge Bases')}
           name="knowledges"
-          tooltip={t('agent.modal.knowledges.tooltip', 'Select knowledge bases this agent can access')}>
+          tooltip={t('cherryAgent.modal.knowledges.tooltip', 'Select knowledge bases this agent can access')}>
           <Select
             mode="multiple"
-            placeholder={t('agent.modal.knowledges.placeholder', 'Select knowledge bases (optional)')}
+            placeholder={t('cherryAgent.modal.knowledges.placeholder', 'Select knowledge bases (optional)')}
             options={[]} // This would be populated from actual knowledge bases
             maxTagCount="responsive"
           />

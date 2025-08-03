@@ -36,8 +36,8 @@ const SessionManagementModal: FC<SessionManagementModalProps> = ({
 
   const isEditMode = Boolean(session)
   const modalTitle = isEditMode
-    ? t('session.modal.edit.title', 'Edit Session')
-    : t('session.modal.create.title', 'Create New Session')
+    ? t('cherryAgent.sessions.modal.edit.title', 'Edit Session')
+    : t('cherryAgent.sessions.modal.create.title', 'Create New Session')
 
   // Initialize form when session changes
   useEffect(() => {
@@ -151,11 +151,11 @@ const SessionManagementModal: FC<SessionManagementModalProps> = ({
   }))
 
   const statusOptions = [
-    { value: 'idle', label: t('session.status.idle', 'Idle') },
-    { value: 'running', label: t('session.status.running', 'Running') },
-    { value: 'completed', label: t('session.status.completed', 'Completed') },
-    { value: 'failed', label: t('session.status.failed', 'Failed') },
-    { value: 'stopped', label: t('session.status.stopped', 'Stopped') }
+    { value: 'idle', label: t('cherryAgent.sessions.status.idle', 'Idle') },
+    { value: 'running', label: t('cherryAgent.sessions.status.running', 'Running') },
+    { value: 'completed', label: t('cherryAgent.sessions.status.completed', 'Completed') },
+    { value: 'failed', label: t('cherryAgent.sessions.status.failed', 'Failed') },
+    { value: 'stopped', label: t('cherryAgent.sessions.status.stopped', 'Stopped') }
   ]
 
   return (
@@ -168,7 +168,7 @@ const SessionManagementModal: FC<SessionManagementModalProps> = ({
       centered
       width={550}
       confirmLoading={isSubmitting}
-      okText={isEditMode ? t('common.save', 'Save') : t('common.create', 'Create')}
+      okText={isEditMode ? t('common.save', 'Save') : t('cherryAgent.sessions.add.title', 'Create Session')}
       cancelText={t('common.cancel', 'Cancel')}
       styles={{
         header: {
@@ -185,21 +185,21 @@ const SessionManagementModal: FC<SessionManagementModalProps> = ({
       }}>
       <Form form={form} layout="vertical" requiredMark={false}>
         <Form.Item
-          label={t('session.modal.prompt', 'Session Goal/Prompt')}
+          label={t('cherryAgent.sessions.modal.prompt', 'Session Goal/Prompt')}
           name="user_prompt"
           rules={[
             {
               required: true,
-              message: t('session.modal.prompt.required', 'Please enter a session goal or prompt')
+              message: t('cherryAgent.sessions.modal.prompt.required', 'Please enter a session goal or prompt')
             },
             {
               max: 200,
-              message: t('session.modal.prompt.maxLength', 'Prompt cannot exceed 200 characters')
+              message: t('cherryAgent.sessions.modal.prompt.maxLength', 'Prompt cannot exceed 200 characters')
             }
           ]}>
           <Input.TextArea
             placeholder={t(
-              'session.modal.prompt.placeholder',
+              'cherryAgent.sessions.modal.prompt.placeholder',
               'Describe what you want to accomplish in this session...'
             )}
             rows={3}
@@ -209,38 +209,41 @@ const SessionManagementModal: FC<SessionManagementModalProps> = ({
         </Form.Item>
 
         <Form.Item
-          label={t('session.modal.agents', 'Assigned Agents')}
+          label={t('cherryAgent.sessions.modal.agents', 'Assigned Agents')}
           name="agent_ids"
           rules={[
             {
               required: true,
-              message: t('session.modal.agents.required', 'Please select at least one agent')
+              message: t('cherryAgent.sessions.modal.agents.required', 'Please select at least one agent')
             }
           ]}>
           <Select
             mode="multiple"
-            placeholder={t('session.modal.agents.placeholder', 'Select agents for this session')}
+            placeholder={t('cherryAgent.sessions.modal.agents.placeholder', 'Select agents for this session')}
             options={agentOptions}
             maxTagCount="responsive"
             disabled={agents.length === 0}
             notFoundContent={
-              agents.length === 0 ? t('session.modal.agents.noAgents', 'No agents available') : undefined
+              agents.length === 0 ? t('cherryAgent.sessions.modal.agents.noAgents', 'No agents available') : undefined
             }
           />
         </Form.Item>
 
         {isEditMode && (
-          <Form.Item label={t('session.modal.status', 'Status')} name="status">
+          <Form.Item label={t('cherryAgent.sessions.modal.status', 'Status')} name="status">
             <Select
-              placeholder={t('session.modal.status.placeholder', 'Select session status')}
+              placeholder={t('cherryAgent.sessions.modal.status.placeholder', 'Select session status')}
               options={statusOptions}
             />
           </Form.Item>
         )}
 
         <Form.Item
-          label={t('session.modal.paths', 'Accessible Directories')}
-          tooltip={t('session.modal.paths.tooltip', 'Directories that agents can access during this session')}>
+          label={t('cherryAgent.sessions.modal.paths', 'Accessible Directories')}
+          tooltip={t(
+            'cherryAgent.sessions.modal.paths.tooltip',
+            'Directories that agents can access during this session'
+          )}>
           <PathsContainer>
             {selectedPaths.map((path, index) => (
               <PathItem key={index}>
@@ -259,7 +262,7 @@ const SessionManagementModal: FC<SessionManagementModalProps> = ({
               icon={<FolderOpenOutlined />}
               onClick={handleAddPath}
               style={{ width: '100%', marginTop: selectedPaths.length > 0 ? 8 : 0 }}>
-              {t('session.modal.addPath', 'Add Directory')}
+              {t('cherryAgent.sessions.modal.addPath', 'Add Directory')}
             </Button>
           </PathsContainer>
         </Form.Item>

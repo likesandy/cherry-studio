@@ -4,8 +4,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   PlusOutlined,
-  SettingOutlined,
-  UserOutlined
+  SettingOutlined
 } from '@ant-design/icons'
 import { Navbar, NavbarCenter } from '@renderer/components/app/Navbar'
 import { useAgentManagement } from '@renderer/hooks/useAgentManagement'
@@ -79,8 +78,8 @@ const CherryAgentPage: React.FC = () => {
       // Execute command
       const commandId = await commandHook.executeCommand(command, workingDirectory)
       if (commandId) {
-        // Add user command message
-        messagesHook.addUserCommand(command, commandId, agentManagement.currentSession?.id)
+        // Add user command message (now async)
+        await messagesHook.addUserCommand(command, commandId, agentManagement.currentSession?.id)
         setCommandCount((prev) => prev + 1)
       }
     },
@@ -89,12 +88,12 @@ const CherryAgentPage: React.FC = () => {
 
   // Set up output callback to connect command hook with messages hook
   useEffect(() => {
-    commandHook.setOutputCallback((commandId: string, output: string, isBuffered: boolean) => {
+    commandHook.setOutputCallback(async (commandId: string, output: string, isBuffered: boolean) => {
       // When we receive buffered output, append it to messages
       // Note: The type determination (stdout vs stderr) is handled in usePocMessages
       // based on the command output type from AgentCommandService
       if (isBuffered && output) {
-        messagesHook.appendOutput(commandId, output, 'output', false, agentManagement.currentSession?.id)
+        await messagesHook.appendOutput(commandId, output, 'output', false, agentManagement.currentSession?.id)
       }
     })
   }, [commandHook, messagesHook, agentManagement.currentSession?.id])
@@ -267,7 +266,13 @@ const CherryAgentPage: React.FC = () => {
     if (commandHook.currentCommandId) {
       const success = await commandHook.interruptCommand(commandHook.currentCommandId)
       if (success) {
-        messagesHook.appendOutput(commandHook.currentCommandId, '\n[Command cancelled by user]', 'error', true, agentManagement.currentSession?.id)
+        await messagesHook.appendOutput(
+          commandHook.currentCommandId,
+          '\n[Command cancelled by user]',
+          'error',
+          true,
+          agentManagement.currentSession?.id
+        )
       }
     }
   }, [commandHook, messagesHook, agentManagement.currentSession?.id])
@@ -278,10 +283,14 @@ const CherryAgentPage: React.FC = () => {
 
   // Handle session selection
   const handleSessionSelect = useCallback(
-    (session: any) => {
+    async (session: any) => {
       agentManagement.setCurrentSession(session)
+      // Load session logs from database when switching sessions
+      if (session?.id) {
+        await messagesHook.loadSessionLogs(session.id)
+      }
     },
-    [agentManagement]
+    [agentManagement, messagesHook]
   )
 
   // Handle agent name change
@@ -301,7 +310,6 @@ const CherryAgentPage: React.FC = () => {
   const filteredSessions = agentManagement.sessions.filter(
     (session) => agentManagement.currentAgent && session.agent_ids.includes(agentManagement.currentAgent.id)
   )
-
 
   // Set the first agent as current if none is selected
   useEffect(() => {
@@ -327,6 +335,13 @@ const CherryAgentPage: React.FC = () => {
     }
   }, [agentManagement, currentWorkingDirectory])
 
+  // Load session logs when current session changes
+  useEffect(() => {
+    if (agentManagement.currentSession?.id) {
+      messagesHook.loadSessionLogs(agentManagement.currentSession.id)
+    }
+  }, [agentManagement.currentSession?.id, messagesHook])
+
   return (
     <Container id="cherry-agent-page">
       <Navbar>
@@ -340,12 +355,7 @@ const CherryAgentPage: React.FC = () => {
               <HeaderLabel>agents</HeaderLabel>
               <HeaderActions>
                 {agentManagement.agents.length === 0 ? (
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    size="small"
-                    onClick={handleCreateAgent}
-                  >
+                  <Button type="primary" icon={<PlusOutlined />} size="small" onClick={handleCreateAgent}>
                     Create Agent
                   </Button>
                 ) : (
@@ -483,11 +493,12 @@ const CherryAgentPage: React.FC = () => {
               </AgentHeader>
 
               <MessageArea>
-                <PocMessageList 
-                  messages={agentManagement.currentSession 
-                    ? messagesHook.getMessagesForSession(agentManagement.currentSession.id) 
-                    : []
-                  } 
+                <PocMessageList
+                  messages={
+                    agentManagement.currentSession
+                      ? messagesHook.getMessagesForSession(agentManagement.currentSession.id)
+                      : []
+                  }
                 />
               </MessageArea>
 
@@ -506,12 +517,19 @@ const CherryAgentPage: React.FC = () => {
           ) : (
             <EmptyAgentState>
               {sidebarCollapsed && (
-                <ToggleButton type="text" icon={<MenuUnfoldOutlined />} onClick={toggleSidebar} size="small" style={{ position: 'absolute', top: '20px', left: '20px' }} />
+                <ToggleButton
+                  type="text"
+                  icon={<MenuUnfoldOutlined />}
+                  onClick={toggleSidebar}
+                  size="small"
+                  style={{ position: 'absolute', top: '20px', left: '20px' }}
+                />
               )}
               <EmptyStateContent>
                 <EmptyStateTitle>No Agent Selected</EmptyStateTitle>
                 <EmptyStateDescription>
-                  Create an agent to get started with Cherry Agent. You can create different agents with specific roles and capabilities.
+                  Create an agent to get started with Cherry Agent. You can create different agents with specific roles
+                  and capabilities.
                 </EmptyStateDescription>
                 <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateAgent} size="large">
                   Create Your First Agent

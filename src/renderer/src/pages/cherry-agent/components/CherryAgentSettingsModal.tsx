@@ -50,7 +50,7 @@ const CherryAgentSettingsModal: FC<CherryAgentSettingsModalProps> = ({
 
   return (
     <Modal
-      title={t('agent.settings.title', 'Agent Settings')}
+      title={t('cherryagent.settings.title', 'Agent Settings')}
       open={visible}
       onOk={handleOk}
       onCancel={handleCancel}
@@ -76,19 +76,19 @@ const CherryAgentSettingsModal: FC<CherryAgentSettingsModalProps> = ({
           workingDirectory: currentWorkingDirectory
         }}>
         <Form.Item
-          label={t('agent.settings.workingDirectory', 'Working Directory')}
+          label={t('cherryagent.settings.workingDirectory', 'Working Directory')}
           name="workingDirectory"
           rules={[
             {
               required: true,
-              message: t('agent.settings.workingDirectoryRequired', 'Please select a working directory')
+              message: t('cherryagent.settings.workingDirectoryRequired', 'Please select a working directory')
             }
           ]}>
           <Input
-            placeholder={t('agent.settings.workingDirectoryPlaceholder', 'Select a working directory...')}
+            placeholder={t('cherryagent.settings.workingDirectoryPlaceholder', 'Select a working directory...')}
             addonAfter={
               <Button type="text" icon={<FolderOpenOutlined />} onClick={handleBrowseDirectory} size="small">
-                {t('agent.settings.browse', 'Browse')}
+                {t('cherryagent.settings.browse', 'Browse')}
               </Button>
             }
           />

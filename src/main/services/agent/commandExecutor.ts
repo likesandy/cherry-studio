@@ -1,7 +1,7 @@
 import { ChildProcess, spawn } from 'node:child_process'
 
 import { loggerService } from '@logger'
-import { isWin } from '@main/constant'
+import { isMac, isWin } from '@main/constant'
 import getLoginShellEnvironment from '@main/utils/shell-env'
 import { IpcChannel } from '@shared/IpcChannel'
 import { PocCommandOutput, PocExecuteCommandRequest } from '@types'
@@ -58,6 +58,12 @@ export class ShellCommandExecutor {
       return {
         shell: 'cmd.exe',
         args: ['/c']
+      }
+    } else if (isMac) {
+      return {
+        // macOS: Use zsh with -c flag (default shell since macOS Catalina)
+        shell: 'zsh',
+        args: ['-c']
       }
     } else {
       // Unix-like systems: Use bash with -c flag

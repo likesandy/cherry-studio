@@ -314,10 +314,10 @@ export class AgentManagementService {
    */
   public async getSessionLogs(options: ListSessionLogsOptions): Promise<ServiceResult<ListResult<SessionLogResponse>>> {
     try {
-      logger.debug('Getting session logs for session', { session_id: options.session_id })
+      // logger.debug('Getting session logs for session', { session_id: options.session_id })
       const result = await window.electron.ipcRenderer.invoke(IpcChannel.SessionLog_GetBySessionId, options)
       if (result.success) {
-        logger.debug(`Found ${result.data?.total || 0} session logs`)
+        // logger.debug(`Found ${result.data?.total || 0} session logs`)
       } else {
         logger.error('Failed to get session logs', { error: result.error })
       }
