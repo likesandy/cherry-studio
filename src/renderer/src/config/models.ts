@@ -2346,7 +2346,15 @@ export const SYSTEM_MODELS: Record<string, Model[]> = {
     }
   ],
   'new-api': [],
-  'aws-bedrock': []
+  'aws-bedrock': [],
+  poe: [
+    {
+      id: 'gpt-4o',
+      name: 'GPT-4o',
+      provider: 'poe',
+      group: 'poe'
+    }
+  ]
 }
 
 export const TEXT_TO_IMAGES_MODELS = [
@@ -3091,11 +3099,12 @@ export const THINKING_TOKEN_MAP: Record<string, { min: number; max: number }> = 
   'qwen3-235b-a22b-thinking-2507$': { min: 0, max: 81_920 },
   'qwen3-30b-a3b-thinking-2507$': { min: 0, max: 81_920 },
   'qwen-plus-2025-07-28$': { min: 0, max: 81_920 },
+  'qwen-plus-latest$': { min: 0, max: 81_920 },
   'qwen3-1\\.7b$': { min: 0, max: 30_720 },
   'qwen3-0\\.6b$': { min: 0, max: 30_720 },
-  'qwen-plus-.*$': { min: 0, max: 38912 },
-  'qwen-turbo-.*$': { min: 0, max: 38912 },
-  'qwen3-.*$': { min: 1024, max: 38912 },
+  'qwen-plus.*$': { min: 0, max: 38_912 },
+  'qwen-turbo.*$': { min: 0, max: 38_912 },
+  'qwen3-.*$': { min: 1024, max: 38_912 },
 
   // Claude models
   'claude-3[.-]7.*sonnet.*$': { min: 1024, max: 64000 },
