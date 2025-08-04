@@ -64,9 +64,8 @@ export class AgentService {
         intMode: 'number'
       })
 
-      // Create tables and migrate existing database
-      await this.createTables()
-      await this.migrateDatabase()
+      // Create tables or migrate existing database
+      await this.createTablesAndMigrate()
 
       this.isInitialized = true
       logger.debug('Agent database initialized successfully', { dbPath })
@@ -80,15 +79,38 @@ export class AgentService {
     }
   }
 
-  private async createTables(): Promise<void> {
+  private async createTablesAndMigrate(): Promise<void> {
     if (!this.db) throw new Error('Database not initialized')
 
-    // Create all tables
-    await this.db.execute(AgentQueries.createTables.agents)
-    await this.db.execute(AgentQueries.createTables.sessions)
-    await this.db.execute(AgentQueries.createTables.sessionLogs)
+    // Check if tables exist
+    const tablesResult = await this.db.execute(`
+      SELECT name FROM sqlite_master 
+      WHERE type='table' AND name IN ('agents', 'sessions', 'session_logs')
+    `)
 
-    // Create all indexes (including new ones for claude_session_id)
+    const existingTables = tablesResult.rows.map((row: any) => row.name)
+    const hasAgents = existingTables.includes('agents')
+    const hasSessions = existingTables.includes('sessions')
+    const hasSessionLogs = existingTables.includes('session_logs')
+
+    // Create missing tables
+    if (!hasAgents) {
+      await this.db.execute(AgentQueries.createTables.agents)
+    }
+    if (!hasSessionLogs) {
+      await this.db.execute(AgentQueries.createTables.sessionLogs)
+    }
+
+    // Handle sessions table separately due to potential schema migrations
+    if (!hasSessions) {
+      // Fresh installation - create with full schema
+      await this.db.execute(AgentQueries.createTables.sessions)
+    } else {
+      // Existing table - migrate schema
+      await this.migrateSessionsTable()
+    }
+
+    // Create all indexes
     await this.createIndexes()
   }
 
@@ -110,7 +132,7 @@ export class AgentService {
       await this.db.execute(AgentQueries.createIndexes.sessionsStatus)
       await this.db.execute(AgentQueries.createIndexes.sessionsCreatedAt)
       await this.db.execute(AgentQueries.createIndexes.sessionsIsDeleted)
-      await this.db.execute(AgentQueries.createIndexes.sessionsClaudeSessionId)
+      await this.db.execute(AgentQueries.createIndexes.sessionsLatestClaudeSessionId)
       await this.db.execute(AgentQueries.createIndexes.sessionsAgentIds)
 
       // Session logs indexes
@@ -128,28 +150,56 @@ export class AgentService {
   }
 
   /**
-   * Migrate existing database to support new features
-   * Should be called during init to ensure database compatibility
+   * Migrate existing sessions table to support new features
+   * Should be called when sessions table exists but may have outdated schema
    */
-  private async migrateDatabase(): Promise<void> {
+  private async migrateSessionsTable(): Promise<void> {
     if (!this.db) throw new Error('Database not initialized')
 
     try {
-      // Check if claude_session_id column exists in sessions table
+      // Check for schema migrations needed
       const tableInfo = await this.db.execute('PRAGMA table_info(sessions)')
-      const hasClaudeSessionId = tableInfo.rows.some((row: any) => row.name === 'claude_session_id')
+      const hasLatestClaudeSessionId = tableInfo.rows.some((row: any) => row.name === 'latest_claude_session_id')
+      const hasMaxTurns = tableInfo.rows.some((row: any) => row.name === 'max_turns')
+      const hasPermissionMode = tableInfo.rows.some((row: any) => row.name === 'permission_mode')
+      const hasUserGoal = tableInfo.rows.some((row: any) => row.name === 'user_goal')
+      const hasAccessiblePaths = tableInfo.rows.some((row: any) => row.name === 'accessible_paths')
+      const hasOldClaudeSessionId = tableInfo.rows.some((row: any) => row.name === 'claude_session_id')
+      const hasOldUserPrompt = tableInfo.rows.some((row: any) => row.name === 'user_prompt')
 
-      if (!hasClaudeSessionId) {
-        logger.info('Migrating database: adding claude_session_id column to sessions table')
-        await this.db.execute('ALTER TABLE sessions ADD COLUMN claude_session_id TEXT')
+      // Add new columns if they don't exist
+      if (!hasLatestClaudeSessionId) {
+        logger.info('Migrating database: adding latest_claude_session_id column to sessions table')
+        await this.db.execute('ALTER TABLE sessions ADD COLUMN latest_claude_session_id TEXT')
+      }
+      if (!hasMaxTurns) {
+        logger.info('Migrating database: adding max_turns column to sessions table')
+        await this.db.execute('ALTER TABLE sessions ADD COLUMN max_turns INTEGER DEFAULT 10')
+      }
+      if (!hasPermissionMode) {
+        logger.info('Migrating database: adding permission_mode column to sessions table')
+        await this.db.execute('ALTER TABLE sessions ADD COLUMN permission_mode TEXT DEFAULT "default"')
+      }
+      if (!hasAccessiblePaths) {
+        logger.info('Migrating database: adding accessible_paths column to sessions table')
+        await this.db.execute('ALTER TABLE sessions ADD COLUMN accessible_paths TEXT')
+      }
+      if (!hasUserGoal && hasOldUserPrompt) {
+        logger.info('Migrating database: renaming user_prompt to user_goal in sessions table')
+        await this.db.execute('ALTER TABLE sessions ADD COLUMN user_goal TEXT')
+        await this.db.execute('UPDATE sessions SET user_goal = user_prompt WHERE user_prompt IS NOT NULL')
+      }
+      // Copy data from old claude_session_id column if it exists and has data
+      if (hasOldClaudeSessionId) {
+        logger.info('Migrating database: copying claude_session_id to latest_claude_session_id')
+        await this.db.execute(
+          'UPDATE sessions SET latest_claude_session_id = claude_session_id WHERE claude_session_id IS NOT NULL'
+        )
       }
 
-      // Ensure all indexes exist (including new ones)
-      await this.createIndexes()
-
-      logger.debug('Database migration completed successfully')
+      logger.debug('Sessions table migration completed successfully')
     } catch (error) {
-      logger.error('Database migration failed:', error as Error)
+      logger.error('Sessions table migration failed:', error as Error)
       throw error
     }
   }
@@ -437,10 +487,12 @@ export class AgentService {
           args: [
             id,
             JSON.stringify(input.agent_ids),
-            input.user_prompt?.trim() || null,
+            input.user_goal?.trim() || null,
             input.status || 'idle',
             input.accessible_paths ? JSON.stringify(input.accessible_paths) : null,
-            null, // claude_session_id - initially null
+            null, // latest_claude_session_id - initially null
+            input.max_turns || 10,
+            input.permission_mode || 'default',
             now,
             now
           ]
@@ -493,12 +545,14 @@ export class AgentService {
         sql: AgentQueries.sessions.update,
         args: [
           input.agent_ids ? JSON.stringify(input.agent_ids) : JSON.stringify(currentSession.agent_ids),
-          input.user_prompt ?? currentSession.user_prompt ?? null,
+          input.user_goal ?? currentSession.user_goal ?? null,
           input.status ?? currentSession.status,
           input.accessible_paths
             ? JSON.stringify(input.accessible_paths)
             : JSON.stringify(currentSession.accessible_paths),
-          input.claude_session_id ?? currentSession.claude_session_id ?? null,
+          input.latest_claude_session_id ?? currentSession.latest_claude_session_id ?? null,
+          input.max_turns ?? currentSession.max_turns ?? 10,
+          input.permission_mode ?? currentSession.permission_mode ?? 'default',
           now,
           input.id
         ]
@@ -579,7 +633,7 @@ export class AgentService {
       }
 
       await this.db.execute({
-        sql: AgentQueries.sessions.updateClaudeSessionId,
+        sql: AgentQueries.sessions.updateLatestClaudeSessionId,
         args: [claudeSessionId, new Date().toISOString(), sessionId]
       })
 
@@ -627,10 +681,12 @@ export class AgentService {
       const session: SessionEntity = {
         id: row.id as string,
         agent_ids: JSON.parse(row.agent_ids as string),
-        user_prompt: row.user_prompt as string,
+        user_goal: row.user_goal || null,
         status: row.status as any,
         accessible_paths: row.accessible_paths ? JSON.parse(row.accessible_paths as string) : [],
-        claude_session_id: row.claude_session_id as string,
+        latest_claude_session_id: row.latest_claude_session_id || null,
+        max_turns: row.max_turns || 10,
+        permission_mode: row.permission_mode || 'default',
         created_at: row.created_at as string,
         updated_at: row.updated_at as string
       }
@@ -681,7 +737,7 @@ export class AgentService {
       }
 
       const result = await this.db.execute({
-        sql: AgentQueries.sessions.getByClaudeSessionId,
+        sql: AgentQueries.sessions.getByLatestClaudeSessionId,
         args: [claudeSessionId]
       })
 
@@ -693,10 +749,12 @@ export class AgentService {
       const session: SessionEntity = {
         id: row.id as string,
         agent_ids: JSON.parse(row.agent_ids as string),
-        user_prompt: row.user_prompt as string,
+        user_goal: row.user_goal || null,
         status: row.status as any,
         accessible_paths: row.accessible_paths ? JSON.parse(row.accessible_paths as string) : [],
-        claude_session_id: row.claude_session_id as string,
+        latest_claude_session_id: row.latest_claude_session_id || null,
+        max_turns: row.max_turns || 10,
+        permission_mode: row.permission_mode || 'default',
         created_at: row.created_at as string,
         updated_at: row.updated_at as string
       }
@@ -733,10 +791,12 @@ export class AgentService {
       const session: SessionEntity = {
         id: row.id as string,
         agent_ids: JSON.parse(row.agent_ids as string),
-        user_prompt: row.user_prompt as string,
+        user_goal: row.user_goal || null,
         status: row.status as any,
         accessible_paths: row.accessible_paths ? JSON.parse(row.accessible_paths as string) : [],
-        claude_session_id: row.claude_session_id as string,
+        latest_claude_session_id: row.latest_claude_session_id || null,
+        max_turns: row.max_turns || 10,
+        permission_mode: row.permission_mode || 'default',
         created_at: row.created_at as string,
         updated_at: row.updated_at as string
       }
@@ -788,10 +848,12 @@ export class AgentService {
       const sessions: SessionEntity[] = result.rows.map((row: any) => ({
         id: row.id as string,
         agent_ids: JSON.parse(row.agent_ids as string),
-        user_prompt: row.user_prompt as string,
+        user_goal: row.user_goal as string,
         status: row.status as any,
         accessible_paths: row.accessible_paths ? JSON.parse(row.accessible_paths as string) : [],
-        claude_session_id: row.claude_session_id as string,
+        latest_claude_session_id: row.latest_claude_session_id as string,
+        max_turns: row.max_turns as number,
+        permission_mode: row.permission_mode as any,
         created_at: row.created_at as string,
         updated_at: row.updated_at as string
       }))

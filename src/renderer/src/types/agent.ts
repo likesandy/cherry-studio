@@ -20,10 +20,10 @@ export interface AgentEntity {
 export interface SessionEntity {
   id: string
   agent_ids: string[] // Array of agent IDs involved (supports multi-agent scenarios)
-  user_prompt?: string // Initial user goal for the session
+  user_goal?: string // Initial user goal for the session
   status: SessionStatus
   accessible_paths?: string[] // Array of directory paths the agent can access
-  claude_session_id?: string // Claude SDK session ID for continuity
+  latest_claude_session_id?: string // Latest Claude SDK session ID for continuity
   max_turns?: number // Maximum number of turns allowed in the session, default 10
   permission_mode?: PermissionMode // Permission mode for the session
   created_at: string
@@ -35,16 +35,15 @@ export interface SessionLogEntity {
   session_id: string
   parent_id?: number // For tree structure of logs
   role: SessionLogRole
-  type: SessionLogType
+  type: string
   content: Record<string, any> // JSON structured data
   created_at: string
 }
 
 // Enums and union types
 export type SessionStatus = 'idle' | 'running' | 'completed' | 'failed' | 'stopped'
-export type SessionLogRole = 'user' | 'agent'
-export type SessionLogType = 'message' | 'thought' | 'action' | 'observation'
-type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions'
+export type SessionLogRole = 'user' | 'agent' | 'system'
+export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions'
 
 // Input/Output DTOs for API operations
 export interface CreateAgentInput {
@@ -72,25 +71,29 @@ export interface UpdateAgentInput {
 
 export interface CreateSessionInput {
   agent_ids: string[]
-  user_prompt?: string
+  user_goal?: string
   status?: SessionStatus
   accessible_paths?: string[]
+  max_turns?: number
+  permission_mode?: PermissionMode
 }
 
 export interface UpdateSessionInput {
   id: string
   agent_ids?: string[]
-  user_prompt?: string
+  user_goal?: string
   status?: SessionStatus
   accessible_paths?: string[]
-  claude_session_id?: string
+  latest_claude_session_id?: string
+  max_turns?: number
+  permission_mode?: PermissionMode
 }
 
 export interface CreateSessionLogInput {
   session_id: string
   parent_id?: number
   role: SessionLogRole
-  type: SessionLogType
+  type: string
   content: Record<string, any>
 }
 

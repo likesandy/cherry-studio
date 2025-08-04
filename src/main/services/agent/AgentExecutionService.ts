@@ -166,7 +166,7 @@ export class AgentExecutionService {
       }
 
       // Get existing Claude session ID if available (for session continuation)
-      const existingClaudeSessionId = session.claude_session_id
+      const existingClaudeSessionId = session.latest_claude_session_id
 
       // Construct command arguments
       const executable = 'uv'
