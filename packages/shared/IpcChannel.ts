@@ -281,12 +281,6 @@ export enum IpcChannel {
   ApiServer_GetStatus = 'api-server:get-status',
   ApiServer_GetConfig = 'api-server:get-config',
 
-  // POC Command Execution
-  Poc_ExecuteCommand = 'poc:execute-command',
-  Poc_CommandOutput = 'poc:command-output',
-  Poc_InterruptCommand = 'poc:interrupt-command',
-  Poc_GetActiveProcesses = 'poc:get-active-processes',
-
   // Agent Management
   Agent_Create = 'agent:create',
   Agent_Update = 'agent:update',
@@ -305,5 +299,12 @@ export enum IpcChannel {
   // Session Log Management
   SessionLog_Add = 'session-log:add',
   SessionLog_GetBySessionId = 'session-log:get-by-session-id',
-  SessionLog_ClearBySessionId = 'session-log:clear-by-session-id'
+  SessionLog_ClearBySessionId = 'session-log:clear-by-session-id',
+
+  // Agent Execution
+  Agent_Run = 'agent:run',
+  Agent_Stop = 'agent:stop',
+  Agent_ExecutionOutput = 'agent:execution-output',
+  Agent_ExecutionComplete = 'agent:execution-complete',
+  Agent_ExecutionError = 'agent:execution-error'
 }

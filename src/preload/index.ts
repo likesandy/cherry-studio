@@ -372,11 +372,40 @@ const api = {
   quoteToMainWindow: (text: string) => ipcRenderer.invoke(IpcChannel.App_QuoteToMain, text),
   setDisableHardwareAcceleration: (isDisable: boolean) =>
     ipcRenderer.invoke(IpcChannel.App_SetDisableHardwareAcceleration, isDisable),
-  poc: {
-    executeCommand: (request: { id: string; command: string; workingDirectory: string }) =>
-      ipcRenderer.invoke(IpcChannel.Poc_ExecuteCommand, request),
-    interruptCommand: (commandId: string) => ipcRenderer.invoke(IpcChannel.Poc_InterruptCommand, commandId),
-    getActiveProcesses: () => ipcRenderer.invoke(IpcChannel.Poc_GetActiveProcesses)
+  agent: {
+    run: (sessionId: string, prompt: string) => ipcRenderer.invoke(IpcChannel.Agent_Run, sessionId, prompt),
+    stop: (sessionId: string) => ipcRenderer.invoke(IpcChannel.Agent_Stop, sessionId),
+    onOutput: (
+      callback: (data: { sessionId: string; type: 'stdout' | 'stderr'; data: string; timestamp: number }) => void
+    ) => {
+      const listener = (_event: Electron.IpcRendererEvent, data: any) => {
+        callback(data)
+      }
+      ipcRenderer.on(IpcChannel.Agent_ExecutionOutput, listener)
+      return () => {
+        ipcRenderer.off(IpcChannel.Agent_ExecutionOutput, listener)
+      }
+    },
+    onComplete: (
+      callback: (data: { sessionId: string; exitCode: number; success: boolean; timestamp: number }) => void
+    ) => {
+      const listener = (_event: Electron.IpcRendererEvent, data: any) => {
+        callback(data)
+      }
+      ipcRenderer.on(IpcChannel.Agent_ExecutionComplete, listener)
+      return () => {
+        ipcRenderer.off(IpcChannel.Agent_ExecutionComplete, listener)
+      }
+    },
+    onError: (callback: (data: { sessionId: string; error: string; timestamp: number }) => void) => {
+      const listener = (_event: Electron.IpcRendererEvent, data: any) => {
+        callback(data)
+      }
+      ipcRenderer.on(IpcChannel.Agent_ExecutionError, listener)
+      return () => {
+        ipcRenderer.off(IpcChannel.Agent_ExecutionError, listener)
+      }
+    }
   },
   trace: {
     saveData: (topicId: string) => ipcRenderer.invoke(IpcChannel.TRACE_SAVE_DATA, topicId),

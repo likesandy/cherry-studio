@@ -30,7 +30,8 @@ export const AgentQueries = {
         user_prompt TEXT, -- Initial user goal for the session
         status TEXT NOT NULL DEFAULT 'idle', -- 'idle', 'running', 'completed', 'failed', 'stopped'
         accessible_paths TEXT, -- JSON array of directory paths
-        claude_session_id TEXT, -- Claude SDK session ID for continuity
+        max_turns INTEGER NOT NULL DEFAULT 10, -- Maximum number of agent loops
+        permission_mode TEXT NOT NULL DEFAULT 'default', -- permission mode for session
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         is_deleted INTEGER DEFAULT 0
@@ -41,6 +42,7 @@ export const AgentQueries = {
       CREATE TABLE IF NOT EXISTS session_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id TEXT NOT NULL,
+        claude_session_id TEXT, -- Claude SDK session ID for continuity
         parent_id INTEGER, -- Foreign Key to session_logs.id, nullable for tree structure
         role TEXT NOT NULL, -- 'user', 'agent'
         type TEXT NOT NULL, -- 'message', 'thought', 'action', 'observation'
@@ -62,6 +64,8 @@ export const AgentQueries = {
     sessionsStatus: 'CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(status)',
     sessionsCreatedAt: 'CREATE INDEX IF NOT EXISTS idx_sessions_created_at ON sessions(created_at)',
     sessionsIsDeleted: 'CREATE INDEX IF NOT EXISTS idx_sessions_is_deleted ON sessions(is_deleted)',
+    sessionsClaudeSessionId: 'CREATE INDEX IF NOT EXISTS idx_sessions_claude_session_id ON sessions(claude_session_id)',
+    sessionsAgentIds: 'CREATE INDEX IF NOT EXISTS idx_sessions_agent_ids ON sessions(agent_ids)',
 
     sessionLogsSessionId: 'CREATE INDEX IF NOT EXISTS idx_session_logs_session_id ON session_logs(session_id)',
     sessionLogsParentId: 'CREATE INDEX IF NOT EXISTS idx_session_logs_parent_id ON session_logs(parent_id)',
@@ -78,18 +82,18 @@ export const AgentQueries = {
     `,
 
     update: `
-      UPDATE agents 
+      UPDATE agents
       SET name = ?, description = ?, avatar = ?, instructions = ?, model = ?, tools = ?, knowledges = ?, configuration = ?, updated_at = ?
       WHERE id = ? AND is_deleted = 0
     `,
 
     getById: `
-      SELECT * FROM agents 
+      SELECT * FROM agents
       WHERE id = ? AND is_deleted = 0
     `,
 
     list: `
-      SELECT * FROM agents 
+      SELECT * FROM agents
       WHERE is_deleted = 0
       ORDER BY created_at DESC
     `,
@@ -109,30 +113,30 @@ export const AgentQueries = {
     `,
 
     update: `
-      UPDATE sessions 
+      UPDATE sessions
       SET agent_ids = ?, user_prompt = ?, status = ?, accessible_paths = ?, claude_session_id = ?, updated_at = ?
       WHERE id = ? AND is_deleted = 0
     `,
 
     updateStatus: `
-      UPDATE sessions 
+      UPDATE sessions
       SET status = ?, updated_at = ?
       WHERE id = ? AND is_deleted = 0
     `,
 
     getById: `
-      SELECT * FROM sessions 
+      SELECT * FROM sessions
       WHERE id = ? AND is_deleted = 0
     `,
 
     list: `
-      SELECT * FROM sessions 
+      SELECT * FROM sessions
       WHERE is_deleted = 0
       ORDER BY created_at DESC
     `,
 
     listWithLimit: `
-      SELECT * FROM sessions 
+      SELECT * FROM sessions
       WHERE is_deleted = 0
       ORDER BY created_at DESC
       LIMIT ? OFFSET ?
@@ -145,9 +149,38 @@ export const AgentQueries = {
     checkExists: 'SELECT id FROM sessions WHERE id = ? AND is_deleted = 0',
 
     getByStatus: `
-      SELECT * FROM sessions 
+      SELECT * FROM sessions
       WHERE status = ? AND is_deleted = 0
       ORDER BY created_at DESC
+    `,
+
+    updateClaudeSessionId: `
+      UPDATE sessions
+      SET claude_session_id = ?, updated_at = ?
+      WHERE id = ? AND is_deleted = 0
+    `,
+
+    getSessionWithAgent: `
+      SELECT
+        s.*,
+        a.name as agent_name,
+        a.description as agent_description,
+        a.avatar as agent_avatar,
+        a.instructions as agent_instructions,
+        a.model as agent_model,
+        a.tools as agent_tools,
+        a.knowledges as agent_knowledges,
+        a.configuration as agent_configuration,
+        a.created_at as agent_created_at,
+        a.updated_at as agent_updated_at
+      FROM sessions s
+      LEFT JOIN agents a ON JSON_EXTRACT(s.agent_ids, '$[0]') = a.id
+      WHERE s.id = ? AND s.is_deleted = 0 AND (a.is_deleted = 0 OR a.is_deleted IS NULL)
+    `,
+
+    getByClaudeSessionId: `
+      SELECT * FROM sessions
+      WHERE claude_session_id = ? AND is_deleted = 0
     `
   },
 
@@ -159,13 +192,13 @@ export const AgentQueries = {
     `,
 
     getBySessionId: `
-      SELECT * FROM session_logs 
+      SELECT * FROM session_logs
       WHERE session_id = ?
       ORDER BY created_at ASC
     `,
 
     getBySessionIdWithPagination: `
-      SELECT * FROM session_logs 
+      SELECT * FROM session_logs
       WHERE session_id = ?
       ORDER BY created_at ASC
       LIMIT ? OFFSET ?
@@ -174,7 +207,7 @@ export const AgentQueries = {
     countBySessionId: 'SELECT COUNT(*) as total FROM session_logs WHERE session_id = ?',
 
     getLatestBySessionId: `
-      SELECT * FROM session_logs 
+      SELECT * FROM session_logs
       WHERE session_id = ?
       ORDER BY created_at DESC
       LIMIT ?

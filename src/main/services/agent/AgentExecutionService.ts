@@ -1,41 +1,30 @@
 import { loggerService } from '@logger'
-import { PocExecuteCommandRequest } from '@types'
-import { app } from 'electron'
+import { getDataPath, getResourcePath } from '@main/utils'
+import type { AgentEntity, ServiceResult, SessionEntity } from '@types'
 import fs from 'fs'
 import path from 'path'
 
 import AgentService from './AgentService'
-import { ShellCommandExecutor } from './commandExecutor'
-import type { AgentResponse, ServiceResult, SessionResponse } from './types'
 
 const logger = loggerService.withContext('AgentExecutionService')
 
 /**
  * AgentExecutionService - Secure execution of agent.py script for Cherry Studio agent system
  *
- * This service replaces arbitrary shell command execution with controlled agent.py script execution.
- * It handles session management, argument construction, and Claude session ID tracking.
+ * This service handles session management, argument construction, and Claude session ID tracking.
  *
- * Security Features:
- * - Only executes pre-defined agent.py script
- * - Validates all arguments before execution
- * - No shell command injection - direct process spawning only
- * - Validates agent.py exists before execution
  */
 export class AgentExecutionService {
   private static instance: AgentExecutionService | null = null
   private agentService: AgentService
-  private commandExecutor: ShellCommandExecutor
   private readonly agentScriptPath: string
 
   private constructor() {
     this.agentService = AgentService.getInstance()
-    this.commandExecutor = ShellCommandExecutor.getInstance()
     // Agent.py path is relative to app root for security
     // In development, use app root. In production, use app resources path
-    const appPath = app.isPackaged ? process.resourcesPath : app.getAppPath()
-    this.agentScriptPath = path.join(appPath, 'agent.py')
-    logger.info('AgentExecutionService initialized', { agentScriptPath: this.agentScriptPath })
+    this.agentScriptPath = path.join(getResourcePath(), 'agents', 'claude_code_agent.py')
+    logger.info('initialized', { agentScriptPath: this.agentScriptPath })
   }
 
   public static getInstance(): AgentExecutionService {
@@ -88,12 +77,10 @@ export class AgentExecutionService {
   /**
    * Retrieves session data and associated agent information
    */
-  private async getSessionWithAgent(
-    sessionId: string
-  ): Promise<
+  private async getSessionWithAgent(sessionId: string): Promise<
     ServiceResult<{
-      session: SessionResponse
-      agent: AgentResponse
+      session: SessionEntity
+      agent: AgentEntity
       workingDirectory: string
     }>
   > {
@@ -123,7 +110,7 @@ export class AgentExecutionService {
       workingDirectory = session.accessible_paths[0]
     } else {
       // Default to user data directory with session-specific subdirectory
-      const userDataPath = app.getPath('userData')
+      const userDataPath = getDataPath()
       workingDirectory = path.join(userDataPath, 'agent-sessions', sessionId)
     }
 
@@ -142,49 +129,8 @@ export class AgentExecutionService {
   }
 
   /**
-   * Constructs Python command arguments for agent.py execution
-   */
-  private constructAgentCommand(
-    prompt: string,
-    systemPrompt: string,
-    workingDirectory: string,
-    claudeSessionId?: string
-  ): { executable: string; args: string[] } {
-    const args = [
-      this.agentScriptPath,
-      '--prompt', prompt,
-      '--system-prompt', systemPrompt,
-      '--cwd', workingDirectory
-    ]
-
-    if (claudeSessionId) {
-      args.push('--session-id', claudeSessionId)
-    }
-
-    return {
-      executable: 'python3',
-      args
-    }
-  }
-
-  // TODO: Future methods for output monitoring and Claude session ID capture
-  // These will be implemented when we add real-time output monitoring to the command executor
-  
-  /**
-   * Placeholder for future output monitoring functionality
-   * This will parse agent.py stdout to extract the Claude session ID on first run
-   */
-  // private parseAgentOutput(output: string): { claudeSessionId?: string }
-  
-  /**
-   * Placeholder for future session update functionality  
-   * This will update the session record with the captured Claude session ID
-   */
-  // private updateSessionWithClaudeId(sessionId: string, claudeSessionId: string): Promise<void>
-
-  /**
    * Main method to run an agent for a given session with a prompt
-   * 
+   *
    * @param sessionId - The session ID to execute the agent for
    * @param prompt - The user prompt to send to the agent
    * @returns Promise that resolves when execution starts (not when it completes)
@@ -211,7 +157,7 @@ export class AgentExecutionService {
         return { success: false, error: sessionDataResult.error }
       }
 
-      const { agent, workingDirectory } = sessionDataResult.data
+      const { agent, session, workingDirectory } = sessionDataResult.data
 
       // Update session status to running
       const statusUpdate = await this.agentService.updateSessionStatus(sessionId, 'running')
@@ -219,25 +165,31 @@ export class AgentExecutionService {
         logger.warn('Failed to update session status to running', { error: statusUpdate.error })
       }
 
-      // Use agent instructions as system prompt, fallback to default
-      const systemPrompt = agent.instructions || 'You are a helpful assistant.'
-
       // Get existing Claude session ID if available (for session continuation)
-      const existingClaudeSessionId = sessionDataResult.data.session.claude_session_id
+      const existingClaudeSessionId = session.claude_session_id
 
       // Construct command arguments
-      const { executable, args } = this.constructAgentCommand(prompt, systemPrompt, workingDirectory, existingClaudeSessionId)
+      const executable = 'uv'
+      const args: any[] = ['run', '--script', this.agentScriptPath, '--prompt', prompt]
 
-      // Create command execution request
-      const commandRequest: PocExecuteCommandRequest = {
-        id: `agent-${sessionId}-${Date.now()}`,
-        command: `${executable} ${args.join(' ')}`, // For logging purposes only
-        workingDirectory
+      if (existingClaudeSessionId) {
+        args.push('--session-id', existingClaudeSessionId)
+      } else {
+        const initArgs = [
+          '--system-prompt',
+          agent.instructions || 'You are a helpful assistant.',
+          '--cwd',
+          workingDirectory,
+          '--permission-mode',
+          session.permission_mode || 'default',
+          '--max-turns',
+          session.max_turns || '10'
+        ]
+        args.push(...initArgs)
       }
 
       logger.info('Executing agent command', {
         sessionId,
-        commandId: commandRequest.id,
         executable,
         args: args.slice(0, 3), // Log first few args for security
         workingDirectory,
@@ -245,11 +197,7 @@ export class AgentExecutionService {
       })
 
       // Execute the command asynchronously
-      await this.commandExecutor.executeCommand(commandRequest)
-
-      // Note: We don't wait for completion here. The command executor handles
-      // streaming output via IPC. In the future, we can add output monitoring
-      // to capture the Claude session ID from the first run's output.
+      // await this.commandExecutor.executeCommand(commandRequest)
 
       return { success: true }
     } catch (error) {
@@ -267,69 +215,13 @@ export class AgentExecutionService {
 
   /**
    * Interrupts a running agent execution
-   * 
+   *
    * @param sessionId - The session ID to stop
    * @returns Whether the interruption was successful
    */
   public async stopAgent(sessionId: string): Promise<ServiceResult<void>> {
     logger.info('Stopping agent execution', { sessionId })
-
-    try {
-      // Find active processes for this session
-      const activeProcesses = this.commandExecutor.getActiveProcesses()
-      const sessionProcesses = activeProcesses.filter((proc) => proc.id.includes(`agent-${sessionId}`))
-
-      if (sessionProcesses.length === 0) {
-        return { success: false, error: 'No active agent process found for session' }
-      }
-
-      // Interrupt all processes for this session
-      let interrupted = false
-      for (const process of sessionProcesses) {
-        const result = this.commandExecutor.interruptCommand(process.id)
-        if (result) {
-          interrupted = true
-          logger.info('Agent process interrupted', { sessionId, processId: process.id })
-        }
-      }
-
-      if (interrupted) {
-        // Update session status to stopped
-        await this.agentService.updateSessionStatus(sessionId, 'stopped')
-        return { success: true }
-      } else {
-        return { success: false, error: 'Failed to interrupt agent processes' }
-      }
-    } catch (error) {
-      logger.error('Failed to stop agent:', error as Error, { sessionId })
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error during agent stop'
-      }
-    }
-  }
-
-  /**
-   * Gets the status of all active agent executions
-   */
-  public getActiveExecutions(): Array<{
-    sessionId: string
-    commandId: string
-    startTime: number
-    workingDirectory: string
-  }> {
-    const activeProcesses = this.commandExecutor.getActiveProcesses()
-    return activeProcesses
-      .filter((proc) => proc.id.startsWith('agent-'))
-      .map((proc) => {
-        const sessionIdMatch = proc.id.match(/agent-([^-]+)-/)
-        return {
-          sessionId: sessionIdMatch ? sessionIdMatch[1] : 'unknown',
-          commandId: proc.id,
-          startTime: proc.startTime,
-          workingDirectory: proc.workingDirectory
-        }
-      })
+    return { success: true }
   }
 }
 

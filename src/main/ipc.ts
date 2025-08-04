@@ -12,7 +12,6 @@ import { IpcChannel } from '@shared/IpcChannel'
 import type {
   CreateAgentInput,
   CreateSessionInput,
-  CreateSessionLogInput,
   ListAgentsOptions,
   ListSessionLogsOptions,
   ListSessionsOptions,
@@ -21,12 +20,11 @@ import type {
   UpdateSessionInput
 } from '@types'
 import { FileMetadata, Provider, Shortcut, ThemeMode } from '@types'
-import { PocExecuteCommandRequest } from '@types'
 import { BrowserWindow, dialog, ipcMain, ProxyConfig, session, shell, systemPreferences, webContents } from 'electron'
 import { Notification } from 'src/renderer/src/types/notification'
 
+import AgentExecutionService from './services/agent/AgentExecutionService'
 import AgentService from './services/agent/AgentService'
-import { pocCommandExecutor } from './services/agent/commandExecutor'
 import { apiServerService } from './services/ApiServerService'
 import appService from './services/AppService'
 import AppUpdater from './services/AppUpdater'
@@ -83,6 +81,7 @@ const obsidianVaultService = new ObsidianVaultService()
 const vertexAIService = VertexAIService.getInstance()
 const memoryService = MemoryService.getInstance()
 const agentService = AgentService.getInstance()
+const agentExecutionService = AgentExecutionService.getInstance()
 const dxtService = new DxtService()
 
 export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
@@ -91,9 +90,6 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
 
   // Initialize Python service with main window
   pythonService.setMainWindow(mainWindow)
-
-  // Initialize POC command executor with main window
-  pocCommandExecutor.setMainWindow(mainWindow)
 
   ipcMain.handle(IpcChannel.App_Info, () => ({
     version: app.getVersion(),
@@ -625,19 +621,6 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
     }
   )
 
-  // Register POC command execution handlers
-  ipcMain.handle(IpcChannel.Poc_ExecuteCommand, async (_, request: PocExecuteCommandRequest) => {
-    await pocCommandExecutor.executeCommand(request)
-  })
-
-  ipcMain.handle(IpcChannel.Poc_InterruptCommand, (_, commandId: string) => {
-    return pocCommandExecutor.interruptCommand(commandId)
-  })
-
-  ipcMain.handle(IpcChannel.Poc_GetActiveProcesses, () => {
-    return pocCommandExecutor.getActiveProcesses()
-  })
-
   // Agent Management IPC Handlers
   ipcMain.handle(IpcChannel.Agent_Create, async (_, input: CreateAgentInput) => {
     return await agentService.createAgent(input)
@@ -684,17 +667,21 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
     return await agentService.deleteSession(id)
   })
 
-  // Session Log Management IPC Handlers
-  ipcMain.handle(IpcChannel.SessionLog_Add, async (_, input: CreateSessionLogInput) => {
-    return await agentService.addSessionLog(input)
-  })
-
   ipcMain.handle(IpcChannel.SessionLog_GetBySessionId, async (_, options: ListSessionLogsOptions) => {
     return await agentService.getSessionLogs(options)
   })
 
   ipcMain.handle(IpcChannel.SessionLog_ClearBySessionId, async (_, sessionId: string) => {
     return await agentService.clearSessionLogs(sessionId)
+  })
+
+  // Agent Execution IPC Handlers
+  ipcMain.handle(IpcChannel.Agent_Run, async (_, sessionId: string, prompt: string) => {
+    return await agentExecutionService.runAgent(sessionId, prompt)
+  })
+
+  ipcMain.handle(IpcChannel.Agent_Stop, async (_, sessionId: string) => {
+    return await agentExecutionService.stopAgent(sessionId)
   })
 
   ipcMain.handle(IpcChannel.App_IsBinaryExist, (_, name: string) => isBinaryExists(name))
