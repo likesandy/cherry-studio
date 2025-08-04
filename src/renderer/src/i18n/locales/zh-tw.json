@@ -609,6 +609,90 @@
     },
     "translate": "翻譯"
   },
+  "cherryAgent": {
+    "modal": {
+      "avatar": "[to be translated]:头像",
+      "avatar.upload": "[to be translated]:上传头像",
+      "create": {
+        "title": "[to be translated]:创建新智能体"
+      },
+      "description": "[to be translated]:描述",
+      "description.placeholder": "[to be translated]:输入智能体描述...",
+      "edit": {
+        "title": "[to be translated]:编辑智能体"
+      },
+      "instructions": "[to be translated]:指令",
+      "instructions.placeholder": "[to be translated]:为智能体输入详细指令...",
+      "instructions.tooltip": "[to be translated]:定义智能体行为和个性的系统指令",
+      "knowledges": "[to be translated]:知识库",
+      "knowledges.placeholder": "[to be translated]:为此智能体选择知识库",
+      "knowledges.tooltip": "[to be translated]:此智能体可访问的知识库",
+      "model": "[to be translated]:模型",
+      "model.placeholder": "[to be translated]:为此智能体选择模型",
+      "model.required": "[to be translated]:请选择模型",
+      "name": "[to be translated]:名称",
+      "name.maxLength": "[to be translated]:名称不能超过50个字符",
+      "name.placeholder": "[to be translated]:输入智能体名称",
+      "name.required": "[to be translated]:请输入智能体名称",
+      "section": {
+        "basic": "[to be translated]:基本信息",
+        "capabilities": "[to be translated]:能力",
+        "configuration": "[to be translated]:配置"
+      },
+      "tools": "[to be translated]:工具",
+      "tools.placeholder": "[to be translated]:为此智能体选择工具",
+      "tools.tooltip": "[to be translated]:此智能体可用的MCP工具"
+    },
+    "sessions": {
+      "add": {
+        "title": "[to be translated]:创建 Session"
+      },
+      "modal": {
+        "addPath": "[to be translated]:添加目录",
+        "agents": "[to be translated]:分配的智能体",
+        "agents.noAgents": "[to be translated]:没有可用的智能体",
+        "agents.placeholder": "[to be translated]:为此会话选择智能体",
+        "agents.required": "[to be translated]:请至少选择一个智能体",
+        "create": {
+          "title": "[to be translated]:创建新会话"
+        },
+        "edit": {
+          "title": "[to be translated]:编辑会话"
+        },
+        "paths": "[to be translated]:可访问目录",
+        "paths.tooltip": "[to be translated]:智能体在此会话中可访问的目录",
+        "prompt": "[to be translated]:会话目标/提示词",
+        "prompt.maxLength": "[to be translated]:提示词不能超过200个字符",
+        "prompt.placeholder": "[to be translated]:描述您希望在此会话中完成的目标...",
+        "prompt.required": "[to be translated]:请输入会话目标或提示词",
+        "status": "[to be translated]:状态",
+        "status.placeholder": "[to be translated]:选择会话状态"
+      },
+      "status": {
+        "completed": "[to be translated]:已完成",
+        "failed": "[to be translated]:失败",
+        "idle": "[to be translated]:空闲",
+        "running": "[to be translated]:运行中",
+        "stopped": "[to be translated]:已停止"
+      }
+    },
+    "settings": {
+      "browse": "[to be translated]:浏览",
+      "title": "[to be translated]:智能体设置",
+      "workingDirectory": "[to be translated]:工作目录",
+      "workingDirectoryPlaceholder": "[to be translated]:选择工作目录...",
+      "workingDirectoryRequired": "[to be translated]:请选择工作目录"
+    }
+  },
+  "cherryagent": {
+    "settings": {
+      "browse": "[to be translated]:浏览",
+      "title": "[to be translated]:智能体设置",
+      "workingDirectory": "[to be translated]:工作目录",
+      "workingDirectoryPlaceholder": "[to be translated]:选择工作目录...",
+      "workingDirectoryRequired": "[to be translated]:请选择工作目录"
+    }
+  },
   "code_block": {
     "collapse": "折疊",
     "copy": {

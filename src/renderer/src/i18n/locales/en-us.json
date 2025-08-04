@@ -693,7 +693,6 @@
       "workingDirectoryRequired": "Please select a working directory"
     }
   },
-
   "code_block": {
     "collapse": "Collapse",
     "copy": {

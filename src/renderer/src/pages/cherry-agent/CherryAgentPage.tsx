@@ -7,7 +7,8 @@ import styled from 'styled-components'
 
 const CherryAgentPage: React.FC = () => {
   const { isLeftNavbar } = useNavbarPosition()
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed] = useState(false)
+  const [agents] = useState([])
 
   return (
     <Container id="cherry-agent-page">
@@ -21,7 +22,7 @@ const CherryAgentPage: React.FC = () => {
             <SidebarHeader>
               <HeaderLabel>agents</HeaderLabel>
               <HeaderActions>
-                {agentManagement.agents.length === 0 ? (
+                {agents.length === 0 ? (
                   <Button type="primary" icon={<PlusOutlined />} size="small">
                     Create Agent
                   </Button>
@@ -177,54 +178,6 @@ const MainContent = styled.div`
   overflow: hidden;
 `
 
-const AgentHeader = styled.div`
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--color-border);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  min-height: 80px;
-  background: linear-gradient(135deg, var(--color-background) 0%, var(--color-background-soft) 100%);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-`
-
-const ToggleButton = styled(Button)`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-secondary);
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: var(--color-text);
-    background-color: var(--color-background-hover);
-    transform: scale(1.05);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-`
-
-const MessageArea = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding: 24px;
-  background-color: var(--color-background);
-`
-
-const InputArea = styled.div`
-  padding: 16px 24px 20px 24px;
-  border-top: 1px solid var(--color-border);
-  background: linear-gradient(180deg, var(--color-background-soft) 0%, var(--color-background) 100%);
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-`
-
 const HeaderLabel = styled.span`
   font-size: 11px;
   color: var(--color-text-tertiary);
@@ -262,211 +215,12 @@ const SessionsList = styled.div`
   gap: 8px;
 `
 
-const SessionItem = styled.div<{ active: boolean }>`
-  flex: 1;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background-color: ${(props) => (props.active ? 'var(--color-primary)' : 'var(--color-background-soft)')};
-  color: ${(props) => (props.active ? 'white' : 'var(--color-text)')};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: ${(props) => (props.active ? 'none' : '1px solid transparent')};
-  box-shadow: ${(props) => (props.active ? '0 2px 8px rgba(24, 144, 255, 0.2)' : 'none')};
-  user-select: none;
-
-  &:hover {
-    background-color: ${(props) => (props.active ? 'var(--color-primary)' : 'var(--color-background-hover)')};
-    border-color: ${(props) => (props.active ? 'transparent' : 'var(--color-border)')};
-    transform: translateY(-1px);
-    box-shadow: ${(props) => (props.active ? '0 4px 12px rgba(24, 144, 255, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)')};
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-`
-
-const SessionInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-`
-
-const SessionTitle = styled.div`
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.2;
-`
-
-const SessionMeta = styled.div`
-  font-size: 11px;
-  opacity: 0.8;
-  line-height: 1;
-`
-
-const EmptyState = styled.div`
-  padding: 20px;
-  text-align: center;
-  color: var(--color-text-tertiary);
-  font-size: 14px;
-  font-style: italic;
-`
-
-const EmptyAgentState = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  position: relative;
-  background: linear-gradient(135deg, var(--color-background) 0%, var(--color-background-soft) 100%);
-`
-
-const EmptyStateContent = styled.div`
-  text-align: center;
-  max-width: 400px;
-  padding: 40px;
-`
-
-const EmptyStateTitle = styled.h2`
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0 0 16px 0;
-`
-
-const EmptyStateDescription = styled.p`
-  font-size: 16px;
-  color: var(--color-text-secondary);
-  line-height: 1.5;
-  margin: 0 0 32px 0;
-`
-
-const AgentTitleSection = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-`
-
-const AgentNameInput = styled.input`
-  border: 2px solid var(--color-border);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 18px;
-  font-weight: 600;
-  background-color: transparent;
-  color: var(--color-text);
-  outline: none;
-  transition: all 0.2s ease;
-  width: 100%;
-
-  &:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
-  }
-
-  &:hover {
-    border-color: var(--color-primary-hover);
-  }
-
-  &::placeholder {
-    color: var(--color-text-tertiary);
-    font-weight: 400;
-  }
-`
-
-const AgentSubtitle = styled.div`
-  color: var(--color-text-secondary);
-  font-size: 14px;
-  font-weight: 400;
-`
-
-const CurrentAgentAvatar = styled.div`
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 18px;
-  flex-shrink: 0;
-`
-
 const AgentsList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 24px;
   overflow: auto;
-`
-
-const AgentItem = styled.div<{ active: boolean }>`
-  flex: 1;
-  width: 100%;
-  padding: 6px;
-  border-radius: 4px;
-  background-color: ${(props) => (props.active ? 'var(--color-primary)' : 'var(--color-background-soft)')};
-  color: ${(props) => (props.active ? 'white' : 'var(--color-text)')};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: ${(props) => (props.active ? 'none' : '1px solid transparent')};
-  box-shadow: ${(props) => (props.active ? '0 2px 8px rgba(24, 144, 255, 0.2)' : 'none')};
-  user-select: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  &:hover {
-    background-color: ${(props) => (props.active ? 'var(--color-primary)' : 'var(--color-background-hover)')};
-    border-color: ${(props) => (props.active ? 'transparent' : 'var(--color-border)')};
-    transform: translateY(-1px);
-    box-shadow: ${(props) => (props.active ? '0 4px 12px rgba(24, 144, 255, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)')};
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-`
-
-const AgentAvatar = styled.div`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 14px;
-  flex-shrink: 0;
-`
-
-const AgentInfo = styled.div`
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-`
-
-const AgentName = styled.div`
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`
-
-const AgentDescription = styled.div`
-  font-size: 12px;
-  opacity: 0.8;
-  line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 `
 
 export default CherryAgentPage
