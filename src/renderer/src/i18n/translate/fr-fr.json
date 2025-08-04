@@ -731,7 +731,7 @@
   },
   "discover": {
     "install": "installer",
-    "title": "découvrir",
+    "title": "Découvrir",
     "uninstall": "désinstaller",
     "update": "Mise à jour",
     "update_all": "Mises à jour complètes"
@@ -3427,6 +3427,7 @@
   "title": {
     "agents": "Agent intelligent",
     "apps": "Mini-programmes",
+    "discover": "Découvrir",
     "files": "Fichiers",
     "home": "Page d'accueil",
     "knowledge": "Base de connaissances",

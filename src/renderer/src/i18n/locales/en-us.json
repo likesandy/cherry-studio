@@ -733,7 +733,7 @@
   },
   "discover": {
     "install": "Installation",
-    "title": "follow system prompt",
+    "title": "Discover",
     "uninstall": "uninstall",
     "update": "update",
     "update_all": "Full Update"
@@ -3419,6 +3419,7 @@
   "title": {
     "agents": "Agents",
     "apps": "Apps",
+    "discover": "Discover",
     "files": "Files",
     "home": "Home",
     "knowledge": "Knowledge Base",
