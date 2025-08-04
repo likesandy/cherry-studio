@@ -1,6 +1,16 @@
 import { loggerService } from '@logger'
 import { getDataPath, getResourcePath } from '@main/utils'
-import type { AgentEntity, ServiceResult, SessionEntity } from '@types'
+import type {
+  AgentEntity,
+  CreateSessionLogInput,
+  ExecutionCompleteContent,
+  ExecutionInterruptContent,
+  ExecutionStartContent,
+  ServiceResult,
+  SessionEntity
+} from '@types'
+import { ChildProcess, spawn } from 'child_process'
+import { BrowserWindow } from 'electron'
 import fs from 'fs'
 import path from 'path'
 
@@ -18,6 +28,7 @@ export class AgentExecutionService {
   private static instance: AgentExecutionService | null = null
   private agentService: AgentService
   private readonly agentScriptPath: string
+  private runningProcesses: Map<string, ChildProcess> = new Map()
 
   private constructor() {
     this.agentService = AgentService.getInstance()
@@ -183,7 +194,7 @@ export class AgentExecutionService {
           '--permission-mode',
           session.permission_mode || 'default',
           '--max-turns',
-          session.max_turns || '10'
+          String(session.max_turns || 10)
         ]
         args.push(...initArgs)
       }
@@ -196,8 +207,11 @@ export class AgentExecutionService {
         hasExistingSession: !!existingClaudeSessionId
       })
 
-      // Execute the command asynchronously
-      // await this.commandExecutor.executeCommand(commandRequest)
+      // Execute the command asynchronously (don't await completion, just startup)
+      this.executeAgentProcess(sessionId, executable, args, workingDirectory).catch(error => {
+        logger.error('Agent process execution failed:', error as Error, { sessionId })
+        this.agentService.updateSessionStatus(sessionId, 'failed').catch(() => {})
+      })
 
       return { success: true }
     } catch (error) {
@@ -221,7 +235,261 @@ export class AgentExecutionService {
    */
   public async stopAgent(sessionId: string): Promise<ServiceResult<void>> {
     logger.info('Stopping agent execution', { sessionId })
-    return { success: true }
+
+    try {
+      const process = this.runningProcesses.get(sessionId)
+      if (!process) {
+        logger.warn('No running process found for session', { sessionId })
+        return { success: false, error: 'No running process found for this session' }
+      }
+
+      // Log interruption
+      const interruptContent: ExecutionInterruptContent = {
+        sessionId,
+        reason: 'user_stop',
+        message: 'Execution stopped by user request'
+      }
+
+      await this.addSessionLog(sessionId, 'system', 'execution_interrupt', interruptContent)
+
+      // Kill the process
+      process.kill('SIGTERM')
+
+      // Give it a moment to terminate gracefully, then force kill if needed
+      setTimeout(() => {
+        if (!process.killed) {
+          logger.warn('Process did not terminate gracefully, force killing', { sessionId })
+          process.kill('SIGKILL')
+        }
+      }, 5000)
+
+      // Update session status
+      await this.agentService.updateSessionStatus(sessionId, 'stopped')
+
+      return { success: true }
+    } catch (error) {
+      logger.error('Failed to stop agent:', error as Error, { sessionId })
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error during agent stop'
+      }
+    }
+  }
+
+  /**
+   * Execute the agent process and handle stdio streaming
+   */
+  private async executeAgentProcess(
+    sessionId: string,
+    executable: string,
+    args: string[],
+    workingDirectory: string
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      try {
+        // Spawn the process
+        const process = spawn(executable, args, {
+          cwd: workingDirectory,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          env: {
+            ...globalThis.process.env,
+            // Add any necessary environment variables
+            PYTHONUNBUFFERED: '1' // Ensure Python output is not buffered
+          }
+        })
+
+        // Store the process for later management
+        this.runningProcesses.set(sessionId, process)
+
+        // Log execution start
+        const startContent: ExecutionStartContent = {
+          sessionId,
+          agentId: sessionId, // For now, using sessionId as agentId
+          command: `${executable} ${args.join(' ')}`,
+          workingDirectory
+        }
+
+        this.addSessionLog(sessionId, 'system', 'execution_start', startContent).catch((error) => {
+          logger.warn('Failed to log execution start:', error)
+        })
+
+        // Handle stdout
+        process.stdout?.on('data', (data: Buffer) => {
+          const output = data.toString()
+          logger.verbose('Agent stdout:', {
+            sessionId,
+            output: output.slice(0, 200) + (output.length > 200 ? '...' : '')
+          })
+
+          // Stream output to renderer processes via IPC
+          this.streamToRenderers('agent-output', {
+            sessionId,
+            type: 'stdout',
+            data: output,
+            timestamp: Date.now()
+          })
+
+          // Store in database
+          this.addSessionLog(sessionId, 'agent', 'output', { type: 'stdout', data: output }).catch((error) => {
+            logger.warn('Failed to log stdout:', error)
+          })
+        })
+
+        // Handle stderr
+        process.stderr?.on('data', (data: Buffer) => {
+          const output = data.toString()
+          logger.verbose('Agent stderr:', {
+            sessionId,
+            output: output.slice(0, 200) + (output.length > 200 ? '...' : '')
+          })
+
+          // Stream output to renderer processes via IPC
+          this.streamToRenderers('agent-output', {
+            sessionId,
+            type: 'stderr',
+            data: output,
+            timestamp: Date.now()
+          })
+
+          // Store in database
+          this.addSessionLog(sessionId, 'agent', 'output', { type: 'stderr', data: output }).catch((error) => {
+            logger.warn('Failed to log stderr:', error)
+          })
+        })
+
+        // Handle process exit
+        process.on('exit', async (code, signal) => {
+          this.runningProcesses.delete(sessionId)
+
+          const success = code === 0
+          const status = success ? 'completed' : 'failed'
+
+          logger.info('Agent process exited', { sessionId, code, signal, success })
+
+          // Log execution completion
+          const completeContent: ExecutionCompleteContent = {
+            sessionId,
+            success,
+            exitCode: code ?? undefined,
+            ...(signal && { error: `Process terminated by signal: ${signal}` })
+          }
+
+          try {
+            await this.addSessionLog(sessionId, 'system', 'execution_complete', completeContent)
+            await this.agentService.updateSessionStatus(sessionId, status)
+          } catch (error) {
+            logger.error('Failed to log execution completion:', error as Error)
+          }
+
+          // Stream completion event
+          this.streamToRenderers('agent-complete', {
+            sessionId,
+            exitCode: code ?? -1,
+            success,
+            timestamp: Date.now()
+          })
+
+          resolve()
+        })
+
+        // Handle process errors
+        process.on('error', async (error) => {
+          this.runningProcesses.delete(sessionId)
+
+          logger.error('Agent process error:', error, { sessionId })
+
+          // Log execution error
+          const completeContent: ExecutionCompleteContent = {
+            sessionId,
+            success: false,
+            error: error.message
+          }
+
+          try {
+            await this.addSessionLog(sessionId, 'system', 'execution_complete', completeContent)
+            await this.agentService.updateSessionStatus(sessionId, 'failed')
+          } catch (logError) {
+            logger.error('Failed to log execution error:', logError as Error)
+          }
+
+          // Stream error event
+          this.streamToRenderers('agent-error', {
+            sessionId,
+            error: error.message,
+            timestamp: Date.now()
+          })
+
+          reject(error)
+        })
+      } catch (error) {
+        logger.error('Failed to spawn agent process:', error as Error, { sessionId })
+        reject(error)
+      }
+    })
+  }
+
+  /**
+   * Add a session log entry
+   */
+  private async addSessionLog(
+    sessionId: string,
+    role: 'user' | 'agent' | 'system',
+    type: string,
+    content: Record<string, any>
+  ): Promise<void> {
+    try {
+      const logInput: CreateSessionLogInput = {
+        session_id: sessionId,
+        role,
+        type,
+        content
+      }
+
+      const result = await this.agentService.addSessionLog(logInput)
+      if (!result.success) {
+        logger.warn('Failed to add session log:', { error: result.error, sessionId, type })
+      }
+    } catch (error) {
+      logger.error('Error adding session log:', error as Error, { sessionId, type })
+    }
+  }
+
+  /**
+   * Get running process info for a session
+   */
+  public getRunningProcessInfo(sessionId: string): { isRunning: boolean; pid?: number } {
+    const process = this.runningProcesses.get(sessionId)
+    return {
+      isRunning: process !== undefined && !process.killed,
+      pid: process?.pid
+    }
+  }
+
+  /**
+   * Get all running sessions
+   */
+  public getRunningSessions(): string[] {
+    return Array.from(this.runningProcesses.keys()).filter((sessionId) => {
+      const process = this.runningProcesses.get(sessionId)
+      return process && !process.killed
+    })
+  }
+
+  /**
+   * Stream data to all renderer processes
+   */
+  private streamToRenderers(channel: string, data: any): void {
+    try {
+      // Get all browser windows and send the data
+      const windows = BrowserWindow.getAllWindows()
+      windows.forEach((window) => {
+        if (!window.isDestroyed()) {
+          window.webContents.send(channel, data)
+        }
+      })
+    } catch (error) {
+      logger.warn('Failed to stream to renderers:', error as Error)
+    }
   }
 }
 
