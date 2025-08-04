@@ -1,6 +1,8 @@
 import { loggerService } from '@logger'
+import { isMac, isWin } from '@main/constant'
 import { spawn } from 'child_process'
 import os from 'os'
+import path from 'path'
 
 const logger = loggerService.withContext('ShellEnv')
 
@@ -20,9 +22,7 @@ function getLoginShellEnvironment(): Promise<Record<string, string>> {
     let commandArgs
     let shellCommandToGetEnv
 
-    const platform = os.platform()
-
-    if (platform === 'win32') {
+    if (isWin) {
       // On Windows, 'cmd.exe' is the common shell.
       // The 'set' command lists environment variables.
       // We don't typically talk about "login shells" in the same way,
@@ -34,11 +34,21 @@ function getLoginShellEnvironment(): Promise<Record<string, string>> {
       // For POSIX systems (Linux, macOS)
       if (!shellPath) {
         // Fallback if process.env.SHELL is not set (less common for interactive users)
-        // Defaulting to bash, but this might not be the user's actual login shell.
         // A more robust solution might involve checking /etc/passwd or similar,
         // but that's more complex and often requires higher privileges or native modules.
-        logger.warn("process.env.SHELL is not set. Defaulting to /bin/bash. This might not be the user's login shell.")
-        shellPath = '/bin/bash' // A common default
+        if (isMac) {
+          // macOS defaults to zsh since Catalina (10.15)
+          logger.warn(
+            "process.env.SHELL is not set. Defaulting to /bin/zsh for macOS. This might not be the user's login shell."
+          )
+          shellPath = '/bin/zsh'
+        } else {
+          // Other POSIX systems (Linux) default to bash
+          logger.warn(
+            "process.env.SHELL is not set. Defaulting to /bin/bash. This might not be the user's login shell."
+          )
+          shellPath = '/bin/bash'
+        }
       }
       // -l: Make it a login shell. This sources profile files like .profile, .bash_profile, .zprofile etc.
       // -i: Make it interactive. Some shells or profile scripts behave differently.
@@ -113,6 +123,10 @@ function getLoginShellEnvironment(): Promise<Record<string, string>> {
       }
 
       env.PATH = env.Path || env.PATH || ''
+      // set cherry studio bin path
+      const pathSeparator = isWin ? ';' : ':'
+      const cherryBinPath = path.join(os.homedir(), '.cherrystudio', 'bin')
+      env.PATH = `${env.PATH}${pathSeparator}${cherryBinPath}`
 
       resolve(env)
     })

@@ -815,12 +815,7 @@ class McpService {
 
   private getLoginShellEnv = memoize(async (): Promise<Record<string, string>> => {
     try {
-      const loginEnv = await getLoginShellEnvironment()
-      const pathSeparator = process.platform === 'win32' ? ';' : ':'
-      const cherryBinPath = path.join(os.homedir(), '.cherrystudio', 'bin')
-      loginEnv.PATH = `${loginEnv.PATH}${pathSeparator}${cherryBinPath}`
-      logger.debug('Successfully fetched login shell environment variables:')
-      return loginEnv
+      return await getLoginShellEnvironment()
     } catch (error) {
       logger.error('Failed to fetch login shell environment variables:', error as Error)
       return {}

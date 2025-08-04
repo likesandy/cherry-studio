@@ -3,6 +3,11 @@ import { EventEmitter } from 'events'
 import fs from 'fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Mock shell environment function
+const mockGetLoginShellEnvironment = vi.fn(() => {
+  return Promise.resolve({ PATH: '/usr/bin:/bin', PYTHONUNBUFFERED: '1' })
+})
+
 import { AgentExecutionService } from '../AgentExecutionService'
 
 // Mock child_process
@@ -33,6 +38,13 @@ vi.mock('fs', () => ({
   }
 }))
 
+// Mock os
+vi.mock('os', () => ({
+  default: {
+    homedir: vi.fn(() => '/test/home')
+  }
+}))
+
 // Create mock window
 const mockWindow = {
   isDestroyed: vi.fn(() => false),
@@ -41,7 +53,7 @@ const mockWindow = {
   }
 }
 
-// Mock electron
+// Mock electron for both import and require
 vi.mock('electron', () => ({
   BrowserWindow: {
     getAllWindows: vi.fn(() => [mockWindow])
@@ -70,6 +82,7 @@ vi.mock('@logger', () => ({
   }
 }))
 
+
 // Mock AgentService
 const mockAgentService = {
   getSessionById: vi.fn(),
@@ -94,9 +107,16 @@ describe('AgentExecutionService - Working Tests', () => {
     
     // Reset mock process state
     mockProcess.killed = false
+    // Remove listeners to prevent memory leaks in tests
     mockProcess.removeAllListeners()
     mockProcess.stdout.removeAllListeners()
     mockProcess.stderr.removeAllListeners()
+    
+    // Increase max listeners to prevent warnings
+    mockProcess.setMaxListeners(20)
+    mockProcess.stdout.setMaxListeners(20)
+    mockProcess.stderr.setMaxListeners(20)
+    
 
     // Create test data
     mockAgent = {
@@ -135,7 +155,7 @@ describe('AgentExecutionService - Working Tests', () => {
     mockAgentService.updateSessionStatus.mockResolvedValue({ success: true })
     mockAgentService.addSessionLog.mockResolvedValue({ success: true })
 
-    service = AgentExecutionService.getInstance()
+    service = AgentExecutionService.getTestInstance(mockGetLoginShellEnvironment)
   })
 
   afterEach(() => {
@@ -285,7 +305,7 @@ describe('AgentExecutionService - Working Tests', () => {
     it('should handle stdout data', () => {
       mockProcess.stdout.emit('data', Buffer.from('Test stdout output'))
 
-      expect(mockWindow.webContents.send).toHaveBeenCalledWith('agent-output', {
+      expect(mockWindow.webContents.send).toHaveBeenCalledWith('agent:execution-output', {
         sessionId: 'session-1',
         type: 'stdout',
         data: 'Test stdout output',
@@ -296,7 +316,7 @@ describe('AgentExecutionService - Working Tests', () => {
     it('should handle stderr data', () => {
       mockProcess.stderr.emit('data', Buffer.from('Test stderr output'))
 
-      expect(mockWindow.webContents.send).toHaveBeenCalledWith('agent-output', {
+      expect(mockWindow.webContents.send).toHaveBeenCalledWith('agent:execution-output', {
         sessionId: 'session-1',
         type: 'stderr',
         data: 'Test stderr output',
@@ -311,7 +331,7 @@ describe('AgentExecutionService - Working Tests', () => {
       await new Promise(resolve => setTimeout(resolve, 0))
 
       expect(mockAgentService.updateSessionStatus).toHaveBeenCalledWith('session-1', 'completed')
-      expect(mockWindow.webContents.send).toHaveBeenCalledWith('agent-complete', {
+      expect(mockWindow.webContents.send).toHaveBeenCalledWith('agent:execution-complete', {
         sessionId: 'session-1',
         exitCode: 0,
         success: true,
@@ -399,8 +419,9 @@ describe('AgentExecutionService - Working Tests', () => {
 
       const result = await service.runAgent('session-1', 'Test prompt')
 
-      // runAgent returns success immediately, errors are handled asynchronously
-      expect(result.success).toBe(true)
+      // When spawn throws, runAgent should return failure
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Spawn error')
     })
   })
 })

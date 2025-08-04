@@ -3,6 +3,12 @@ import { EventEmitter } from 'events'
 import fs from 'fs'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Mock shell environment function
+const mockGetLoginShellEnvironment = vi.fn(() => {
+  console.log('getLoginShellEnvironment mock called')
+  return Promise.resolve({ PATH: '/usr/bin:/bin', PYTHONUNBUFFERED: '1' })
+})
+
 import { AgentExecutionService } from '../AgentExecutionService'
 
 // Mock child_process
@@ -24,6 +30,13 @@ vi.mock('fs', () => ({
       stat: vi.fn(),
       mkdir: vi.fn()
     }
+  }
+}))
+
+// Mock os
+vi.mock('os', () => ({
+  default: {
+    homedir: vi.fn(() => '/test/home')
   }
 }))
 
@@ -55,6 +68,7 @@ vi.mock('@logger', () => ({
     }))
   }
 }))
+
 
 // Mock AgentService
 const mockAgentService = {
@@ -110,12 +124,24 @@ describe('AgentExecutionService - Core Functionality', () => {
     vi.mocked(fs.promises.stat).mockResolvedValue({ isFile: () => true } as any)
     vi.mocked(fs.promises.mkdir).mockResolvedValue(undefined)
     
-    mockAgentService.getSessionById.mockResolvedValue({ success: true, data: mockSession })
-    mockAgentService.getAgentById.mockResolvedValue({ success: true, data: mockAgent })
-    mockAgentService.updateSessionStatus.mockResolvedValue({ success: true })
-    mockAgentService.addSessionLog.mockResolvedValue({ success: true })
+    mockAgentService.getSessionById.mockImplementation(() => {
+      console.log('getSessionById mock called')
+      return Promise.resolve({ success: true, data: mockSession })
+    })
+    mockAgentService.getAgentById.mockImplementation(() => {
+      console.log('getAgentById mock called')
+      return Promise.resolve({ success: true, data: mockAgent })
+    })
+    mockAgentService.updateSessionStatus.mockImplementation(() => {
+      console.log('updateSessionStatus mock called')
+      return Promise.resolve({ success: true })
+    })
+    mockAgentService.addSessionLog.mockImplementation(() => {
+      console.log('addSessionLog mock called')
+      return Promise.resolve({ success: true })
+    })
 
-    service = AgentExecutionService.getInstance()
+    service = AgentExecutionService.getTestInstance(mockGetLoginShellEnvironment)
   })
 
   describe('Basic Functionality', () => {
@@ -157,7 +183,7 @@ describe('AgentExecutionService - Core Functionality', () => {
       const { spawn } = await import('child_process')
       
       const result = await service.runAgent('session-1', 'Test prompt')
-
+      
       expect(result.success).toBe(true)
       expect(spawn).toHaveBeenCalledWith('uv', expect.arrayContaining([
         'run',
