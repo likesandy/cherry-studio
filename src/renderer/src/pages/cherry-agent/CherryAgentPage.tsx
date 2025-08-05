@@ -173,6 +173,21 @@ const shouldDisplayLog = (log: SessionLogEntity): boolean => {
     return false
   }
 
+  // Hide routine system messages - only show errors and warnings
+  if (log.role === 'system') {
+    // Only show system messages that are errors or have important information
+    if (log.type === 'agent_error') {
+      return true // Always show errors
+    }
+    if (log.type === 'agent_session_result') {
+      // Only show failed session results, hide successful ones
+      const content = log.content as any
+      return content && !content.success
+    }
+    // Hide all other system messages (session_init, session_started, etc.)
+    return false
+  }
+
   // Hide empty content
   const content = formatMessageContent(log)
   if (!content || content.trim() === '') {
@@ -182,9 +197,39 @@ const shouldDisplayLog = (log: SessionLogEntity): boolean => {
   return true
 }
 
+// Helper function to get session metrics from logs
+const getSessionMetrics = (logs: SessionLogEntity[]) => {
+  const metrics = {
+    duration: null as string | null,
+    cost: null as string | null,
+    turns: null as number | null,
+    hasError: false
+  }
+
+  logs.forEach((log) => {
+    if (log.type === 'agent_session_result' && log.content) {
+      const content = log.content as any
+      if (content.duration_ms) {
+        metrics.duration = `${(content.duration_ms / 1000).toFixed(1)}s`
+      }
+      if (content.total_cost_usd) {
+        metrics.cost = `$${content.total_cost_usd.toFixed(4)}`
+      }
+      if (content.num_turns) {
+        metrics.turns = content.num_turns
+      }
+    }
+    if (log.type === 'agent_error') {
+      metrics.hasError = true
+    }
+  })
+
+  return metrics
+}
+
 const CherryAgentPage: React.FC = () => {
   const { isLeftNavbar } = useNavbarPosition()
-  const [sidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [agents, setAgents] = useState<AgentEntity[]>([])
   const [selectedAgent, setSelectedAgent] = useState<AgentEntity | null>(null)
   const [sessions, setSessions] = useState<SessionEntity[]>([])
@@ -407,7 +452,12 @@ const CherryAgentPage: React.FC = () => {
                     onClick={() => setShowCreateModal(true)}
                   />
                 )}
-                <CollapseButton type="text" icon={<MenuFoldOutlined />} size="small" />
+                <CollapseButton
+                  type="text"
+                  icon={<MenuFoldOutlined />}
+                  size="small"
+                  onClick={() => setSidebarCollapsed(true)}
+                />
               </HeaderActions>
             </SidebarHeader>
             <SidebarContent>
@@ -461,19 +511,51 @@ const CherryAgentPage: React.FC = () => {
           </Sidebar>
         )}
 
+        {/* Collapsed sidebar expand button */}
+        {sidebarCollapsed && (
+          <ExpandButton
+            type="text"
+            icon={<MenuFoldOutlined style={{ transform: 'rotate(180deg)' }} />}
+            size="small"
+            onClick={() => setSidebarCollapsed(false)}
+            title="Expand sidebar"
+          />
+        )}
+
         {/* Main Content Area */}
         <MainContent>
           {selectedSession ? (
             <>
               <ConversationArea>
                 <ConversationHeader>
-                  <h3>
-                    {selectedAgent?.name} -{' '}
-                    {selectedSession.user_goal && selectedSession.user_goal !== 'New conversation'
-                      ? selectedSession.user_goal
-                      : 'Conversation'}
-                  </h3>
-                  <SessionStatusBadge $status={selectedSession.status}>{selectedSession.status}</SessionStatusBadge>
+                  <ConversationTitle>
+                    <h3>
+                      {selectedAgent?.name} -{' '}
+                      {selectedSession.user_goal && selectedSession.user_goal !== 'New conversation'
+                        ? selectedSession.user_goal
+                        : 'Conversation'}
+                    </h3>
+                  </ConversationTitle>
+                  <ConversationMeta>
+                    {(() => {
+                      const metrics = getSessionMetrics(sessionLogs)
+                      return (
+                        <>
+                          <SessionStatusBadge $status={selectedSession.status}>
+                            {selectedSession.status}
+                          </SessionStatusBadge>
+                          {metrics.turns && <MetricBadge title="Number of turns">{metrics.turns} turns</MetricBadge>}
+                          {metrics.duration && <MetricBadge title="Session duration">{metrics.duration}</MetricBadge>}
+                          {metrics.cost && <MetricBadge title="Total cost">{metrics.cost}</MetricBadge>}
+                          {metrics.hasError && (
+                            <ErrorBadge title="Session has errors">
+                              <ExclamationCircleOutlined />
+                            </ErrorBadge>
+                          )}
+                        </>
+                      )
+                    })()}
+                  </ConversationMeta>
                 </ConversationHeader>
                 <MessagesContainer>
                   {sessionLogs.filter(shouldDisplayLog).map((log) => {
@@ -729,12 +811,46 @@ const ActionButton = styled(Button)`
   }
 `
 
+const ExpandButton = styled(Button)`
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    color: var(--color-text);
+    background-color: var(--color-background-hover);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:focus {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--color-primary);
+  }
+`
+
 const MainContent = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   min-width: 0; /* Allow flex shrinking */
+  position: relative;
 `
 
 const HeaderLabel = styled.span`
@@ -875,12 +991,57 @@ const ConversationHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   background-color: var(--color-background-soft);
+  gap: 16px;
 
   h3 {
     margin: 0;
     color: var(--color-text);
     font-size: 16px;
   }
+`
+
+const ConversationTitle = styled.div`
+  flex: 1;
+  min-width: 0;
+
+  h3 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`
+
+const ConversationMeta = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+`
+
+const MetricBadge = styled.span`
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  background-color: var(--color-background-muted);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  white-space: nowrap;
+`
+
+const ErrorBadge = styled.span`
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 12px;
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+  border: 1px solid var(--color-error-light);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 `
 
 const SessionStatusBadge = styled.span<{ $status: string }>`
