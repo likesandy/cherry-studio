@@ -18,7 +18,7 @@ export const MessagesContainer = styled.div`
   padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   background: linear-gradient(to bottom, var(--color-background), var(--color-background-soft));
 `
 
@@ -109,7 +109,10 @@ export const CollapseIcon = styled.div<{ $collapsed: boolean }>`
   height: 16px;
   color: var(--color-text-secondary);
   transition: transform 0.2s ease;
-  transform: ${(props) => (props.$collapsed ? 'rotate(0deg)' : 'rotate(0deg)')};
+  transform: ${(props) => (props.$collapsed ? 'rotate(-90deg)' : 'rotate(0deg)')};
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `
 
 export const SystemMessageContent = styled.div`
@@ -301,25 +304,40 @@ export const EmptyConversationSubtitle = styled.div`
   color: var(--color-text-secondary);
 `
 
-// Tool Call Styles
+// Tool Call Styles - Redesigned to be compact and secondary
 export const ToolCallCard = styled.div`
-  background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary-lighter, #e6f7ff));
-  border: 1px solid var(--color-primary);
-  border-radius: 12px;
-  overflow: auto;
-  animation: ${fadeIn} 0.3s ease-out;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
-  margin: 8px 0;
-  min-height: 120px;
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 4px 0 4px 44px; /* Align with agent message content */
+  max-width: calc(85% - 44px); /* Match agent message width minus avatar offset */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--color-border);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Responsive design for mobile */
+  @media (max-width: 768px) {
+    margin: 4px 0 4px 20px;
+    max-width: calc(95% - 20px);
+  }
+
+  @media (max-width: 480px) {
+    margin: 4px 0;
+    max-width: 100%;
+  }
 `
 
 export const ToolCallHeader = styled.div<{ $clickable?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: rgba(24, 144, 255, 0.1);
-  border-bottom: 1px solid var(--color-primary-light);
+  padding: 8px 12px;
+  background: var(--color-background-muted);
   cursor: ${(props) => (props.$clickable ? 'pointer' : 'default')};
   transition: background-color 0.2s ease;
 
@@ -327,7 +345,7 @@ export const ToolCallHeader = styled.div<{ $clickable?: boolean }>`
     props.$clickable &&
     `
     &:hover {
-      background: rgba(24, 144, 255, 0.15);
+      background: var(--color-background-hover);
     }
   `}
 `
@@ -335,43 +353,49 @@ export const ToolCallHeader = styled.div<{ $clickable?: boolean }>`
 export const ToolCallTitle = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-weight: 500;
-  font-size: 14px;
-  color: var(--color-primary);
+  font-size: 12px;
+  color: var(--color-text-secondary);
 `
 
 export const ToolCallIcon = styled.div`
-  width: 16px;
-  height: 16px;
-  color: var(--color-primary);
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-tertiary);
+  opacity: 0.8;
 `
 
 export const ToolCallHeaderRight = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 `
 
 export const ToolCallTime = styled.div`
-  font-size: 11px;
-  color: var(--color-primary);
+  font-size: 10px;
+  color: var(--color-text-tertiary);
   opacity: 0.7;
 `
 
 export const ToolCallContent = styled.div`
-  padding: 12px 16px;
+  padding: 8px 12px;
   background: var(--color-background);
-  max-height: 300px;
+  max-height: 200px;
   overflow-y: auto;
   border-top: 1px solid var(--color-border-light);
+  font-size: 12px;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  transform-origin: top;
 `
 
 export const ToolParameter = styled.div`
   display: flex;
   flex-direction: column;
-  margin-bottom: 12px;
-  gap: 4px;
+  margin-bottom: 8px;
+  gap: 2px;
 
   &:last-child {
     margin-bottom: 0;
@@ -379,72 +403,95 @@ export const ToolParameter = styled.div`
 `
 
 export const ParameterLabel = styled.div`
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 `
 
 export const ParameterValue = styled.div`
-  font-size: 13px;
+  font-size: 11px;
   color: var(--color-text);
   background: var(--color-background-muted);
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   word-break: break-word;
   white-space: pre-wrap;
-  line-height: 1.4;
+  line-height: 1.3;
   border: 1px solid var(--color-border-light);
+  max-height: 80px;
+  overflow-y: auto;
 `
 
-// Tool Result Styles
+// Tool Result Styles - Redesigned to be compact and aligned
 export const ToolResultCard = styled.div<{ $isError: boolean }>`
-  background: ${(props) => (props.$isError ? 'var(--color-error-light)' : 'var(--color-success-light)')};
-  border: 1px solid ${(props) => (props.$isError ? 'var(--color-error)' : 'var(--color-success)')};
-  border-radius: 12px;
+  background: var(--color-background-soft);
+  border: 1px solid ${(props) => (props.$isError ? 'var(--color-error-light)' : 'var(--color-success-light)')};
+  border-radius: 8px;
   overflow: hidden;
-  animation: ${fadeIn} 0.3s ease-out;
-  box-shadow: 0 2px 8px ${(props) => (props.$isError ? 'rgba(255, 77, 79, 0.15)' : 'rgba(82, 196, 26, 0.15)')};
-  margin: 8px 0;
+  margin: 4px 0 4px 44px; /* Align with agent message content */
+  max-width: calc(85% - 44px); /* Match agent message width minus avatar offset */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: ${(props) => (props.$isError ? 'var(--color-error)' : 'var(--color-success)')};
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Responsive design for mobile */
+  @media (max-width: 768px) {
+    margin: 4px 0 4px 20px;
+    max-width: calc(95% - 20px);
+  }
+
+  @media (max-width: 480px) {
+    margin: 4px 0;
+    max-width: 100%;
+  }
 `
 
 export const ToolResultHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.5);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 6px 12px;
+  background: var(--color-background-muted);
+  border-bottom: 1px solid var(--color-border-light);
 `
 
 export const ToolResultTitle = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
 `
 
 export const ToolResultIcon = styled.div<{ $isError: boolean }>`
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   color: ${(props) => (props.$isError ? 'var(--color-error)' : 'var(--color-success)')};
 `
 
 export const ToolResultTime = styled.div`
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-text-tertiary);
   opacity: 0.7;
 `
 
 export const ToolResultContent = styled.div<{ $isError: boolean }>`
-  padding: 12px 16px;
+  padding: 8px 12px;
   background: var(--color-background);
-  font-size: 13px;
+  font-size: 11px;
   color: ${(props) => (props.$isError ? 'var(--color-error)' : 'var(--color-text)')};
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   white-space: pre-wrap;
   word-break: break-word;
+  line-height: 1.3;
+  max-height: 120px;
+  overflow-y: auto;
 `
