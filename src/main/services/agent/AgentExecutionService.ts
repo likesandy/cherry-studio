@@ -157,7 +157,7 @@ export class AgentExecutionService {
    * @returns Promise that resolves when execution starts (not when it completes)
    */
   public async runAgent(sessionId: string, prompt: string): Promise<ServiceResult<void>> {
-    logger.info('Starting agent execution', { sessionId, promptLength: prompt.length })
+    logger.info('Starting agent execution', { sessionId, prompt })
 
     try {
       // Validate arguments

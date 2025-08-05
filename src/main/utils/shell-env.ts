@@ -1,6 +1,7 @@
 import { loggerService } from '@logger'
 import { isMac, isWin } from '@main/constant'
 import { spawn } from 'child_process'
+import { memoize } from 'lodash'
 import os from 'os'
 import path from 'path'
 
@@ -133,4 +134,21 @@ function getLoginShellEnvironment(): Promise<Record<string, string>> {
   })
 }
 
-export default getLoginShellEnvironment
+const memoizedGetShellEnvs = memoize(async () => {
+  try {
+    return await getLoginShellEnvironment()
+  } catch (error) {
+    logger.error('Failed to get shell environment, falling back to process.env', { error })
+    // Fallback to current process environment with cherry studio bin path
+    const fallbackEnv: Record<string, string> = {}
+    for (const key in process.env) {
+      fallbackEnv[key] = process.env[key] || ''
+    }
+    const pathSeparator = isWin ? ';' : ':'
+    const cherryBinPath = path.join(os.homedir(), '.cherrystudio', 'bin')
+    fallbackEnv.PATH = `${fallbackEnv.PATH || ''}${pathSeparator}${cherryBinPath}`
+    return fallbackEnv
+  }
+})
+
+export default memoizedGetShellEnvs

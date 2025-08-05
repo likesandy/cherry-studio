@@ -115,7 +115,8 @@ async def main():
         max_turns=args.max_turns,
         permission_mode=args.permission_mode,
         cwd=args.cwd,
-        resume=args.session_id,
+        # resume=args.session_id,
+        continue_conversation=True
     )
 
     await run_claude_query(args.prompt, opts)

@@ -31,7 +31,6 @@ import { nanoid } from '@reduxjs/toolkit'
 import type { GetResourceResponse, MCPCallToolResponse, MCPPrompt, MCPResource, MCPServer, MCPTool } from '@types'
 import { app } from 'electron'
 import { EventEmitter } from 'events'
-import { memoize } from 'lodash'
 import { v4 as uuidv4 } from 'uuid'
 
 import getLoginShellEnvironment from '../utils/shell-env'
@@ -276,7 +275,7 @@ class McpService {
 
             logger.debug(`Starting server with command: ${cmd} ${args ? args.join(' ') : ''}`)
             // Logger.info(`[MCP] Environment variables for server:`, server.env)
-            const loginShellEnv = await this.getLoginShellEnv()
+            const loginShellEnv = await getLoginShellEnvironment()
 
             // Bun not support proxy https://github.com/oven-sh/bun/issues/16812
             if (cmd.includes('bun')) {
@@ -812,15 +811,6 @@ class McpService {
     )
     return await cachedGetResource(server, uri)
   }
-
-  private getLoginShellEnv = memoize(async (): Promise<Record<string, string>> => {
-    try {
-      return await getLoginShellEnvironment()
-    } catch (error) {
-      logger.error('Failed to fetch login shell environment variables:', error as Error)
-      return {}
-    }
-  })
 
   private removeProxyEnv(env: Record<string, string>) {
     delete env.HTTPS_PROXY
