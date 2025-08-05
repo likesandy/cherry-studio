@@ -383,6 +383,15 @@
         "settings": "Web Search Settings"
       }
     },
+    "mcp": {
+      "error": {
+        "parse_tool_call": "Unable to convert to a valid tool call format: {{toolCall}}"
+      },
+      "warning": {
+        "multiple_tools": "Multiple matching MCP tools exist, {{tool}} has been selected",
+        "no_tool": "No matching MCP tool found for {{tool}}"
+      }
+    },
     "message": {
       "new": {
         "branch": {
@@ -596,7 +605,7 @@
       "list": "Topic List",
       "move_to": "Move to",
       "new": "New Topic",
-      "pinned": "Pinned Topics",
+      "pin": "Pin Topic",
       "prompt": {
         "edit": {
           "title": "Edit Topic Prompts"
@@ -605,7 +614,7 @@
         "tips": "Topic Prompts: Additional supplementary prompts provided for the current topic"
       },
       "title": "Topics",
-      "unpinned": "Unpinned Topics"
+      "unpin": "Unpin Topic"
     },
     "translate": "Translate"
   },
@@ -703,6 +712,7 @@
     "no_results": "No results",
     "open": "Open",
     "paste": "Paste",
+    "preview": "Preview",
     "prompt": "Prompt",
     "provider": "Provider",
     "reasoning_content": "Deep reasoning",
@@ -711,6 +721,7 @@
     "rename": "Rename",
     "reset": "Reset",
     "save": "Save",
+    "saved": "Saved",
     "search": "Search",
     "select": "Select",
     "selectedItems": "Selected {{count}} items",
@@ -879,7 +890,7 @@
     "error": {
       "failed_to_create": "Knowledge base creation failed",
       "failed_to_edit": "Knowledge base editing failed",
-      "model_invalid": "No model selected or deleted"
+      "model_invalid": "No model selected"
     },
     "file_hint": "Support {{file_types}}",
     "index_all": "Index All",
@@ -920,7 +931,7 @@
     "search_placeholder": "Enter text to search",
     "settings": {
       "preprocessing": "Preprocessing",
-      "preprocessing_tooltip": "Preprocess uploaded files with OCR",
+      "preprocessing_tooltip": "Preprocess uploaded files",
       "title": "Knowledge Base Settings"
     },
     "sitemap_added": "Added successfully",
@@ -1453,7 +1464,7 @@
       "function_calling": "Tool",
       "reasoning": "Reasoning",
       "rerank": "Reranker",
-      "select": "Select Model Types",
+      "select": "Model Types",
       "text": "Text",
       "vision": "Vision",
       "websearch": "WebSearch"
@@ -1506,6 +1517,7 @@
         "image": "New Image"
       }
     },
+    "custom_size": "Custom Size",
     "edit": {
       "image_file": "Edited Image",
       "magic_prompt_option_tip": "Intelligently enhances editing prompts",
@@ -1550,6 +1562,7 @@
     "mode": {
       "edit": "Edit",
       "generate": "Draw",
+      "merge": "Merge",
       "remix": "Remix",
       "upscale": "Upscale"
     },
@@ -1628,6 +1641,7 @@
     },
     "text_desc_required": "Please enter image description first",
     "title": "Images",
+    "top_up": "Top up ",
     "translating": "Translating...",
     "uploaded_input": "Uploaded input",
     "upscale": {
@@ -2703,6 +2717,8 @@
       "jsonSaveError": "Failed to save JSON configuration.",
       "jsonSaveSuccess": "JSON configuration has been saved.",
       "logoUrl": "Logo URL",
+      "longRunning": "Long Running Mode",
+      "longRunningTooltip": "When enabled, the server supports long-running tasks. When receiving progress notifications, the timeout will be reset and the maximum execution time will be extended to 10 minutes.",
       "missingDependencies": "is Missing, please install it to continue.",
       "more": {
         "awesome": "Curated MCP Server List",
@@ -2949,8 +2965,8 @@
           "tooltip": "Optional e.g. GPT-4"
         },
         "supported_text_delta": {
-          "label": "Incremental text output",
-          "tooltip": "When the model is not supported, close the button"
+          "label": "Support incremental text output",
+          "tooltip": "The model returns text incrementally, rather than all at once. Enabled by default, if the model does not support it, please disable this option"
         }
       },
       "api_key": "API Key",
@@ -2988,6 +3004,7 @@
           "label": "Add models to the list"
         },
         "add_whole_group": "Add the whole group",
+        "refetch_list": "Refetch model list",
         "remove_listed": "Remove models from the list",
         "remove_model": "Remove model",
         "remove_whole_group": "Remove the whole group"
@@ -3005,7 +3022,6 @@
       "provider_name": "Provider Name",
       "quick_assistant_default_tag": "Default",
       "quick_assistant_model": "Quick Assistant Model",
-      "quick_assistant_model_description": "Default model used by Quick Assistant",
       "quick_assistant_selection": "Select Assistant",
       "topic_naming_model": "Topic Naming Model",
       "topic_naming_model_description": "Model used when automatically naming a new topic",
@@ -3079,6 +3095,21 @@
           },
           "new_key": {
             "placeholder": "Enter one or more keys"
+          }
+        },
+        "options": {
+          "array_content": {
+            "help": "Does the provider support the content field of the message being of array type?",
+            "label": "Supports array format message content"
+          },
+          "developer_role": {
+            "help": "Does the provider support messages with role: \"developer\"?",
+            "label": "Support Developer Message"
+          },
+          "label": "API Settings",
+          "stream_options": {
+            "help": "Does the provider support the stream_options parameter?",
+            "label": "Support stream_options"
           }
         },
         "url": {
@@ -3171,7 +3202,7 @@
       "docs_check": "Check",
       "docs_more_details": "for more details",
       "get_api_key": "Get API Key",
-      "is_not_support_array_content": "Enable compatible mode",
+      "misc": "Other",
       "no_models_for_check": "No models available for checking (e.g. chat models)",
       "not_checked": "Not Checked",
       "notes": {
@@ -3218,6 +3249,7 @@
     },
     "proxy": {
       "address": "Proxy Address",
+      "bypass": "Bypass Rules",
       "mode": {
         "custom": "Custom Proxy",
         "none": "No Proxy",
@@ -3301,28 +3333,13 @@
     },
     "title": "Settings",
     "tool": {
-      "ocr": {
-        "mac_system_ocr_options": {
-          "min_confidence": "Minimum Confidence",
-          "mode": {
-            "accurate": "Accurate",
-            "fast": "Fast",
-            "title": "Recognition Mode"
-          }
-        },
-        "provider": "OCR Provider",
-        "provider_placeholder": "Choose an OCR provider",
-        "title": "OCR Settings"
-      },
       "preprocess": {
         "provider": "Pre Process Provider",
         "provider_placeholder": "Choose a Pre Process provider",
-        "title": "Pre Process"
+        "title": "Pre Process",
+        "tooltip": "In Settings -> Tools, set a document preprocessing service provider. Document preprocessing can effectively improve the retrieval performance of complex format documents and scanned documents."
       },
-      "preprocessOrOcr": {
-        "tooltip": "In Settings -> Tools, set a document preprocessing service provider or OCR. Document preprocessing can effectively improve the retrieval performance of complex format documents and scanned documents. OCR can only recognize text within images in documents or scanned PDF text."
-      },
-      "title": "Tools Settings",
+      "title": "Other Settings",
       "websearch": {
         "apikey": "API key",
         "blacklist": "Blacklist",

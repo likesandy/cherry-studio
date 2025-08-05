@@ -50,11 +50,8 @@ files:
   - '!node_modules/rollup-plugin-visualizer'
   - '!node_modules/js-tiktoken'
   - '!node_modules/@tavily/core/node_modules/js-tiktoken'
-  - '!node_modules/pdf-parse/lib/pdf.js/{v1.9.426,v1.10.88,v2.0.550}'
   - '!node_modules/mammoth/{mammoth.browser.js,mammoth.browser.min.js}'
   - '!node_modules/selection-hook/prebuilds/**/*' # we rebuild .node, don't use prebuilds
-  - '!node_modules/pdfjs-dist/web/**/*'
-  - '!node_modules/pdfjs-dist/legacy/**/*'
   - '!node_modules/selection-hook/node_modules' # we don't need what in the node_modules dir
   - '!node_modules/selection-hook/src' # we don't need source files
   - '!**/*.{h,iobj,ipdb,tlog,recipe,vcxproj,vcxproj.filters,Makefile,*.Makefile}' # filter .node build files
@@ -131,3 +128,4 @@ releaseInfo:
     内存泄漏修复：优化代码逻辑，解决内存泄漏问题，提升运行稳定性
     嵌入模型简化：降低嵌入模型配置复杂度，提高易用性
     MCP Tool 长时间运行：增强 MCP 工具的稳定性，支持长时间任务执行
+    设置页面优化：优化设置页面布局，提升用户体验

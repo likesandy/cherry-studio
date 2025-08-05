@@ -49,6 +49,7 @@ export interface SettingsState {
   targetLanguage: TranslateLanguageVarious
   proxyMode: 'system' | 'custom' | 'none'
   proxyUrl?: string
+  proxyBypassRules?: string
   userName: string
   userId: string
   showPrompt: boolean
@@ -220,6 +221,7 @@ export const initialState: SettingsState = {
   targetLanguage: 'en-us',
   proxyMode: 'system',
   proxyUrl: undefined,
+  proxyBypassRules: undefined,
   userName: '',
   userId: uuid(),
   showPrompt: true,
@@ -379,9 +381,10 @@ export const initialState: SettingsState = {
   // Developer mode
   enableDeveloperMode: false,
   // UI
-  navbarPosition: 'left',
+  navbarPosition: 'top',
   // API Server
   apiServer: {
+    enabled: false,
     host: 'localhost',
     port: 23333,
     apiKey: `cs-sk-${uuid()}`
@@ -421,6 +424,9 @@ const settingsSlice = createSlice({
     },
     setProxyUrl: (state, action: PayloadAction<string | undefined>) => {
       state.proxyUrl = action.payload
+    },
+    setProxyBypassRules: (state, action: PayloadAction<string | undefined>) => {
+      state.proxyBypassRules = action.payload
     },
     setUserName: (state, action: PayloadAction<string>) => {
       state.userName = action.payload
@@ -791,6 +797,12 @@ const settingsSlice = createSlice({
       state.navbarPosition = action.payload
     },
     // API Server actions
+    setApiServerEnabled: (state, action: PayloadAction<boolean>) => {
+      state.apiServer = {
+        ...state.apiServer,
+        enabled: action.payload
+      }
+    },
     setApiServerPort: (state, action: PayloadAction<number>) => {
       state.apiServer = {
         ...state.apiServer,
@@ -819,6 +831,7 @@ export const {
   setTargetLanguage,
   setProxyMode,
   setProxyUrl,
+  setProxyBypassRules,
   setUserName,
   setShowPrompt,
   setShowTokens,
@@ -926,6 +939,7 @@ export const {
   setEnableDeveloperMode,
   setNavbarPosition,
   // API Server actions
+  setApiServerEnabled,
   setApiServerPort,
   setApiServerApiKey
 } = settingsSlice.actions

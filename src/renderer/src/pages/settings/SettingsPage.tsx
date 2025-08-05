@@ -4,16 +4,15 @@ import {
   Brain,
   Cloud,
   Command,
+  FolderCog,
   HardDrive,
   Info,
   MonitorCog,
   Package,
-  Rocket,
-  Server,
+  PictureInPicture2,
   Settings2,
   SquareTerminal,
-  TextCursorInput,
-  Zap
+  TextCursorInput
 } from 'lucide-react'
 import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -21,7 +20,6 @@ import { Link, Route, Routes, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 
 import AboutSettings from './AboutSettings'
-import { ApiServerSettings } from './ApiServerSettings'
 import DataSettings from './DataSettings/DataSettings'
 import DisplaySettings from './DisplaySettings/DisplaySettings'
 import GeneralSettings from './GeneralSettings'
@@ -29,7 +27,6 @@ import MCPSettings from './MCPSettings'
 import MemorySettings from './MemorySettings'
 import ProvidersList from './ProviderSettings'
 import QuickAssistantSettings from './QuickAssistantSettings'
-import QuickPhraseSettings from './QuickPhraseSettings'
 import SelectionAssistantSettings from './SelectionAssistantSettings/SelectionAssistantSettings'
 import ShortcutSettings from './ShortcutSettings'
 import ToolSettings from './ToolSettings'
@@ -71,16 +68,16 @@ const SettingsPage: FC = () => {
               {t('settings.display.title')}
             </MenuItem>
           </MenuItemLink>
+          <MenuItemLink to="/settings/data">
+            <MenuItem className={isRoute('/settings/data')}>
+              <HardDrive size={18} />
+              {t('settings.data.title')}
+            </MenuItem>
+          </MenuItemLink>
           <MenuItemLink to="/settings/mcp">
             <MenuItem className={isRoute('/settings/mcp')}>
               <SquareTerminal size={18} />
               {t('settings.mcp.title')}
-            </MenuItem>
-          </MenuItemLink>
-          <MenuItemLink to="/settings/api-server">
-            <MenuItem className={isRoute('/settings/api-server')}>
-              <Server size={18} />
-              {t('apiServer.title')}
             </MenuItem>
           </MenuItemLink>
           <MenuItemLink to="/settings/memory">
@@ -95,9 +92,15 @@ const SettingsPage: FC = () => {
               {t('settings.shortcuts.title')}
             </MenuItem>
           </MenuItemLink>
+          <MenuItemLink to="/settings/tool">
+            <MenuItem className={isRoute('/settings/tool')}>
+              <FolderCog size={18} />
+              {t('settings.tool.title')}
+            </MenuItem>
+          </MenuItemLink>
           <MenuItemLink to="/settings/quickAssistant">
             <MenuItem className={isRoute('/settings/quickAssistant')}>
-              <Rocket size={18} />
+              <PictureInPicture2 size={18} />
               {t('settings.quickAssistant.title')}
             </MenuItem>
           </MenuItemLink>
@@ -105,18 +108,6 @@ const SettingsPage: FC = () => {
             <MenuItem className={isRoute('/settings/selectionAssistant')}>
               <TextCursorInput size={18} />
               {t('selection.name')}
-            </MenuItem>
-          </MenuItemLink>
-          <MenuItemLink to="/settings/quickPhrase">
-            <MenuItem className={isRoute('/settings/quickPhrase')}>
-              <Zap size={18} />
-              {t('settings.quickPhrase.title')}
-            </MenuItem>
-          </MenuItemLink>
-          <MenuItemLink to="/settings/data">
-            <MenuItem className={isRoute('/settings/data')}>
-              <HardDrive size={18} />
-              {t('settings.data.title')}
             </MenuItem>
           </MenuItemLink>
           <MenuItemLink to="/settings/about">
@@ -133,7 +124,6 @@ const SettingsPage: FC = () => {
             <Route path="tool/*" element={<ToolSettings />} />
             <Route path="mcp/*" element={<MCPSettings />} />
             <Route path="memory" element={<MemorySettings />} />
-            <Route path="api-server" element={<ApiServerSettings />} />
             <Route path="general/*" element={<GeneralSettings />} />
             <Route path="display" element={<DisplaySettings />} />
             <Route path="shortcut" element={<ShortcutSettings />} />
@@ -141,7 +131,6 @@ const SettingsPage: FC = () => {
             <Route path="selectionAssistant" element={<SelectionAssistantSettings />} />
             <Route path="data" element={<DataSettings />} />
             <Route path="about" element={<AboutSettings />} />
-            <Route path="quickPhrase" element={<QuickPhraseSettings />} />
           </Routes>
         </SettingContent>
       </ContentContainer>
