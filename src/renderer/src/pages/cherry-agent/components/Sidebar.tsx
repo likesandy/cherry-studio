@@ -1,4 +1,4 @@
-import { ExclamationCircleOutlined, MenuFoldOutlined, PlusOutlined, SettingOutlined } from '@ant-design/icons'
+import { DeleteOutlined, MenuFoldOutlined, PlusOutlined, SettingOutlined } from '@ant-design/icons'
 import { AgentEntity, SessionEntity } from '@renderer/types/agent'
 import { Button, Tooltip } from 'antd'
 import React from 'react'
@@ -127,7 +127,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Tooltip title="Delete session">
                   <ActionButton
                     type="text"
-                    icon={<ExclamationCircleOutlined />}
+                    icon={<DeleteOutlined />}
                     size="small"
                     onClick={(e) => {
                       e.stopPropagation()

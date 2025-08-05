@@ -273,7 +273,6 @@ const CherryAgentPage: React.FC = () => {
         sessionForm={sessionForm}
         setSessionForm={setSessionForm}
         onAddPath={handleAddPath}
-        onAddPathManually={handleAddPathManually}
         onRemovePath={handleRemovePath}
       />
 

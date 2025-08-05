@@ -1,4 +1,4 @@
-import { ExclamationCircleOutlined, FolderOpenOutlined, PlusOutlined } from '@ant-design/icons'
+import { ExclamationCircleOutlined, FolderOpenOutlined } from '@ant-design/icons'
 import { PermissionMode } from '@renderer/types/agent'
 import { Button, Input, Modal, Select } from 'antd'
 import React from 'react'
@@ -36,7 +36,6 @@ interface SessionModalProps {
       | ((prev: any) => any)
   ) => void
   onAddPath: () => void
-  onAddPathManually: () => void
   onRemovePath: (path: string) => void
 }
 
@@ -48,7 +47,6 @@ export const SessionModal: React.FC<SessionModalProps> = ({
   sessionForm,
   setSessionForm,
   onAddPath,
-  onAddPathManually,
   onRemovePath
 }) => {
   return (
@@ -61,7 +59,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({
       okText={mode === 'create' ? 'Create Session' : 'Update Session'}>
       <SessionModalContent>
         <FormSection>
-          <FormLabel>Session Goal</FormLabel>
+          <FormLabel>Session Title</FormLabel>
           <Input.TextArea
             value={sessionForm.user_goal}
             onChange={(e) => setSessionForm((prev) => ({ ...prev, user_goal: e.target.value }))}
@@ -108,14 +106,6 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                 onClick={onAddPath}
                 style={{ padding: '0 4px' }}>
                 Browse
-              </Button>
-              <Button
-                type="link"
-                size="small"
-                icon={<PlusOutlined />}
-                onClick={onAddPathManually}
-                style={{ padding: '0 4px' }}>
-                Manual
               </Button>
             </div>
           </FormLabel>
