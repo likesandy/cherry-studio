@@ -1,4 +1,5 @@
-import { HStack, VStack } from '@renderer/components/Layout'
+import CustomTag from '@renderer/components/CustomTag'
+import { HStack } from '@renderer/components/Layout'
 import { useAssistants } from '@renderer/hooks/useAssistant'
 import { Avatar, Button, Select, Space, Tooltip } from 'antd'
 import { UserRoundPlus } from 'lucide-react'
@@ -25,12 +26,13 @@ const UserSelector: React.FC<UserSelectorProps> = ({ currentUser, uniqueUsers, o
   // Get assistants linked to a specific memory user
   const getAssistantsForUser = useCallback(
     (userId: string) => {
-      return assistants.filter((assistant) => {
-        // Assistant uses this user if either:
-        // 1. memoryUserId explicitly matches
-        // 2. memoryUserId is undefined and this is the current global user
-        return assistant.memoryUserId === userId || (!assistant.memoryUserId && userId === currentUser)
-      })
+      return assistants.filter(
+        (assistant) =>
+          // Assistant uses this user if either:
+          // 1. memoryUserId explicitly matches
+          // 2. memoryUserId is undefined and this is the current global user
+          assistant.memoryUserId === userId || (!assistant.memoryUserId && userId === currentUser)
+      )
     },
     [assistants, currentUser]
   )
@@ -40,26 +42,22 @@ const UserSelector: React.FC<UserSelectorProps> = ({ currentUser, uniqueUsers, o
       const linkedAssistants = getAssistantsForUser(userId)
 
       return (
-        <VStack alignItems="flex-start" gap={2}>
-          <HStack alignItems="center" gap={10}>
+        <HStack alignItems="center" justifyContent="space-between" style={{ width: '100%' }}>
+          <HStack alignItems="center" gap={8} style={{ minWidth: 0 }}>
             <Avatar size={20} style={{ background: 'var(--color-primary)' }}>
               {getUserAvatar(userId)}
             </Avatar>
-            <span>{userName}</span>
+            <span style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{userName}</span>
           </HStack>
           {linkedAssistants.length > 0 && (
-            <div
-              style={{
-                fontSize: '11px',
-                color: 'var(--color-text-tertiary)',
-                marginLeft: '30px',
-                lineHeight: '14px'
-              }}>
-              {linkedAssistants.length} {linkedAssistants.length === 1 ? 'assistant' : 'assistants'}:{' '}
-              {linkedAssistants.map((a) => a.name).join(', ')}
-            </div>
+            <CustomTag
+              color="#8c8c8c"
+              size={10}
+              tooltip={`Linked Assistants: ${linkedAssistants.map((a) => a.name).join(', ')}`}>
+              {linkedAssistants.length}
+            </CustomTag>
           )}
-        </VStack>
+        </HStack>
       )
     },
     [getUserAvatar, getAssistantsForUser]
