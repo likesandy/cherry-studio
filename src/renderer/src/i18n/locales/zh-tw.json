@@ -383,6 +383,15 @@
         "settings": "網路搜尋設定"
       }
     },
+    "mcp": {
+      "error": {
+        "parse_tool_call": "無法轉換為有效的工具呼叫格式：{{toolCall}}"
+      },
+      "warning": {
+        "multiple_tools": "存在多個匹配的MCP工具，已選擇 {{tool}}",
+        "no_tool": "未匹配到所需的MCP工具 {{tool}}"
+      }
+    },
     "message": {
       "new": {
         "branch": {
@@ -596,7 +605,7 @@
       "list": "話題列表",
       "move_to": "移動到",
       "new": "開始新對話",
-      "pinned": "固定話題",
+      "pin": "固定話題",
       "prompt": {
         "edit": {
           "title": "編輯話題提示詞"
@@ -605,7 +614,7 @@
         "tips": "話題提示詞：針對目前話題提供額外的補充提示詞"
       },
       "title": "話題",
-      "unpinned": "取消固定"
+      "unpin": "取消固定"
     },
     "translate": "翻譯"
   },
@@ -1461,7 +1470,7 @@
       "function_calling": "工具",
       "reasoning": "推理",
       "rerank": "重排",
-      "select": "選擇模型類型",
+      "select": "模型類型",
       "text": "文字",
       "vision": "視覺",
       "websearch": "網路搜尋"
@@ -1559,6 +1568,7 @@
     "mode": {
       "edit": "編輯",
       "generate": "繪圖",
+      "merge": "合併",
       "remix": "混合",
       "upscale": "放大"
     },
@@ -2713,6 +2723,8 @@
       "jsonSaveError": "保存 JSON 配置失敗",
       "jsonSaveSuccess": "JSON 配置已儲存",
       "logoUrl": "標誌網址",
+      "longRunning": "長時間運行模式",
+      "longRunningTooltip": "啟用後，伺服器支援長時間任務，接收到進度通知時會重置超時計時器，並延長最大超時時間至10分鐘",
       "missingDependencies": "缺失，請安裝它以繼續",
       "more": {
         "awesome": "精選的 MCP 伺服器清單",
@@ -2959,8 +2971,8 @@
           "tooltip": "例如 GPT-4"
         },
         "supported_text_delta": {
-          "label": "增量文本輸出",
-          "tooltip": "當模型不支持的時候，將該按鈕關閉"
+          "label": "支持增量文本輸出",
+          "tooltip": "模型每次返回文本增量，而不是一次性返回所有文本，預設開啟，如果模型不支持，請關閉"
         }
       },
       "api_key": "API 密鑰",
@@ -3016,7 +3028,6 @@
       "provider_name": "提供者名稱",
       "quick_assistant_default_tag": "預設",
       "quick_assistant_model": "快捷助手模型",
-      "quick_assistant_model_description": "快捷助手使用的預設模型",
       "quick_assistant_selection": "選擇助手",
       "topic_naming_model": "話題命名模型",
       "topic_naming_model_description": "自動命名新話題時使用的模型",
@@ -3244,6 +3255,7 @@
     },
     "proxy": {
       "address": "代理伺服器位址",
+      "bypass": "代理略過規則",
       "mode": {
         "custom": "自訂代理伺服器",
         "none": "不使用代理伺服器",
@@ -3333,7 +3345,7 @@
         "title": "前置處理",
         "tooltip": "在「設定」->「工具」中設定文件預處理服務供應商。文件預處理可有效提升複雜格式文件及掃描文件的檢索效能"
       },
-      "title": "工具設定",
+      "title": "其他設定",
       "websearch": {
         "apikey": "API 金鑰",
         "blacklist": "黑名單",

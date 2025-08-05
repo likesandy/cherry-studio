@@ -1,7 +1,5 @@
 import { loggerService } from '@logger'
-import SvgSpinners180Ring from '@renderer/components/Icons/SvgSpinners180Ring'
-import NewApiAddModelPopup from '@renderer/components/ModelList/NewApiAddModelPopup'
-import NewApiBatchAddModelPopup from '@renderer/components/ModelList/NewApiBatchAddModelPopup'
+import { LoadingIcon } from '@renderer/components/Icons'
 import { TopView } from '@renderer/components/TopView'
 import {
   groupQwenModels,
@@ -15,6 +13,8 @@ import {
   SYSTEM_MODELS
 } from '@renderer/config/models'
 import { useProvider } from '@renderer/hooks/useProvider'
+import NewApiAddModelPopup from '@renderer/pages/settings/ProviderSettings/ModelList/NewApiAddModelPopup'
+import NewApiBatchAddModelPopup from '@renderer/pages/settings/ProviderSettings/ModelList/NewApiBatchAddModelPopup'
 import { fetchModels } from '@renderer/services/ApiService'
 import { Model, Provider } from '@renderer/types'
 import { filterModelsByKeywords, getDefaultGroupName, getFancyProviderName, isFreeModel } from '@renderer/utils'
@@ -22,12 +22,12 @@ import { Button, Empty, Flex, Modal, Spin, Tabs, Tooltip } from 'antd'
 import Input from 'antd/es/input/Input'
 import { groupBy, isEmpty, uniqBy } from 'lodash'
 import { debounce } from 'lodash'
-import { Eraser, ListPlus, RefreshCcw, Search } from 'lucide-react'
+import { ListMinus, ListPlus, RefreshCcw, Search } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import { HStack } from '../Layout'
+import { HStack } from '../../../../components/Layout'
 import ManageModelsList from './ManageModelsList'
 import { isModelInProvider, isValidNewApiModel } from './utils'
 
@@ -251,7 +251,7 @@ const PopupContainer: React.FC<Props> = ({ providerId, resolve }) => {
           mouseLeaveDelay={0}>
           <Button
             type="default"
-            icon={isAllFilteredInProvider ? <Eraser size={18} /> : <ListPlus size={18} />}
+            icon={isAllFilteredInProvider ? <ListMinus size={18} /> : <ListPlus size={18} />}
             size="large"
             onClick={(e) => {
               e.stopPropagation()
@@ -331,7 +331,7 @@ const PopupContainer: React.FC<Props> = ({ providerId, resolve }) => {
       </SearchContainer>
       <Spin
         spinning={isLoading}
-        indicator={<SvgSpinners180Ring color="var(--color-text-2)" style={{ opacity: loadingModels ? 1 : 0 }} />}>
+        indicator={<LoadingIcon color="var(--color-text-2)" style={{ opacity: loadingModels ? 1 : 0 }} />}>
         <ListContainer>
           {loadingModels || isEmpty(list) ? (
             <Empty
