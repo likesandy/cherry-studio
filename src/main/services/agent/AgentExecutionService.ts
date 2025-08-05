@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { BrowserWindow } from 'electron'
 import { loggerService } from '@logger'
 import { getDataPath, getResourcePath } from '@main/utils'
 import { IpcChannel } from '@shared/IpcChannel'
@@ -15,6 +14,7 @@ import type {
   SessionEntity
 } from '@types'
 import { ChildProcess, spawn } from 'child_process'
+import { BrowserWindow } from 'electron'
 
 import getLoginShellEnvironment from '../../utils/shell-env'
 import AgentService from './AgentService'
@@ -223,7 +223,10 @@ export class AgentExecutionService {
       } catch (error) {
         logger.error('Agent process execution failed:', error as Error, { sessionId })
         await this.agentService.updateSessionStatus(sessionId, 'failed')
-        return { success: false, error: error instanceof Error ? error.message : 'Unknown error during agent execution' }
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error during agent execution'
+        }
       }
 
       return { success: true }
@@ -299,7 +302,7 @@ export class AgentExecutionService {
     workingDirectory: string
   ): Promise<void> {
     const loginShellEnvironment = await this.getShellEnvironment()
-    
+
     // Spawn the process
     const process = spawn(executable, args, {
       cwd: workingDirectory,
@@ -312,7 +315,7 @@ export class AgentExecutionService {
 
     // Store the process for later management
     this.runningProcesses.set(sessionId, process)
-    
+
     // Set up async event handlers
     this.setupProcessHandlers(sessionId, process)
   }
@@ -445,7 +448,6 @@ export class AgentExecutionService {
     })
   }
 
-
   /**
    * Add a session log entry
    */
@@ -499,7 +501,7 @@ export class AgentExecutionService {
   private streamToRenderers(channel: string, data: any): void {
     try {
       const windows = BrowserWindow.getAllWindows()
-      
+
       windows.forEach((window) => {
         if (!window.isDestroyed()) {
           window.webContents.send(channel, data)
