@@ -306,10 +306,11 @@ export const ToolCallCard = styled.div`
   background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary-lighter, #e6f7ff));
   border: 1px solid var(--color-primary);
   border-radius: 12px;
-  overflow: hidden;
+  overflow: auto;
   animation: ${fadeIn} 0.3s ease-out;
   box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
   margin: 8px 0;
+  min-height: 120px;
 `
 
 export const ToolCallHeader = styled.div<{ $clickable?: boolean }>`
@@ -361,12 +362,16 @@ export const ToolCallTime = styled.div`
 export const ToolCallContent = styled.div`
   padding: 12px 16px;
   background: var(--color-background);
+  max-height: 300px;
+  overflow-y: auto;
+  border-top: 1px solid var(--color-border-light);
 `
 
 export const ToolParameter = styled.div`
   display: flex;
-  margin-bottom: 8px;
-  gap: 8px;
+  flex-direction: column;
+  margin-bottom: 12px;
+  gap: 4px;
 
   &:last-child {
     margin-bottom: 0;
@@ -374,23 +379,24 @@ export const ToolParameter = styled.div`
 `
 
 export const ParameterLabel = styled.div`
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--color-text-secondary);
-  min-width: 60px;
-  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 `
 
 export const ParameterValue = styled.div`
-  flex: 1;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text);
   background: var(--color-background-muted);
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border-radius: 6px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  word-break: break-all;
+  word-break: break-word;
   white-space: pre-wrap;
+  line-height: 1.4;
+  border: 1px solid var(--color-border-light);
 `
 
 // Tool Result Styles

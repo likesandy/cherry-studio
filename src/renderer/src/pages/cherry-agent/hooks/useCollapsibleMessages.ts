@@ -31,11 +31,13 @@ export const useCollapsibleMessages = (sessionLogs: SessionLogEntity[]) => {
     })
   }, [])
 
-  // Initialize collapsed state for system messages
+  // Initialize collapsed state for system messages (collapsed by default)
   useEffect(() => {
     const systemMessages = sessionLogs.filter((log) => log.role === 'system')
     setCollapsedSystemMessages(new Set(systemMessages.map((log) => log.id)))
   }, [sessionLogs])
+
+  // Tool calls should be expanded by default, so we don't initialize them as collapsed
 
   return {
     collapsedSystemMessages,

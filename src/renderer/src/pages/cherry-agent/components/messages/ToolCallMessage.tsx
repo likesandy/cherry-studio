@@ -52,11 +52,7 @@ export const ToolCallMessage: React.FC<ToolCallMessageProps> = ({
           {Object.entries(toolInput).map(([key, value]) => (
             <ToolParameter key={key}>
               <ParameterLabel>{key}:</ParameterLabel>
-              <ParameterValue>
-                {typeof value === 'string' && value.length > 100
-                  ? `${value.substring(0, 100)}...`
-                  : JSON.stringify(value, null, 2)}
-              </ParameterValue>
+              <ParameterValue>{JSON.stringify(value, null, 2)}</ParameterValue>
             </ToolParameter>
           ))}
         </ToolCallContent>
