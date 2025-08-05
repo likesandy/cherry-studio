@@ -684,11 +684,6 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
     return await agentExecutionService.stopAgent(sessionId)
   })
 
-  // Session Logs IPC Handlers
-  ipcMain.handle(IpcChannel.SessionLog_GetBySessionId, async (_, options: ListSessionLogsOptions) => {
-    return await agentService.getSessionLogs(options)
-  })
-
   ipcMain.handle(IpcChannel.App_IsBinaryExist, (_, name: string) => isBinaryExists(name))
   ipcMain.handle(IpcChannel.App_GetBinaryPath, (_, name: string) => getBinaryPath(name))
   ipcMain.handle(IpcChannel.App_InstallUvBinary, () => runInstallScript('install-uv.js'))

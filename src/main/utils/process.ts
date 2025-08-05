@@ -57,5 +57,5 @@ export async function getBinaryPath(name?: string): Promise<string> {
 
 export async function isBinaryExists(name: string): Promise<boolean> {
   const cmd = await getBinaryPath(name)
-  return await fs.existsSync(cmd)
+  return fs.existsSync(cmd)
 }

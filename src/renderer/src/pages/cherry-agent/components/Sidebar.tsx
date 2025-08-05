@@ -63,9 +63,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <SidebarComponent>
       <SidebarHeader>
-        <InstallNpxUv />
         <HeaderLabel>agents</HeaderLabel>
         <HeaderActions>
+          <InstallNpxUv mini />
           {agents.length === 0 ? (
             <Button type="primary" icon={<PlusOutlined />} size="small" onClick={onCreateAgent}>
               Create Agent

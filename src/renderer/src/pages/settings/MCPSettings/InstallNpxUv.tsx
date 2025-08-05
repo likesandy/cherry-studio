@@ -1,7 +1,5 @@
 import { CheckCircleOutlined, QuestionCircleOutlined, WarningOutlined } from '@ant-design/icons'
 import { Center, VStack } from '@renderer/components/Layout'
-import { useAppDispatch, useAppSelector } from '@renderer/store'
-import { setIsBunInstalled, setIsUvInstalled } from '@renderer/store/mcp'
 import { Alert, Button } from 'antd'
 import { FC, useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -15,10 +13,6 @@ interface Props {
 }
 
 const InstallNpxUv: FC<Props> = ({ mini = false }) => {
-  const dispatch = useAppDispatch()
-  // const isUvInstalled = useAppSelector((state) => state.mcp.isUvInstalled)
-  // const isBunInstalled = useAppSelector((state) => state.mcp.isBunInstalled)
-
   const [isUvInstalled, setIsUvInstalled] = useState(false)
   const [isBunInstalled, setIsBunInstalled] = useState(false)
 
