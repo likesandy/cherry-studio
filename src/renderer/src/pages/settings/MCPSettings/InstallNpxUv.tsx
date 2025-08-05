@@ -16,8 +16,11 @@ interface Props {
 
 const InstallNpxUv: FC<Props> = ({ mini = false }) => {
   const dispatch = useAppDispatch()
-  const isUvInstalled = useAppSelector((state) => state.mcp.isUvInstalled)
-  const isBunInstalled = useAppSelector((state) => state.mcp.isBunInstalled)
+  // const isUvInstalled = useAppSelector((state) => state.mcp.isUvInstalled)
+  // const isBunInstalled = useAppSelector((state) => state.mcp.isBunInstalled)
+
+  const [isUvInstalled, setIsUvInstalled] = useState(false)
+  const [isBunInstalled, setIsBunInstalled] = useState(false)
 
   const [isInstallingUv, setIsInstallingUv] = useState(false)
   const [isInstallingBun, setIsInstallingBun] = useState(false)
@@ -31,19 +34,19 @@ const InstallNpxUv: FC<Props> = ({ mini = false }) => {
     const bunExists = await window.api.isBinaryExist('bun')
     const { uvPath, bunPath, dir } = await window.api.mcp.getInstallInfo()
 
-    dispatch(setIsUvInstalled(uvExists))
-    dispatch(setIsBunInstalled(bunExists))
+    setIsUvInstalled(uvExists)
+    setIsBunInstalled(bunExists)
     setUvPath(uvPath)
     setBunPath(bunPath)
     setBinariesDir(dir)
-  }, [dispatch])
+  }, [])
 
   const installUV = async () => {
     try {
       setIsInstallingUv(true)
       await window.api.installUVBinary()
       setIsInstallingUv(false)
-      dispatch(setIsUvInstalled(true))
+      setIsUvInstalled(true)
     } catch (error: any) {
       window.message.error({ content: `${t('settings.mcp.installError')}: ${error.message}`, key: 'mcp-install-error' })
       setIsInstallingUv(false)
@@ -56,7 +59,7 @@ const InstallNpxUv: FC<Props> = ({ mini = false }) => {
       setIsInstallingBun(true)
       await window.api.installBunBinary()
       setIsInstallingBun(false)
-      dispatch(setIsBunInstalled(true))
+      setIsBunInstalled(true)
     } catch (error: any) {
       window.message.error({
         content: `${t('settings.mcp.installError')}: ${error.message}`,

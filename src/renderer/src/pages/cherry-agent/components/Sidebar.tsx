@@ -1,4 +1,5 @@
 import { DeleteOutlined, MenuFoldOutlined, PlusOutlined, SettingOutlined } from '@ant-design/icons'
+import InstallNpxUv from '@renderer/pages/settings/MCPSettings/InstallNpxUv'
 import { AgentEntity, SessionEntity } from '@renderer/types/agent'
 import { Button, Tooltip } from 'antd'
 import React from 'react'
@@ -62,6 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <SidebarComponent>
       <SidebarHeader>
+        <InstallNpxUv />
         <HeaderLabel>agents</HeaderLabel>
         <HeaderActions>
           {agents.length === 0 ? (

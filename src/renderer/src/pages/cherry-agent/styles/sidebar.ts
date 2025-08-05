@@ -14,6 +14,7 @@ export const SidebarHeader = styled.div`
   padding: 16px 20px;
   border-bottom: 1px solid var(--color-border);
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: center;
   min-height: 56px;
