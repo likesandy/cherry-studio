@@ -5,6 +5,7 @@ import React from 'react'
 
 import {
   ActionButton,
+  AgentActions,
   AgentItem,
   AgentModel,
   AgentName,
@@ -37,6 +38,7 @@ interface SidebarProps {
   selectedSession: SessionEntity | null
   setSelectedSession: (session: SessionEntity) => void
   onCreateAgent: () => void
+  onEditAgent: (agent: AgentEntity) => void
   onCreateSession: () => void
   onEditSession: (session: SessionEntity) => void
   onDeleteSession: (session: SessionEntity) => void
@@ -51,6 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   selectedSession,
   setSelectedSession,
   onCreateAgent,
+  onEditAgent,
   onCreateSession,
   onEditSession,
   onDeleteSession,
@@ -81,14 +84,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Agents Section */}
         <AgentsList>
           {agents.map((agent) => (
-            <AgentItem
-              key={agent.id}
-              $selected={selectedAgent?.id === agent.id}
-              onClick={() => setSelectedAgent(agent)}>
-              <AgentName>{agent.name}</AgentName>
-              <AgentModel>{agent.model}</AgentModel>
+            <AgentItem key={agent.id} $selected={selectedAgent?.id === agent.id}>
+              <SessionContent onClick={() => setSelectedAgent(agent)}>
+                <AgentName>{agent.name}</AgentName>
+                <AgentModel>{agent.model}</AgentModel>
+              </SessionContent>
+              <AgentActions className="agent-actions">
+                <Tooltip title="Edit agent">
+                  <ActionButton
+                    type="text"
+                    icon={<SettingOutlined />}
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onEditAgent(agent)
+                    }}
+                  />
+                </Tooltip>
+              </AgentActions>
             </AgentItem>
           ))}
+          {agents.length === 0 && <EmptyMessage>No agents yet. Create one to get started!</EmptyMessage>}
         </AgentsList>
 
         {/* Sessions Section */}

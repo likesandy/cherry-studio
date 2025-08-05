@@ -85,20 +85,25 @@ export const AgentsList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 24px;
-  overflow: auto;
+  // margin-bottom: 24px;
+  // overflow: auto;
 `
 
 export const AgentItem = styled.div<{ $selected: boolean }>`
-  padding: 12px;
   border-radius: 8px;
-  cursor: pointer;
   transition: all 0.2s ease;
   background-color: ${(props) => (props.$selected ? 'var(--color-primary-light)' : 'transparent')};
   border: 1px solid ${(props) => (props.$selected ? 'var(--color-primary)' : 'var(--color-border)')};
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
   &:hover {
     background-color: ${(props) => (props.$selected ? 'var(--color-primary-light)' : 'var(--color-background-hover)')};
+
+    .agent-actions {
+      opacity: 1;
+    }
   }
 `
 
@@ -137,6 +142,19 @@ export const SessionContent = styled.div`
   padding: 12px;
   cursor: pointer;
   min-width: 0;
+`
+
+export const AgentActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+
+  &.agent-actions {
+    opacity: 0;
+  }
 `
 
 export const SessionActions = styled.div`

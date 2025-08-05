@@ -2,11 +2,12 @@ import { MenuFoldOutlined } from '@ant-design/icons'
 import { Navbar, NavbarCenter } from '@renderer/components/app/Navbar'
 import { useNavbarPosition } from '@renderer/hooks/useSettings'
 import { loggerService } from '@renderer/services/LoggerService'
+import { AgentEntity, CreateAgentInput, UpdateAgentInput } from '@renderer/types/agent'
 import { message } from 'antd'
 import React, { useState } from 'react'
 
 import { ConversationArea, InputArea, Sidebar } from './components'
-import { AddPathModal, CreateAgentModal, SessionModal } from './components/modals'
+import { AddPathModal, CreateAgentModal, EditAgentModal, SessionModal } from './components/modals'
 import { useAgentExecution, useAgents, useCollapsibleMessages, useSessionLogs, useSessions } from './hooks'
 import { Container, ContentContainer, ExpandButton, MainContent, SelectionPrompt } from './styles'
 
@@ -18,7 +19,35 @@ const CherryAgentPage: React.FC = () => {
 
   // State for modals
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [createForm, setCreateForm] = useState({ name: '', model: 'claude-3-5-sonnet-20241022' })
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingAgent, setEditingAgent] = useState<AgentEntity | null>(null)
+  const [editForm, setEditForm] = useState<UpdateAgentInput>({
+    id: '',
+    name: '',
+    description: '',
+    avatar: undefined,
+    instructions: '',
+    model: '',
+    tools: [],
+    knowledges: [],
+    configuration: {
+      temperature: 0.7,
+      max_tokens: 2048
+    }
+  })
+  const [createForm, setCreateForm] = useState<CreateAgentInput>({
+    name: '',
+    model: 'claude-3-5-sonnet-20241022',
+    description: '',
+    avatar: undefined,
+    instructions: '',
+    tools: [],
+    knowledges: [],
+    configuration: {
+      temperature: 0.7,
+      max_tokens: 2048
+    }
+  })
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [sessionModalMode, setSessionModalMode] = useState<'create' | 'edit'>('create')
   const [sessionForm, setSessionForm] = useState<{
@@ -37,7 +66,7 @@ const CherryAgentPage: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('')
 
   // Custom hooks
-  const { agents, selectedAgent, setSelectedAgent, createAgent } = useAgents()
+  const { agents, selectedAgent, setSelectedAgent, createAgent, updateAgent } = useAgents()
   const { sessions, selectedSession, setSelectedSession, createSession, updateSession, deleteSession } =
     useSessions(selectedAgent)
   const { sessionLogs, loadSessionLogs } = useSessionLogs(selectedSession)
@@ -53,13 +82,25 @@ const CherryAgentPage: React.FC = () => {
     }
 
     const success = await createAgent({
-      name: createForm.name.trim(),
-      model: createForm.model
+      ...createForm,
+      name: createForm.name.trim()
     })
 
     if (success) {
       setShowCreateModal(false)
-      setCreateForm({ name: '', model: 'claude-3-5-sonnet-20241022' })
+      setCreateForm({
+        name: '',
+        model: 'claude-3-5-sonnet-20241022',
+        description: '',
+        avatar: undefined,
+        instructions: '',
+        tools: [],
+        knowledges: [],
+        configuration: {
+          temperature: 0.7,
+          max_tokens: 2048
+        }
+      })
     }
   }
 
@@ -123,6 +164,28 @@ const CherryAgentPage: React.FC = () => {
     } catch (error) {
       message.error(`Failed to ${sessionModalMode} session`)
       logger.error(`Failed to ${sessionModalMode} session:`, { error })
+    }
+  }
+
+  const handleEditAgent = (agent: AgentEntity) => {
+    setEditingAgent(agent)
+    setShowEditModal(true)
+  }
+
+  const handleUpdateAgent = async () => {
+    if (!editForm.name?.trim()) {
+      message.error('Agent name is required')
+      return
+    }
+
+    const success = await updateAgent({
+      ...editForm,
+      name: editForm.name.trim()
+    })
+
+    if (success) {
+      setShowEditModal(false)
+      setEditingAgent(null)
     }
   }
 
@@ -208,6 +271,7 @@ const CherryAgentPage: React.FC = () => {
             selectedSession={selectedSession}
             setSelectedSession={setSelectedSession}
             onCreateAgent={() => setShowCreateModal(true)}
+            onEditAgent={handleEditAgent}
             onCreateSession={handleCreateSession}
             onEditSession={handleEditSession}
             onDeleteSession={deleteSession}
@@ -263,6 +327,18 @@ const CherryAgentPage: React.FC = () => {
         onCancel={() => setShowCreateModal(false)}
         createForm={createForm}
         setCreateForm={setCreateForm}
+      />
+
+      <EditAgentModal
+        open={showEditModal}
+        onOk={handleUpdateAgent}
+        onCancel={() => {
+          setShowEditModal(false)
+          setEditingAgent(null)
+        }}
+        agent={editingAgent}
+        editForm={editForm}
+        setEditForm={setEditForm}
       />
 
       <SessionModal
