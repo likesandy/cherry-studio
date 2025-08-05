@@ -8,19 +8,27 @@ import { IpcChannel } from '@shared/IpcChannel'
 import {
   AddMemoryOptions,
   AssistantMessage,
+  CreateAgentInput,
+  CreateSessionInput,
   FileListResponse,
   FileMetadata,
   FileUploadResponse,
   KnowledgeBaseParams,
   KnowledgeItem,
+  ListAgentsOptions,
+  ListSessionLogsOptions,
+  ListSessionsOptions,
   MCPServer,
   MemoryConfig,
   MemoryListOptions,
   MemorySearchOptions,
   Provider,
   S3Config,
+  SessionStatus,
   Shortcut,
   ThemeMode,
+  UpdateAgentInput,
+  UpdateSessionInput,
   WebDavConfig
 } from '@types'
 import { contextBridge, ipcRenderer, OpenDialogOptions, shell, webUtils } from 'electron'
@@ -373,6 +381,13 @@ const api = {
   setDisableHardwareAcceleration: (isDisable: boolean) =>
     ipcRenderer.invoke(IpcChannel.App_SetDisableHardwareAcceleration, isDisable),
   agent: {
+    // CRUD operations
+    create: (input: CreateAgentInput) => ipcRenderer.invoke(IpcChannel.Agent_Create, input),
+    update: (input: UpdateAgentInput) => ipcRenderer.invoke(IpcChannel.Agent_Update, input),
+    getById: (id: string) => ipcRenderer.invoke(IpcChannel.Agent_GetById, id),
+    list: (options?: ListAgentsOptions) => ipcRenderer.invoke(IpcChannel.Agent_List, options),
+    delete: (id: string) => ipcRenderer.invoke(IpcChannel.Agent_Delete, id),
+    // Execution operations
     run: (sessionId: string, prompt: string) => ipcRenderer.invoke(IpcChannel.Agent_Run, sessionId, prompt),
     stop: (sessionId: string) => ipcRenderer.invoke(IpcChannel.Agent_Stop, sessionId),
     onOutput: (
@@ -406,6 +421,18 @@ const api = {
         ipcRenderer.off(IpcChannel.Agent_ExecutionError, listener)
       }
     }
+  },
+  session: {
+    // CRUD operations
+    create: (input: CreateSessionInput) => ipcRenderer.invoke(IpcChannel.Session_Create, input),
+    update: (input: UpdateSessionInput) => ipcRenderer.invoke(IpcChannel.Session_Update, input),
+    updateStatus: (id: string, status: SessionStatus) =>
+      ipcRenderer.invoke(IpcChannel.Session_UpdateStatus, id, status),
+    getById: (id: string) => ipcRenderer.invoke(IpcChannel.Session_GetById, id),
+    list: (options?: ListSessionsOptions) => ipcRenderer.invoke(IpcChannel.Session_List, options),
+    delete: (id: string) => ipcRenderer.invoke(IpcChannel.Session_Delete, id),
+    // Session logs
+    getLogs: (options: ListSessionLogsOptions) => ipcRenderer.invoke(IpcChannel.SessionLog_GetBySessionId, options)
   },
   trace: {
     saveData: (topicId: string) => ipcRenderer.invoke(IpcChannel.TRACE_SAVE_DATA, topicId),
