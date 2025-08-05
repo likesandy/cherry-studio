@@ -2,6 +2,7 @@ import {
   ClockCircleOutlined,
   DownOutlined,
   ExclamationCircleOutlined,
+  FolderOpenOutlined,
   InfoCircleOutlined,
   MenuFoldOutlined,
   PlusOutlined,
@@ -17,8 +18,10 @@ import {
   AgentEntity,
   CreateAgentInput,
   CreateSessionInput,
+  PermissionMode,
   SessionEntity,
-  SessionLogEntity
+  SessionLogEntity,
+  UpdateSessionInput
 } from '@renderer/types/agent'
 import { Button, Input, message, Modal, Select, Tooltip } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -237,9 +240,24 @@ const CherryAgentPage: React.FC = () => {
   const [sessionLogs, setSessionLogs] = useState<SessionLogEntity[]>([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createForm, setCreateForm] = useState({ name: '', model: 'claude-3-5-sonnet-20241022' })
+  const [showSessionModal, setShowSessionModal] = useState(false)
+  const [sessionModalMode, setSessionModalMode] = useState<'create' | 'edit'>('create')
+  const [sessionForm, setSessionForm] = useState<{
+    user_goal: string
+    max_turns: number
+    permission_mode: PermissionMode
+    accessible_paths: string[]
+  }>({
+    user_goal: '',
+    max_turns: 10,
+    permission_mode: 'default',
+    accessible_paths: []
+  })
   const [inputMessage, setInputMessage] = useState('')
   const [isRunning, setIsRunning] = useState(false)
   const [collapsedSystemMessages, setCollapsedSystemMessages] = useState<Set<number>>(new Set())
+  const [showAddPathModal, setShowAddPathModal] = useState(false)
+  const [newPathInput, setNewPathInput] = useState('')
 
   // Toggle system message collapse
   const toggleSystemMessage = useCallback((logId: number) => {
@@ -355,26 +373,157 @@ const CherryAgentPage: React.FC = () => {
     }
   }, [selectedSession, loadSessionLogs])
 
-  const handleCreateSession = async () => {
+  const handleCreateSession = () => {
+    if (!selectedAgent) return
+
+    // Reset form and open modal
+    setSessionForm({
+      user_goal: '',
+      max_turns: 10,
+      permission_mode: 'default',
+      accessible_paths: []
+    })
+    setSessionModalMode('create')
+    setShowSessionModal(true)
+  }
+
+  const handleEditSession = (session: SessionEntity) => {
+    // Populate form with existing session data
+    setSessionForm({
+      user_goal: session.user_goal || '',
+      max_turns: session.max_turns || 10,
+      permission_mode: session.permission_mode || 'default',
+      accessible_paths: session.accessible_paths || []
+    })
+    setSessionModalMode('edit')
+    setShowSessionModal(true)
+  }
+
+  const handleSessionSubmit = async () => {
     if (!selectedAgent) return
 
     try {
-      const input: CreateSessionInput = {
-        agent_ids: [selectedAgent.id],
-        user_goal: 'New conversation',
-        status: 'idle'
-      }
-      const result = await window.api.session.create(input)
-      if (result.success) {
-        message.success('Session created successfully')
-        loadSessions()
+      if (sessionModalMode === 'create') {
+        const input: CreateSessionInput = {
+          agent_ids: [selectedAgent.id],
+          user_goal: sessionForm.user_goal || 'New conversation',
+          status: 'idle',
+          max_turns: sessionForm.max_turns,
+          permission_mode: sessionForm.permission_mode,
+          accessible_paths: sessionForm.accessible_paths.length > 0 ? sessionForm.accessible_paths : undefined
+        }
+        const result = await window.api.session.create(input)
+        if (result.success) {
+          message.success('Session created successfully')
+          setShowSessionModal(false)
+          loadSessions()
+        } else {
+          message.error(result.error || 'Failed to create session')
+        }
       } else {
-        message.error(result.error || 'Failed to create session')
+        // Edit mode
+        if (!selectedSession) return
+        const input: UpdateSessionInput = {
+          id: selectedSession.id,
+          user_goal: sessionForm.user_goal || undefined,
+          max_turns: sessionForm.max_turns,
+          permission_mode: sessionForm.permission_mode,
+          accessible_paths: sessionForm.accessible_paths.length > 0 ? sessionForm.accessible_paths : undefined
+        }
+        const result = await window.api.session.update(input)
+        if (result.success) {
+          message.success('Session updated successfully')
+          setShowSessionModal(false)
+          loadSessions()
+          loadSessionLogs() // Refresh to show updated session
+        } else {
+          message.error(result.error || 'Failed to update session')
+        }
       }
     } catch (error) {
-      message.error('Failed to create session')
-      logger.error('Failed to create session:', { error })
+      message.error(`Failed to ${sessionModalMode} session`)
+      logger.error(`Failed to ${sessionModalMode} session:`, { error })
     }
+  }
+
+  const handleDeleteSession = async (session: SessionEntity) => {
+    Modal.confirm({
+      title: 'Delete Session',
+      content: `Are you sure you want to delete this session? This action cannot be undone.`,
+      okText: 'Delete',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          const result = await window.api.session.delete({ id: session.id })
+          if (result.success) {
+            message.success('Session deleted successfully')
+            if (selectedSession?.id === session.id) {
+              setSelectedSession(null)
+              setSessionLogs([])
+            }
+            loadSessions()
+          } else {
+            message.error(result.error || 'Failed to delete session')
+          }
+        } catch (error) {
+          message.error('Failed to delete session')
+          logger.error('Failed to delete session:', { error })
+        }
+      }
+    })
+  }
+
+  const handleAddPath = async () => {
+    try {
+      // Use the same pattern as knowledge base
+      const selectedPath = await window.api.file.selectFolder()
+      logger.info('Selected directory:', selectedPath)
+
+      if (selectedPath) {
+        if (!sessionForm.accessible_paths.includes(selectedPath)) {
+          setSessionForm((prev) => ({
+            ...prev,
+            accessible_paths: [...prev.accessible_paths, selectedPath]
+          }))
+          message.success(`Added path: ${selectedPath}`)
+        } else {
+          message.warning('This path is already added')
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to open directory dialog:', { error })
+      // Fallback to manual input if folder selection fails
+      handleAddPathManually()
+    }
+  }
+
+  const handleAddPathManually = () => {
+    setNewPathInput('')
+    setShowAddPathModal(true)
+  }
+
+  const handleConfirmAddPath = () => {
+    const trimmedPath = newPathInput.trim()
+    if (trimmedPath && !sessionForm.accessible_paths.includes(trimmedPath)) {
+      setSessionForm((prev) => ({
+        ...prev,
+        accessible_paths: [...prev.accessible_paths, trimmedPath]
+      }))
+      setShowAddPathModal(false)
+      setNewPathInput('')
+      message.success(`Added path: ${trimmedPath}`)
+    } else if (sessionForm.accessible_paths.includes(trimmedPath)) {
+      message.warning('This path is already added')
+    } else {
+      message.error('Please enter a valid path')
+    }
+  }
+
+  const handleRemovePath = (pathToRemove: string) => {
+    setSessionForm((prev) => ({
+      ...prev,
+      accessible_paths: prev.accessible_paths.filter((path) => path !== pathToRemove)
+    }))
   }
 
   const handleSendMessage = async () => {
@@ -486,17 +635,41 @@ const CherryAgentPage: React.FC = () => {
               </SectionHeader>
               <SessionsList>
                 {sessions.map((session) => (
-                  <SessionItem
-                    key={session.id}
-                    $selected={selectedSession?.id === session.id}
-                    onClick={() => setSelectedSession(session)}>
-                    <SessionTitle>
-                      {session.user_goal && session.user_goal !== 'New conversation'
-                        ? session.user_goal
-                        : 'New conversation'}
-                    </SessionTitle>
-                    <SessionStatus $status={session.status}>{session.status}</SessionStatus>
-                    <SessionDate>{new Date(session.created_at).toLocaleDateString()}</SessionDate>
+                  <SessionItem key={session.id} $selected={selectedSession?.id === session.id}>
+                    <SessionContent onClick={() => setSelectedSession(session)}>
+                      <SessionTitle>
+                        {session.user_goal && session.user_goal !== 'New conversation'
+                          ? session.user_goal
+                          : 'New conversation'}
+                      </SessionTitle>
+                      <SessionStatus $status={session.status}>{session.status}</SessionStatus>
+                      <SessionDate>{new Date(session.created_at).toLocaleDateString()}</SessionDate>
+                    </SessionContent>
+                    <SessionActions className="session-actions">
+                      <Tooltip title="Edit session">
+                        <ActionButton
+                          type="text"
+                          icon={<SettingOutlined />}
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleEditSession(session)
+                          }}
+                        />
+                      </Tooltip>
+                      <Tooltip title="Delete session">
+                        <ActionButton
+                          type="text"
+                          icon={<ExclamationCircleOutlined />}
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteSession(session)
+                          }}
+                          style={{ color: 'var(--color-error)' }}
+                        />
+                      </Tooltip>
+                    </SessionActions>
                   </SessionItem>
                 ))}
                 {selectedAgent && sessions.length === 0 && (
@@ -696,6 +869,124 @@ const CherryAgentPage: React.FC = () => {
             <Select.Option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</Select.Option>
             <Select.Option value="gpt-4o">GPT-4o</Select.Option>
           </Select>
+        </div>
+      </Modal>
+
+      {/* Session Configuration Modal */}
+      <Modal
+        title={sessionModalMode === 'create' ? 'Create New Session' : 'Edit Session'}
+        open={showSessionModal}
+        onOk={handleSessionSubmit}
+        onCancel={() => setShowSessionModal(false)}
+        width={600}
+        okText={sessionModalMode === 'create' ? 'Create Session' : 'Update Session'}>
+        <SessionModalContent>
+          <FormSection>
+            <FormLabel>Session Goal</FormLabel>
+            <Input.TextArea
+              value={sessionForm.user_goal}
+              onChange={(e) => setSessionForm((prev) => ({ ...prev, user_goal: e.target.value }))}
+              placeholder="Describe what you want to accomplish in this session..."
+              rows={3}
+            />
+            <FormHint>This helps the agent understand your objectives and provide better assistance.</FormHint>
+          </FormSection>
+
+          <FormSection>
+            <FormLabel>Maximum Turns</FormLabel>
+            <Input
+              type="number"
+              min={1}
+              max={100}
+              value={sessionForm.max_turns}
+              onChange={(e) => setSessionForm((prev) => ({ ...prev, max_turns: parseInt(e.target.value) || 10 }))}
+              placeholder="10"
+            />
+            <FormHint>Maximum number of conversation turns allowed in this session.</FormHint>
+          </FormSection>
+
+          <FormSection>
+            <FormLabel>Permission Mode</FormLabel>
+            <Select
+              value={sessionForm.permission_mode}
+              onChange={(value) => setSessionForm((prev) => ({ ...prev, permission_mode: value }))}
+              style={{ width: '100%' }}>
+              <Select.Option value="default">Default - Ask for permissions</Select.Option>
+              <Select.Option value="acceptEdits">Accept Edits - Auto-approve file changes</Select.Option>
+              <Select.Option value="bypassPermissions">Bypass All - Full access</Select.Option>
+            </Select>
+            <FormHint>Controls how the agent handles file operations and system commands.</FormHint>
+          </FormSection>
+
+          <FormSection>
+            <FormLabel>
+              Accessible Paths
+              <div style={{ marginLeft: 8, display: 'flex', gap: 4 }}>
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<FolderOpenOutlined />}
+                  onClick={handleAddPath}
+                  style={{ padding: '0 4px' }}>
+                  Browse
+                </Button>
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<PlusOutlined />}
+                  onClick={handleAddPathManually}
+                  style={{ padding: '0 4px' }}>
+                  Manual
+                </Button>
+              </div>
+            </FormLabel>
+            {sessionForm.accessible_paths.length === 0 ? (
+              <EmptyPathsMessage>No paths configured. Agent will use default working directory.</EmptyPathsMessage>
+            ) : (
+              <PathsList>
+                {sessionForm.accessible_paths.map((path, index) => (
+                  <PathItem key={index}>
+                    <PathText>{path}</PathText>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<ExclamationCircleOutlined />}
+                      onClick={() => handleRemovePath(path)}
+                      style={{ color: 'var(--color-error)', padding: 0 }}
+                    />
+                  </PathItem>
+                ))}
+              </PathsList>
+            )}
+            <FormHint>Directories the agent can access for file operations. Leave empty for default access.</FormHint>
+          </FormSection>
+        </SessionModalContent>
+      </Modal>
+
+      {/* Add Path Modal */}
+      <Modal
+        title="Add Directory Path"
+        open={showAddPathModal}
+        onOk={handleConfirmAddPath}
+        onCancel={() => {
+          setShowAddPathModal(false)
+          setNewPathInput('')
+        }}
+        width={500}
+        okText="Add Path">
+        <div style={{ padding: '8px 0' }}>
+          <FormLabel style={{ marginBottom: '8px' }}>Directory Path</FormLabel>
+          <Input
+            value={newPathInput}
+            onChange={(e) => setNewPathInput(e.target.value)}
+            placeholder="Enter the full path to the directory (e.g., /Users/username/Projects)"
+            onPressEnter={handleConfirmAddPath}
+            autoFocus
+          />
+          <FormHint style={{ marginTop: '8px' }}>
+            Enter the absolute path to a directory that the agent should have access to. This allows the agent to read,
+            write, and execute files within this directory.
+          </FormHint>
         </div>
       </Modal>
     </Container>
@@ -924,15 +1215,40 @@ const AgentModel = styled.div`
 `
 
 const SessionItem = styled.div<{ $selected: boolean }>`
-  padding: 12px;
   border-radius: 8px;
-  cursor: pointer;
   transition: all 0.2s ease;
   background-color: ${(props) => (props.$selected ? 'var(--color-primary-light)' : 'transparent')};
   border: 1px solid ${(props) => (props.$selected ? 'var(--color-primary)' : 'var(--color-border)')};
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
   &:hover {
     background-color: ${(props) => (props.$selected ? 'var(--color-primary-light)' : 'var(--color-background-hover)')};
+
+    .session-actions {
+      opacity: 1;
+    }
+  }
+`
+
+const SessionContent = styled.div`
+  flex: 1;
+  padding: 12px;
+  cursor: pointer;
+  min-width: 0;
+`
+
+const SessionActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+
+  &.session-actions {
+    opacity: 0;
   }
 `
 
@@ -1417,6 +1733,77 @@ const SelectionPrompt = styled.div`
   color: var(--color-text-secondary);
   font-size: 16px;
   text-align: center;
+`
+
+// Session Modal Styles
+const SessionModalContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 8px 0;
+`
+
+const FormSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`
+
+const FormLabel = styled.label`
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+`
+
+const FormHint = styled.div`
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  font-style: italic;
+`
+
+const EmptyPathsMessage = styled.div`
+  padding: 16px;
+  background: var(--color-background-muted);
+  border: 1px dashed var(--color-border);
+  border-radius: 6px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+`
+
+const PathsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 8px;
+  background: var(--color-background-soft);
+`
+
+const PathItem = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  gap: 8px;
+`
+
+const PathText = styled.div`
+  flex: 1;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `
 
 export default CherryAgentPage
