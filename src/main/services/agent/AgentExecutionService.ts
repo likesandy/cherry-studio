@@ -217,6 +217,12 @@ export class AgentExecutionService {
         hasExistingSession: !!existingClaudeSessionId
       })
 
+      // Log user prompt to session log table
+      await this.addSessionLog(sessionId, 'user', 'user_prompt', {
+        prompt,
+        timestamp: new Date().toISOString()
+      })
+
       // Execute the command synchronously to spawn, then handle async parts
       try {
         await this.startAgentProcess(sessionId, executable, args, workingDirectory)
@@ -339,12 +345,16 @@ export class AgentExecutionService {
     // Handle stdout
     process.stdout?.on('data', (data: Buffer) => {
       const output = data.toString()
+
+      // Parse structured logs from agent output
+      this.parseStructuredLogs(sessionId, output)
+
       logger.verbose('Agent stdout:', {
         sessionId,
         output: output.slice(0, 200) + (output.length > 200 ? '...' : '')
       })
 
-      // Stream output to renderer processes via IPC
+      // Stream raw output to renderer processes via IPC
       this.streamToRenderers(IpcChannel.Agent_ExecutionOutput, {
         sessionId,
         type: 'stdout',
@@ -352,9 +362,8 @@ export class AgentExecutionService {
         timestamp: Date.now()
       })
 
-      // Store in database
-      this.addSessionLog(sessionId, 'agent', IpcChannel.Agent_ExecutionOutput, {
-        type: 'stdout',
+      // Store raw output in database (for debugging)
+      this.addSessionLog(sessionId, 'agent', 'raw_stdout', {
         data: output
       }).catch((error) => {
         logger.warn('Failed to log stdout:', error)
@@ -493,6 +502,96 @@ export class AgentExecutionService {
       const process = this.runningProcesses.get(sessionId)
       return process && !process.killed
     })
+  }
+
+  /**
+   * Parse structured log events from agent stdout
+   */
+  private parseStructuredLogs(sessionId: string, output: string): void {
+    try {
+      const lines = output.split('\n')
+
+      for (const line of lines) {
+        if (!line.trim()) continue
+
+        try {
+          const parsed = JSON.parse(line)
+
+          // Check if this is a structured log event
+          if (parsed.__CHERRY_AGENT_LOG__ === true && parsed.event_type && parsed.data) {
+            this.handleStructuredLogEvent(sessionId, parsed.event_type, parsed.data, parsed.timestamp)
+          }
+        } catch (parseError) {
+          // Not JSON or not a structured log - ignore silently
+          continue
+        }
+      }
+    } catch (error) {
+      logger.warn('Error parsing structured logs:', error as Error, { sessionId })
+    }
+  }
+
+  /**
+   * Handle a parsed structured log event
+   */
+  private async handleStructuredLogEvent(
+    sessionId: string,
+    eventType: string,
+    data: any,
+    timestamp?: string
+  ): Promise<void> {
+    try {
+      let logRole: 'user' | 'agent' | 'system' = 'agent'
+      let logType = eventType
+
+      // Map event types to appropriate roles and enhance data
+      switch (eventType) {
+        case 'session_init':
+          logRole = 'system'
+          logType = 'agent_session_init'
+          break
+        case 'user_query':
+          logRole = 'user'
+          logType = 'agent_user_query'
+          break
+        case 'session_started':
+          logRole = 'system'
+          logType = 'agent_session_started'
+          // Update the session with Claude session ID if available
+          if (data.session_id) {
+            await this.agentService.updateSessionClaudeId(sessionId, data.session_id)
+          }
+          break
+        case 'session_result':
+          logRole = 'system'
+          logType = 'agent_session_result'
+          break
+        case 'error':
+          logRole = 'system'
+          logType = 'agent_error'
+          break
+      }
+
+      // Add timestamp if provided
+      const logContent = {
+        ...data,
+        ...(timestamp && { agent_timestamp: timestamp })
+      }
+
+      await this.addSessionLog(sessionId, logRole, logType, logContent)
+
+      logger.info('Processed structured log event', {
+        sessionId,
+        eventType,
+        logRole,
+        logType
+      })
+    } catch (error) {
+      logger.error('Error handling structured log event:', error as Error, {
+        sessionId,
+        eventType
+      })
+    }
   }
 
   /**

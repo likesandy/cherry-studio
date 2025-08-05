@@ -7,8 +7,10 @@
 # ///
 import argparse
 import asyncio
+import json
 import logging
 import os
+from datetime import datetime, timezone
 
 from claude_code_sdk import ClaudeCodeOptions, ClaudeSDKClient, Message
 from claude_code_sdk.types import (
@@ -24,6 +26,17 @@ from claude_code_sdk.types import (
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def log_structured_event(event_type: str, data: dict):
+    """Output structured log event as JSON to stdout for AgentExecutionService to parse."""
+    event = {
+        "__CHERRY_AGENT_LOG__": True,
+        "timestamp": datetime.now(timezone.utc) .isoformat(),
+        "event_type": event_type,
+        "data": data
+    }
+    print(json.dumps(event), flush=True)
 
 
 def display_message(msg: Message):
@@ -47,21 +60,54 @@ def display_message(msg: Message):
             elif isinstance(block, ToolResultBlock):
                 print(f"Tool Result: {block}")
     elif isinstance(msg, SystemMessage):
-        print(f"--- Started session: {msg.data['session_id']} ---")
+        print(f"--- Started session: {msg.data.get('session_id', 'unknown')} ---")
         pass
     elif isinstance(msg, ResultMessage):
-        print(f"--- Finished session: {msg.session_id} ---")
+        cost_info = f" (${msg.total_cost_usd:.4f})" if msg.total_cost_usd else ""
+        print(f"--- Finished session: {msg.session_id}{cost_info} ---")
         pass
 
 
 async def run_claude_query(prompt: str, opts: ClaudeCodeOptions = ClaudeCodeOptions()):
     """Initializes the Claude SDK client and handles the query-response loop."""
     try:
+        # Log session initialization
+        log_structured_event("session_init", {
+            "system_prompt": opts.system_prompt,
+            "max_turns": opts.max_turns,
+            "permission_mode": opts.permission_mode,
+            "cwd": str(opts.cwd) if opts.cwd else None
+        })
+
+        # Log user query
+        log_structured_event("user_query", {
+            "prompt": prompt[:200] + "..." if len(prompt) > 200 else prompt
+        })
+
         async with ClaudeSDKClient(opts) as client:
             await client.query(prompt)
             async for msg in client.receive_response():
+                # Log structured events for important message types
+                if isinstance(msg, SystemMessage):
+                    log_structured_event("session_started", {
+                        "session_id": msg.data.get('session_id')
+                    })
+                elif isinstance(msg, ResultMessage):
+                    log_structured_event("session_result", {
+                        "session_id": msg.session_id,
+                        "success": not msg.is_error,
+                        "duration_ms": msg.duration_ms,
+                        "num_turns": msg.num_turns,
+                        "total_cost_usd": msg.total_cost_usd,
+                        "usage": msg.usage
+                    })
+
                 display_message(msg)
     except Exception as e:
+        log_structured_event("error", {
+            "error_type": type(e).__name__,
+            "error_message": str(e)
+        })
         logger.error(f"An error occurred: {e}")
 
 
