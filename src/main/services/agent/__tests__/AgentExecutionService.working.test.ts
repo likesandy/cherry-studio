@@ -82,7 +82,6 @@ vi.mock('@logger', () => ({
   }
 }))
 
-
 // Mock AgentService
 const mockAgentService = {
   getSessionById: vi.fn(),
@@ -104,19 +103,18 @@ describe('AgentExecutionService - Working Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // Reset mock process state
     mockProcess.killed = false
     // Remove listeners to prevent memory leaks in tests
     mockProcess.removeAllListeners()
     mockProcess.stdout.removeAllListeners()
     mockProcess.stderr.removeAllListeners()
-    
+
     // Increase max listeners to prevent warnings
     mockProcess.setMaxListeners(20)
     mockProcess.stdout.setMaxListeners(20)
     mockProcess.stderr.setMaxListeners(20)
-    
 
     // Create test data
     mockAgent = {
@@ -149,7 +147,7 @@ describe('AgentExecutionService - Working Tests', () => {
     // Setup default mocks
     vi.mocked(fs.promises.stat).mockResolvedValue({ isFile: () => true } as any)
     vi.mocked(fs.promises.mkdir).mockResolvedValue(undefined)
-    
+
     mockAgentService.getSessionById.mockResolvedValue({ success: true, data: mockSession })
     mockAgentService.getAgentById.mockResolvedValue({ success: true, data: mockAgent })
     mockAgentService.updateSessionStatus.mockResolvedValue({ success: true })
@@ -173,52 +171,60 @@ describe('AgentExecutionService - Working Tests', () => {
   describe('runAgent', () => {
     it('should successfully start agent execution', async () => {
       const { spawn } = await import('child_process')
-      
+
       const result = await service.runAgent('session-1', 'Test prompt')
 
       expect(result.success).toBe(true)
-      expect(spawn).toHaveBeenCalledWith('uv', [
-        'run',
-        '--script',
-        '/test/resources/agents/claude_code_agent.py',
-        '--prompt',
-        'Test prompt',
-        '--system-prompt',
-        'You are a helpful assistant',
-        '--cwd',
-        '/test/workspace',
-        '--permission-mode',
-        'default',
-        '--max-turns',
-        '10'
-      ], {
-        cwd: '/test/workspace',
-        stdio: ['pipe', 'pipe', 'pipe'],
-        env: expect.objectContaining({
-          PYTHONUNBUFFERED: '1'
-        })
-      })
+      expect(spawn).toHaveBeenCalledWith(
+        'uv',
+        [
+          'run',
+          '--script',
+          '/test/resources/agents/claude_code_agent.py',
+          '--prompt',
+          'Test prompt',
+          '--system-prompt',
+          'You are a helpful assistant',
+          '--cwd',
+          '/test/workspace',
+          '--permission-mode',
+          'default',
+          '--max-turns',
+          '10'
+        ],
+        {
+          cwd: '/test/workspace',
+          stdio: ['pipe', 'pipe', 'pipe'],
+          env: expect.objectContaining({
+            PYTHONUNBUFFERED: '1'
+          })
+        }
+      )
 
       expect(mockAgentService.updateSessionStatus).toHaveBeenCalledWith('session-1', 'running')
     })
 
     it('should use existing Claude session ID when available', async () => {
       const { spawn } = await import('child_process')
-      
+
       mockSession.latest_claude_session_id = 'claude-session-123'
       mockAgentService.getSessionById.mockResolvedValue({ success: true, data: mockSession })
 
       await service.runAgent('session-1', 'Test prompt')
 
-      expect(spawn).toHaveBeenCalledWith('uv', [
-        'run',
-        '--script',
-        '/test/resources/agents/claude_code_agent.py',
-        '--prompt',
-        'Test prompt',
-        '--session-id',
-        'claude-session-123'
-      ], expect.any(Object))
+      expect(spawn).toHaveBeenCalledWith(
+        'uv',
+        [
+          'run',
+          '--script',
+          '/test/resources/agents/claude_code_agent.py',
+          '--prompt',
+          'Test prompt',
+          '--session-id',
+          'claude-session-123'
+        ],
+        expect.any(Object)
+      )
     })
 
     it('should use default working directory when no accessible paths', async () => {
@@ -227,10 +233,7 @@ describe('AgentExecutionService - Working Tests', () => {
 
       await service.runAgent('session-1', 'Test prompt')
 
-      expect(fs.promises.mkdir).toHaveBeenCalledWith(
-        '/test/data/agent-sessions/session-1',
-        { recursive: true }
-      )
+      expect(fs.promises.mkdir).toHaveBeenCalledWith('/test/data/agent-sessions/session-1', { recursive: true })
     })
 
     it('should validate arguments and return error for invalid sessionId', async () => {
@@ -328,7 +331,7 @@ describe('AgentExecutionService - Working Tests', () => {
       mockProcess.emit('exit', 0, null)
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await new Promise((resolve) => setTimeout(resolve, 0))
 
       expect(mockAgentService.updateSessionStatus).toHaveBeenCalledWith('session-1', 'completed')
       expect(mockWindow.webContents.send).toHaveBeenCalledWith('agent:execution-complete', {
@@ -343,7 +346,7 @@ describe('AgentExecutionService - Working Tests', () => {
       mockProcess.emit('exit', 1, null)
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await new Promise((resolve) => setTimeout(resolve, 0))
 
       expect(mockAgentService.updateSessionStatus).toHaveBeenCalledWith('session-1', 'failed')
     })
@@ -353,7 +356,7 @@ describe('AgentExecutionService - Working Tests', () => {
       mockProcess.emit('error', error)
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await new Promise((resolve) => setTimeout(resolve, 0))
 
       expect(mockAgentService.updateSessionStatus).toHaveBeenCalledWith('session-1', 'failed')
     })

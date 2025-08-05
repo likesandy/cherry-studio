@@ -1,7 +1,7 @@
 /**
  * Integration test for AgentExecutionService
  * This test requires a real database and can be used for manual testing
- * 
+ *
  * To run manually:
  * 1. Ensure agent.py exists in resources/agents/
  * 2. Set up a test database with agent and session data
@@ -9,7 +9,7 @@
  */
 
 import type { CreateAgentInput, CreateSessionInput } from '@types'
-import { describe, expect, it, beforeAll, afterAll } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { AgentExecutionService } from '../AgentExecutionService'
 import { AgentService } from '../AgentService'
@@ -67,9 +67,9 @@ describe.skip('AgentExecutionService - Integration Tests', () => {
 
   it('should run agent and handle basic interaction', async () => {
     const result = await executionService.runAgent(testSessionId, 'Hello, this is a test prompt')
-    
+
     expect(result.success).toBe(true)
-    
+
     // Check if process is running
     const processInfo = executionService.getRunningProcessInfo(testSessionId)
     expect(processInfo.isRunning).toBe(true)
@@ -80,14 +80,14 @@ describe.skip('AgentExecutionService - Integration Tests', () => {
     expect(runningSessions).toContain(testSessionId)
 
     // Wait a moment for process to potentially start
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     // Stop the agent
     const stopResult = await executionService.stopAgent(testSessionId)
     expect(stopResult.success).toBe(true)
 
     // Wait for process to terminate
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     // Check if process is no longer running
     const processInfoAfterStop = executionService.getRunningProcessInfo(testSessionId)
@@ -127,8 +127,7 @@ describe.skip('AgentExecutionService - Integration Tests', () => {
       await executionService.stopAgent(testSessionId2)
 
       // Wait for cleanup
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
+      await new Promise((resolve) => setTimeout(resolve, 1000))
     } finally {
       // Clean up second session
       await agentService.deleteSession(testSessionId2)

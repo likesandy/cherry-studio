@@ -79,10 +79,7 @@ async def run_claude_query(prompt: str, opts: ClaudeCodeOptions = ClaudeCodeOpti
             "cwd": str(opts.cwd) if opts.cwd else None
         })
 
-        # Log user query
-        log_structured_event("user_query", {
-            "prompt": prompt[:200] + "..." if len(prompt) > 200 else prompt
-        })
+        # Note: User query is already logged by AgentExecutionService, no need to duplicate
 
         async with ClaudeSDKClient(opts) as client:
             await client.query(prompt)
@@ -92,6 +89,17 @@ async def run_claude_query(prompt: str, opts: ClaudeCodeOptions = ClaudeCodeOpti
                     log_structured_event("session_started", {
                         "session_id": msg.data.get('session_id')
                     })
+                elif isinstance(msg, AssistantMessage):
+                    # Log Claude's response content
+                    text_content = []
+                    for block in msg.content:
+                        if isinstance(block, TextBlock):
+                            text_content.append(block.text)
+                    
+                    if text_content:
+                        log_structured_event("assistant_response", {
+                            "content": "\n".join(text_content)
+                        })
                 elif isinstance(msg, ResultMessage):
                     log_structured_event("session_result", {
                         "session_id": msg.session_id,

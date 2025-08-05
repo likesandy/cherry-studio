@@ -69,7 +69,6 @@ vi.mock('@logger', () => ({
   }
 }))
 
-
 // Mock AgentService
 const mockAgentService = {
   getSessionById: vi.fn(),
@@ -123,7 +122,7 @@ describe('AgentExecutionService - Core Functionality', () => {
     // Setup default mocks
     vi.mocked(fs.promises.stat).mockResolvedValue({ isFile: () => true } as any)
     vi.mocked(fs.promises.mkdir).mockResolvedValue(undefined)
-    
+
     mockAgentService.getSessionById.mockImplementation(() => {
       console.log('getSessionById mock called')
       return Promise.resolve({ success: true, data: mockSession })
@@ -181,17 +180,21 @@ describe('AgentExecutionService - Core Functionality', () => {
 
     it('should successfully start agent execution', async () => {
       const { spawn } = await import('child_process')
-      
+
       const result = await service.runAgent('session-1', 'Test prompt')
-      
+
       expect(result.success).toBe(true)
-      expect(spawn).toHaveBeenCalledWith('uv', expect.arrayContaining([
-        'run',
-        '--script',
-        '/test/resources/agents/claude_code_agent.py',
-        '--prompt',
-        'Test prompt'
-      ]), expect.any(Object))
+      expect(spawn).toHaveBeenCalledWith(
+        'uv',
+        expect.arrayContaining([
+          'run',
+          '--script',
+          '/test/resources/agents/claude_code_agent.py',
+          '--prompt',
+          'Test prompt'
+        ]),
+        expect.any(Object)
+      )
 
       expect(mockAgentService.updateSessionStatus).toHaveBeenCalledWith('session-1', 'running')
     })
@@ -200,7 +203,7 @@ describe('AgentExecutionService - Core Functionality', () => {
   describe('Process Management', () => {
     it('should track running processes', async () => {
       await service.runAgent('session-1', 'Test prompt')
-      
+
       const info = service.getRunningProcessInfo('session-1')
       expect(info.isRunning).toBe(true)
       expect(info.pid).toBe(12345)
@@ -218,7 +221,7 @@ describe('AgentExecutionService - Core Functionality', () => {
 
     it('should successfully stop a running agent', async () => {
       await service.runAgent('session-1', 'Test prompt')
-      
+
       const result = await service.stopAgent('session-1')
 
       expect(result.success).toBe(true)

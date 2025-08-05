@@ -550,10 +550,6 @@ export class AgentExecutionService {
           logRole = 'system'
           logType = 'agent_session_init'
           break
-        case 'user_query':
-          logRole = 'user'
-          logType = 'agent_user_query'
-          break
         case 'session_started':
           logRole = 'system'
           logType = 'agent_session_started'
@@ -561,6 +557,10 @@ export class AgentExecutionService {
           if (data.session_id) {
             await this.agentService.updateSessionClaudeId(sessionId, data.session_id)
           }
+          break
+        case 'assistant_response':
+          logRole = 'agent'
+          logType = 'agent_response'
           break
         case 'session_result':
           logRole = 'system'

@@ -10,7 +10,7 @@ import {
   SessionLogEntity
 } from '@renderer/types/agent'
 import { Button, Input, message, Modal, Select, Tooltip } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import styled from 'styled-components'
 
 const logger = loggerService.withContext('CherryAgentPage')
@@ -22,7 +22,45 @@ const formatMessageContent = (log: SessionLogEntity): string => {
   }
 
   if (log.content && typeof log.content === 'object') {
-    // Check for common message formats
+    // Handle structured log types
+    switch (log.type) {
+      case 'user_prompt':
+        return log.content.prompt || 'User message'
+
+      case 'agent_session_init': {
+        const settings: string[] = []
+        if (log.content.system_prompt) settings.push(`System: ${log.content.system_prompt}`)
+        if (log.content.max_turns) settings.push(`Max turns: ${log.content.max_turns}`)
+        if (log.content.permission_mode) settings.push(`Permission: ${log.content.permission_mode}`)
+        if (log.content.cwd) settings.push(`Working directory: ${log.content.cwd}`)
+        return settings.length > 0 ? settings.join('\n') : 'Session initialized'
+      }
+
+      case 'agent_session_started':
+        return `Started Claude session: ${log.content.session_id || 'unknown'}`
+
+      case 'agent_response':
+        return log.content.content || 'Agent response'
+
+      case 'agent_session_result': {
+        const result: string[] = []
+        result.push(`Session completed ${log.content.success ? 'successfully' : 'with errors'}`)
+        if (log.content.num_turns) result.push(`Turns: ${log.content.num_turns}`)
+        if (log.content.duration_ms) result.push(`Duration: ${(log.content.duration_ms / 1000).toFixed(1)}s`)
+        if (log.content.total_cost_usd) result.push(`Cost: $${log.content.total_cost_usd.toFixed(4)}`)
+        return result.join('\n')
+      }
+
+      case 'agent_error':
+        return `Error: ${log.content.error_message || log.content.error_type || 'Unknown error'}`
+
+      case 'raw_stdout':
+      case 'raw_stderr':
+        // Skip raw output in UI
+        return ''
+    }
+
+    // Legacy handling for other formats
     if ('text' in log.content && log.content.text) {
       return log.content.text
     }
@@ -30,7 +68,7 @@ const formatMessageContent = (log: SessionLogEntity): string => {
       return log.content.message
     }
     if ('data' in log.content && log.content.data) {
-      return log.content.data
+      return typeof log.content.data === 'string' ? log.content.data : JSON.stringify(log.content.data, null, 2)
     }
     if ('output' in log.content && log.content.output) {
       return log.content.output
@@ -53,6 +91,22 @@ const formatMessageContent = (log: SessionLogEntity): string => {
   return 'No content'
 }
 
+// Helper function to check if a log should be displayed
+const shouldDisplayLog = (log: SessionLogEntity): boolean => {
+  // Hide raw stdout/stderr logs
+  if (log.type === 'raw_stdout' || log.type === 'raw_stderr') {
+    return false
+  }
+
+  // Hide empty content
+  const content = formatMessageContent(log)
+  if (!content || content.trim() === '') {
+    return false
+  }
+
+  return true
+}
+
 const CherryAgentPage: React.FC = () => {
   const { isLeftNavbar } = useNavbarPosition()
   const [sidebarCollapsed] = useState(false)
@@ -66,10 +120,49 @@ const CherryAgentPage: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('')
   const [isRunning, setIsRunning] = useState(false)
 
+  // Define callback functions first
+  const loadAgents = useCallback(async () => {
+    try {
+      const result = await window.api.agent.list()
+      if (result.success) {
+        setAgents(result.data.items)
+      }
+    } catch (error) {
+      logger.error('Failed to load agents:', { error })
+    }
+  }, [])
+
+  const loadSessions = useCallback(async () => {
+    if (!selectedAgent) return
+    try {
+      const result = await window.api.session.list()
+      if (result.success) {
+        // Filter sessions for selected agent
+        const agentSessions = result.data.items.filter((session) => session.agent_ids.includes(selectedAgent.id))
+        setSessions(agentSessions)
+      }
+    } catch (error) {
+      logger.error('Failed to load sessions:', { error })
+    }
+  }, [selectedAgent])
+
+  const loadSessionLogs = useCallback(async () => {
+    if (!selectedSession) return
+
+    try {
+      const result = await window.api.session.getLogs({ session_id: selectedSession.id })
+      if (result.success) {
+        setSessionLogs(result.data.items)
+      }
+    } catch (error) {
+      logger.error('Failed to load session logs:', { error })
+    }
+  }, [selectedSession])
+
   // Load agents on mount
   useEffect(() => {
     loadAgents()
-  }, [])
+  }, [loadAgents])
 
   // Set up agent execution listeners
   useEffect(() => {
@@ -101,7 +194,7 @@ const CherryAgentPage: React.FC = () => {
       unsubscribeComplete()
       unsubscribeError()
     }
-  }, [selectedSession?.id])
+  }, [selectedSession?.id, loadSessionLogs])
 
   // Load sessions when agent is selected
   useEffect(() => {
@@ -111,7 +204,7 @@ const CherryAgentPage: React.FC = () => {
       setSessions([])
       setSelectedSession(null)
     }
-  }, [selectedAgent])
+  }, [selectedAgent, loadSessions])
 
   // Load session logs when session is selected
   useEffect(() => {
@@ -120,31 +213,7 @@ const CherryAgentPage: React.FC = () => {
     } else {
       setSessionLogs([])
     }
-  }, [selectedSession])
-
-  const loadAgents = async () => {
-    try {
-      const result = await window.api.agent.list()
-      if (result.success) {
-        setAgents(result.data.items)
-      }
-    } catch (error) {
-      logger.error('Failed to load agents:', { error })
-    }
-  }
-
-  const loadSessions = async () => {
-    try {
-      const result = await window.api.session.list()
-      if (result.success) {
-        // Filter sessions for selected agent
-        const agentSessions = result.data.items.filter((session) => session.agent_ids.includes(selectedAgent!.id))
-        setSessions(agentSessions)
-      }
-    } catch (error) {
-      logger.error('Failed to load sessions:', { error })
-    }
-  }
+  }, [selectedSession, loadSessionLogs])
 
   const handleCreateSession = async () => {
     if (!selectedAgent) return
@@ -165,19 +234,6 @@ const CherryAgentPage: React.FC = () => {
     } catch (error) {
       message.error('Failed to create session')
       logger.error('Failed to create session:', { error })
-    }
-  }
-
-  const loadSessionLogs = async () => {
-    if (!selectedSession) return
-
-    try {
-      const result = await window.api.session.getLogs({ session_id: selectedSession.id })
-      if (result.success) {
-        setSessionLogs(result.data.items)
-      }
-    } catch (error) {
-      logger.error('Failed to load session logs:', { error })
     }
   }
 
@@ -325,14 +381,19 @@ const CherryAgentPage: React.FC = () => {
                   <SessionStatusBadge $status={selectedSession.status}>{selectedSession.status}</SessionStatusBadge>
                 </ConversationHeader>
                 <MessagesContainer>
-                  {sessionLogs.map((log) => (
-                    <MessageBubble key={log.id} $role={log.role}>
-                      <MessageRole>{log.role}</MessageRole>
-                      <MessageContent>{formatMessageContent(log)}</MessageContent>
-                      <MessageTime>{new Date(log.created_at).toLocaleTimeString()}</MessageTime>
-                    </MessageBubble>
-                  ))}
-                  {sessionLogs.length === 0 && (
+                  {sessionLogs.filter(shouldDisplayLog).map((log) => {
+                    const content = formatMessageContent(log)
+                    if (!content) return null
+
+                    return (
+                      <MessageBubble key={log.id} $role={log.role} $type={log.type}>
+                        <MessageRole>{log.role.toUpperCase()}</MessageRole>
+                        <MessageContent>{content}</MessageContent>
+                        <MessageTime>{new Date(log.created_at).toLocaleTimeString()}</MessageTime>
+                      </MessageBubble>
+                    )
+                  })}
+                  {sessionLogs.filter(shouldDisplayLog).length === 0 && (
                     <EmptyConversation>No messages yet. Start the conversation below!</EmptyConversation>
                   )}
                 </MessagesContainer>
@@ -705,20 +766,35 @@ const MessagesContainer = styled.div`
   gap: 16px;
 `
 
-const MessageBubble = styled.div<{ $role: string }>`
+const MessageBubble = styled.div<{ $role: string; $type?: string }>`
   align-self: ${(props) => (props.$role === 'user' ? 'flex-end' : 'flex-start')};
   max-width: ${(props) => (props.$role === 'system' ? '90%' : '70%')};
   background-color: ${(props) => {
     if (props.$role === 'user') return 'var(--color-primary)'
-    if (props.$role === 'system') return 'var(--color-warning-light)'
+    if (props.$role === 'system') {
+      // Different colors for different system message types
+      if (props.$type?.includes('error')) return 'var(--color-error-light)'
+      if (props.$type?.includes('result')) return 'var(--color-success-light)'
+      return 'var(--color-warning-light)'
+    }
     return 'var(--color-background-muted)'
   }};
-  color: ${(props) => (props.$role === 'user' ? 'white' : 'var(--color-text)')};
+  color: ${(props) => {
+    if (props.$role === 'user') return 'white'
+    if (props.$role === 'system' && props.$type?.includes('error')) return 'var(--color-error)'
+    if (props.$role === 'system' && props.$type?.includes('result')) return 'var(--color-success)'
+    return 'var(--color-text)'
+  }};
   border-radius: 12px;
   padding: 12px 16px;
   position: relative;
   word-break: break-word;
   overflow-wrap: break-word;
+  border: ${(props) => {
+    if (props.$role === 'system' && props.$type?.includes('error')) return '1px solid var(--color-error)'
+    if (props.$role === 'system' && props.$type?.includes('result')) return '1px solid var(--color-success)'
+    return 'none'
+  }};
 `
 
 const MessageRole = styled.div`
