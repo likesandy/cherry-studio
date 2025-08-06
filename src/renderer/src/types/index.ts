@@ -62,11 +62,13 @@ export const EFFORT_RATIO: EffortRatio = {
 }
 
 export type AssistantSettings = {
-  contextCount: number
+  maxTokens?: number
+  enableMaxTokens?: boolean
   temperature: number
+  enableTemperature?: boolean
   topP: number
-  maxTokens: number | undefined
-  enableMaxTokens: boolean
+  enableTopP?: boolean
+  contextCount: number
   streamOutput: boolean
   defaultModel?: Model
   customParameters?: AssistantSettingCustomParameters[]
@@ -170,10 +172,20 @@ export type Provider = {
   isSystem?: boolean
   isAuthed?: boolean
   rateLimit?: number
+
+  // undefined 视为支持
   isNotSupportArrayContent?: boolean
+  isNotSupportStreamOptions?: boolean
+  isNotSupportDeveloperRole?: boolean
+
   isVertex?: boolean
   notes?: string
   extra_headers?: Record<string, string>
+}
+
+// 后面会重构成更严格的类型
+export type SystemProvider = Provider & {
+  isSystem: true
 }
 
 export type ProviderType =
@@ -185,6 +197,7 @@ export type ProviderType =
   | 'azure-openai'
   | 'vertexai'
   | 'mistral'
+  | 'aws-bedrock'
 
 export type ModelType = 'text' | 'vision' | 'embedding' | 'reasoning' | 'function_calling' | 'web_search' | 'rerank'
 
@@ -441,9 +454,9 @@ export interface KnowledgeBase {
   rerankModel?: Model
   // topN?: number
   // preprocessing?: boolean
-  preprocessOrOcrProvider?: {
-    type: 'preprocess' | 'ocr'
-    provider: PreprocessProvider | OcrProvider
+  preprocessProvider?: {
+    type: 'preprocess'
+    provider: PreprocessProvider
   }
 }
 
@@ -464,23 +477,13 @@ export type KnowledgeBaseParams = {
   rerankApiClient?: ApiClient
   documentCount?: number
   // preprocessing?: boolean
-  preprocessOrOcrProvider?: {
-    type: 'preprocess' | 'ocr'
-    provider: PreprocessProvider | OcrProvider
+  preprocessProvider?: {
+    type: 'preprocess'
+    provider: PreprocessProvider
   }
 }
 
 export interface PreprocessProvider {
-  id: string
-  name: string
-  apiKey?: string
-  apiHost?: string
-  model?: string
-  options?: any
-  quota?: number
-}
-
-export interface OcrProvider {
   id: string
   name: string
   apiKey?: string
@@ -510,6 +513,7 @@ export type GenerateImageResponse = {
 }
 
 export type LanguageCode =
+  | 'unknown'
   | 'en-us'
   | 'zh-cn'
   | 'zh-tw'
@@ -654,6 +658,8 @@ export interface MCPServer {
   registryUrl?: string
   args?: string[]
   env?: Record<string, string>
+  shouldConfig?: boolean
+  getBuiltinDescription?: () => string
   isActive: boolean
   disabledTools?: string[] // List of tool names that are disabled for this server
   disabledAutoApproveTools?: string[] // Whether to auto-approve tools for this server
@@ -668,6 +674,7 @@ export interface MCPServer {
   timeout?: number // Timeout in seconds for requests to this server, default is 60 seconds
   dxtVersion?: string // Version of the DXT package
   dxtPath?: string // Path where the DXT package was extracted
+  reference?: string // Reference link for the server, e.g., documentation or homepage
 }
 
 export interface MCPToolInputSchema {
@@ -833,6 +840,13 @@ export type S3Config = {
 }
 
 export type { Message } from './newMessage'
+
+export interface ApiServerConfig {
+  enabled: boolean
+  host: string
+  port: number
+  apiKey: string
+}
 
 // Memory Service Types
 // ========================================================================
