@@ -192,6 +192,9 @@ export enum IpcChannel {
   DataMigrate_RequireBackup = 'data-migrate:require-backup',
   DataMigrate_BackupCompleted = 'data-migrate:backup-completed',
   DataMigrate_ShowBackupDialog = 'data-migrate:show-backup-dialog',
+  DataMigrate_StartFlow = 'data-migrate:start-flow',
+  DataMigrate_RestartApp = 'data-migrate:restart-app',
+  DataMigrate_CloseWindow = 'data-migrate:close-window',
 
   // zip
   Zip_Compress = 'zip:compress',

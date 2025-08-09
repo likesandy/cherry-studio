@@ -40,7 +40,6 @@ class DataRefactorMigrateService {
   private migrateWindow: BrowserWindow | null = null
   private backupManager: BackupManager
   private backupCompletionResolver: ((value: boolean) => void) | null = null
-  private backupTimeout: NodeJS.Timeout | null = null
   private db = dbService.getDb()
   private currentProgress: MigrationProgress = {
     stage: 'idle',
@@ -127,6 +126,35 @@ class DataRefactorMigrateService {
       }
     })
 
+    ipcMain.handle(IpcChannel.DataMigrate_StartFlow, async () => {
+      try {
+        return await this.startMigrationFlow()
+      } catch (error) {
+        logger.error('IPC handler error: startMigrationFlow', error as Error)
+        throw error
+      }
+    })
+
+    ipcMain.handle(IpcChannel.DataMigrate_RestartApp, () => {
+      try {
+        this.restartApplication()
+        return true
+      } catch (error) {
+        logger.error('IPC handler error: restartApplication', error as Error)
+        throw error
+      }
+    })
+
+    ipcMain.handle(IpcChannel.DataMigrate_CloseWindow, () => {
+      try {
+        this.closeMigrateWindow()
+        return true
+      } catch (error) {
+        logger.error('IPC handler error: closeMigrateWindow', error as Error)
+        throw error
+      }
+    })
+
     logger.info('Migration IPC handlers registered successfully')
   }
 
@@ -144,6 +172,9 @@ class DataRefactorMigrateService {
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_Cancel)
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_BackupCompleted)
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_ShowBackupDialog)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_StartFlow)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_RestartApp)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_CloseWindow)
 
       logger.info('Migration IPC handlers unregistered successfully')
     } catch (error) {
@@ -294,32 +325,37 @@ class DataRefactorMigrateService {
   async runMigration(): Promise<void> {
     if (this.isMigrating) {
       logger.warn('Migration already in progress')
+      this.migrateWindow?.show()
       return
     }
 
+    this.isMigrating = true
+    logger.info('Showing migration window')
+
+    // Create migration window
+    const window = this.createMigrateWindow()
+
+    // Wait for window to be ready
+    await new Promise<void>((resolve) => {
+      if (window.webContents.isLoading()) {
+        window.webContents.once('did-finish-load', () => resolve())
+      } else {
+        resolve()
+      }
+    })
+  }
+
+  async startMigrationFlow(): Promise<void> {
+    if (!this.isMigrating) {
+      logger.warn('Migration not started, cannot execute flow.')
+      return
+    }
+    logger.info('Starting migration flow from user action')
     try {
-      this.isMigrating = true
-      logger.info('Starting migration process')
-
-      // Create migration window
-      const window = this.createMigrateWindow()
-
-      // Wait for window to be ready
-      await new Promise<void>((resolve) => {
-        if (window.webContents.isLoading()) {
-          window.webContents.once('did-finish-load', () => resolve())
-        } else {
-          resolve()
-        }
-      })
-
-      // Start the migration flow
       await this.executeMigrationFlow()
     } catch (error) {
       logger.error('Migration process failed', error as Error)
-      throw error
-    } finally {
-      this.isMigrating = false
+      // error is already handled in executeMigrationFlow
     }
   }
 
@@ -355,32 +391,14 @@ class DataRefactorMigrateService {
       // Step 3: Mark as completed
       await this.markMigrationCompleted()
 
-      await this.updateProgress('completed', 100, 'Migration completed! App will restart in 3 seconds...')
-
-      // Wait a moment to show success message, then restart the app
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          logger.info('Migration completed successfully, restarting application')
-          this.restartApplication()
-          resolve()
-        }, 3000)
-      })
+      await this.updateProgress('completed', 100, 'Migration completed! Please restart the app.')
     } catch (error) {
       logger.error('Migration flow failed', error as Error)
       await this.updateProgress(
         'error',
         0,
-        `Migration failed: ${error instanceof Error ? error.message : String(error)}. Please restart the app to try again.`
+        `Migration failed: ${error instanceof Error ? error.message : String(error)}. Please close this window and restart the app to try again.`
       )
-
-      // Wait a moment to show error message, then close migration window
-      // Do NOT restart on error - let user handle the situation
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          this.closeMigrateWindow()
-          resolve()
-        }, 8000) // Show error for longer (8 seconds) to give user time to read
-      })
 
       throw error
     }
@@ -425,14 +443,6 @@ class DataRefactorMigrateService {
       // Store resolver for later use
       this.backupCompletionResolver = resolve
 
-      // Set up timeout (5 minutes)
-      this.backupTimeout = setTimeout(() => {
-        logger.warn('Backup completion timeout')
-        this.backupCompletionResolver = null
-        this.backupTimeout = null
-        resolve(false)
-      }, 300000) // 5 minutes
-
       // The actual completion will be triggered by notifyBackupCompleted() method
     })
   }
@@ -443,12 +453,6 @@ class DataRefactorMigrateService {
   public notifyBackupCompleted(): void {
     if (this.backupCompletionResolver) {
       logger.info('Backup completed by user')
-
-      // Clear timeout if it exists
-      if (this.backupTimeout) {
-        clearTimeout(this.backupTimeout)
-        this.backupTimeout = null
-      }
 
       this.backupCompletionResolver(true)
       this.backupCompletionResolver = null
@@ -535,6 +539,7 @@ class DataRefactorMigrateService {
       this.migrateWindow = null
     }
 
+    this.isMigrating = false
     // Clean up migration-specific IPC handlers
     this.unregisterMigrationIpcHandlers()
   }

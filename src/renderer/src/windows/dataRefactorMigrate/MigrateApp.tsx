@@ -1,79 +1,10 @@
-import { CheckCircleOutlined, ExclamationCircleOutlined, LoadingOutlined } from '@ant-design/icons'
+import { AppLogo } from '@renderer/config/env'
 import { IpcChannel } from '@shared/IpcChannel'
-import { Alert, Button, Card, Progress, Space, Typography } from 'antd'
-import React, { useEffect, useState } from 'react'
+import { Alert, Button, Card, Progress, Space, Steps, Typography } from 'antd'
+import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 
 const { Title, Text } = Typography
-
-const Container = styled.div`
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-`
-
-const MigrationCard = styled(Card)`
-  width: 100%;
-  max-width: 500px;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-
-  .ant-card-head {
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-  }
-
-  .ant-card-body {
-    padding: 32px 24px;
-  }
-`
-
-const LogoContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-bottom: 24px;
-
-  img {
-    width: 64px;
-    height: 64px;
-  }
-`
-
-const StageIndicator = styled.div<{ stage: string }>`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-
-  .stage-icon {
-    font-size: 20px;
-    color: ${(props) => {
-      switch (props.stage) {
-        case 'completed':
-          return '#52c41a'
-        case 'error':
-          return '#ff4d4f'
-        default:
-          return '#1890ff'
-      }
-    }};
-  }
-`
-
-const ProgressContainer = styled.div`
-  margin: 24px 0;
-`
-
-const MessageContainer = styled.div`
-  text-align: center;
-  margin: 16px 0;
-  min-height: 24px;
-`
 
 interface MigrationProgress {
   stage: string
@@ -87,7 +18,7 @@ const MigrateApp: React.FC = () => {
     stage: 'idle',
     progress: 0,
     total: 100,
-    message: 'Initializing migration...'
+    message: '准备开始迁移...'
   })
   const [showBackupRequired, setShowBackupRequired] = useState(false)
 
@@ -120,6 +51,43 @@ const MigrateApp: React.FC = () => {
     }
   }, [])
 
+  const currentStep = useMemo(() => {
+    switch (progress.stage) {
+      case 'idle':
+        return 0
+      case 'backup':
+        return 1
+      case 'migration':
+        return 2
+      case 'completed':
+        return 4
+      case 'error':
+      case 'cancelled':
+        return 3
+      default:
+        return 0
+    }
+  }, [progress.stage])
+
+  const stepStatus = useMemo(() => {
+    if (progress.stage === 'error' || progress.stage === 'cancelled') {
+      return 'error'
+    }
+    return 'process'
+  }, [progress.stage])
+
+  const handleStartMigration = () => {
+    window.electron.ipcRenderer.invoke(IpcChannel.DataMigrate_StartFlow)
+  }
+
+  const handleRestartApp = () => {
+    window.electron.ipcRenderer.invoke(IpcChannel.DataMigrate_RestartApp)
+  }
+
+  const handleCloseWindow = () => {
+    window.electron.ipcRenderer.invoke(IpcChannel.DataMigrate_CloseWindow)
+  }
+
   const handleCancel = () => {
     window.electron.ipcRenderer.invoke(IpcChannel.DataMigrate_Cancel)
   }
@@ -135,35 +103,6 @@ const MigrateApp: React.FC = () => {
     window.electron.ipcRenderer.invoke(IpcChannel.DataMigrate_BackupCompleted)
   }
 
-  const getStageTitle = () => {
-    switch (progress.stage) {
-      case 'backup':
-        return 'Creating Backup'
-      case 'migration':
-        return 'Migrating Data'
-      case 'completed':
-        return 'Migration Completed'
-      case 'error':
-        return 'Migration Failed'
-      case 'cancelled':
-        return 'Migration Cancelled'
-      default:
-        return 'Preparing Migration'
-    }
-  }
-
-  const getStageIcon = () => {
-    switch (progress.stage) {
-      case 'completed':
-        return <CheckCircleOutlined className="stage-icon" />
-      case 'error':
-      case 'cancelled':
-        return <ExclamationCircleOutlined className="stage-icon" />
-      default:
-        return <LoadingOutlined className="stage-icon" />
-    }
-  }
-
   const getProgressColor = () => {
     switch (progress.stage) {
       case 'completed':
@@ -176,8 +115,37 @@ const MigrateApp: React.FC = () => {
     }
   }
 
-  const showCancelButton = () => {
-    return progress.stage !== 'completed' && progress.stage !== 'error' && progress.stage !== 'cancelled'
+  const renderActionButtons = () => {
+    switch (progress.stage) {
+      case 'idle':
+        return (
+          <Button type="primary" onClick={handleStartMigration}>
+            开始迁移
+          </Button>
+        )
+      case 'completed':
+        return (
+          <Button type="primary" onClick={handleRestartApp}>
+            重启应用
+          </Button>
+        )
+      case 'error':
+      case 'cancelled':
+        return (
+          <Space>
+            <Button onClick={handleCloseWindow}>关闭</Button>
+          </Space>
+        )
+      case 'backup':
+      case 'migration':
+        return (
+          <Button onClick={handleCancel} disabled={progress.stage === 'backup'}>
+            取消迁移
+          </Button>
+        )
+      default:
+        return null
+    }
   }
 
   return (
@@ -192,28 +160,28 @@ const MigrateApp: React.FC = () => {
         }
         bordered={false}>
         <LogoContainer>
-          <img
-            src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSIxNiIgeT0iMTYiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Im0xMiAyIDMgN2g3bC01LjUgNEwxOSAyMGwtNy02LTcgNiAyLjUtN0w2IDloN2wzLTd6Ii8+Cjwvc3ZnPgo8L3N2Zz4K"
-            alt="Cherry Studio"
-          />
+          <img src={AppLogo} alt="Cherry Studio" />
         </LogoContainer>
 
-        <StageIndicator stage={progress.stage}>
-          {getStageIcon()}
-          <Title level={4} style={{ margin: 0 }}>
-            {getStageTitle()}
-          </Title>
-        </StageIndicator>
-
-        <ProgressContainer>
-          <Progress
-            percent={progress.progress}
-            strokeColor={getProgressColor()}
-            trailColor="#f0f0f0"
-            size="default"
-            showInfo={true}
+        <div style={{ margin: '24px 0' }}>
+          <Steps
+            current={currentStep}
+            status={stepStatus}
+            items={[{ title: '开始' }, { title: '备份' }, { title: '迁移' }, { title: '完成' }]}
           />
-        </ProgressContainer>
+        </div>
+
+        {progress.stage !== 'idle' && (
+          <ProgressContainer>
+            <Progress
+              percent={progress.progress}
+              strokeColor={getProgressColor()}
+              trailColor="#f0f0f0"
+              size="default"
+              showInfo={true}
+            />
+          </ProgressContainer>
+        )}
 
         <MessageContainer>
           <Text type="secondary">{progress.message}</Text>
@@ -259,18 +227,59 @@ const MigrateApp: React.FC = () => {
           />
         )}
 
-        {showCancelButton() && (
-          <div style={{ textAlign: 'center', marginTop: 24 }}>
-            <Space>
-              <Button onClick={handleCancel} disabled={progress.stage === 'backup'}>
-                Cancel Migration
-              </Button>
-            </Space>
-          </div>
-        )}
+        <div style={{ textAlign: 'center', marginTop: 24 }}>{renderActionButtons()}</div>
       </MigrationCard>
     </Container>
   )
 }
+
+const Container = styled.div`
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+`
+
+const MigrationCard = styled(Card)`
+  width: 100%;
+  max-width: 500px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+  .ant-card-head {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .ant-card-body {
+    padding: 32px 24px;
+  }
+`
+
+const LogoContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+
+  img {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+  }
+`
+
+const ProgressContainer = styled.div`
+  margin: 24px 0;
+`
+
+const MessageContainer = styled.div`
+  text-align: center;
+  margin: 16px 0;
+  min-height: 24px;
+`
 
 export default MigrateApp
