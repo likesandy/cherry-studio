@@ -22,11 +22,21 @@ interface DataRefactorMigrationStatus {
   version?: string
 }
 
+type MigrationStage =
+  | 'introduction' // Introduction phase - user can cancel
+  | 'backup_required' // Backup required - show backup requirement
+  | 'backup_progress' // Backup in progress - user is backing up
+  | 'backup_confirmed' // Backup confirmed - ready to migrate
+  | 'migration' // Migration in progress - cannot cancel
+  | 'completed' // Completed - restart app
+  | 'error' // Error - recovery options
+
 interface MigrationProgress {
-  stage: string
+  stage: MigrationStage
   progress: number
   total: number
   message: string
+  error?: string
 }
 
 interface MigrationResult {
@@ -39,13 +49,12 @@ class DataRefactorMigrateService {
   private static instance: DataRefactorMigrateService | null = null
   private migrateWindow: BrowserWindow | null = null
   private backupManager: BackupManager
-  private backupCompletionResolver: ((value: boolean) => void) | null = null
   private db = dbService.getDb()
   private currentProgress: MigrationProgress = {
-    stage: 'idle',
+    stage: 'introduction',
     progress: 0,
     total: 100,
-    message: 'Ready to migrate'
+    message: 'Ready to start data migration'
   }
   private isMigrating: boolean = false
 
@@ -77,11 +86,32 @@ class DataRefactorMigrateService {
       }
     })
 
+    ipcMain.handle(IpcChannel.DataMigrate_ProceedToBackup, async () => {
+      try {
+        await this.proceedToBackup()
+        return true
+      } catch (error) {
+        logger.error('IPC handler error: proceedToBackup', error as Error)
+        throw error
+      }
+    })
+
     ipcMain.handle(IpcChannel.DataMigrate_StartMigration, async () => {
       try {
-        return await this.runMigration()
+        await this.startMigrationProcess()
+        return true
       } catch (error) {
-        logger.error('IPC handler error: runMigration', error as Error)
+        logger.error('IPC handler error: startMigrationProcess', error as Error)
+        throw error
+      }
+    })
+
+    ipcMain.handle(IpcChannel.DataMigrate_RetryMigration, async () => {
+      try {
+        await this.retryMigration()
+        return true
+      } catch (error) {
+        logger.error('IPC handler error: retryMigration', error as Error)
         throw error
       }
     })
@@ -104,9 +134,9 @@ class DataRefactorMigrateService {
       }
     })
 
-    ipcMain.handle(IpcChannel.DataMigrate_BackupCompleted, () => {
+    ipcMain.handle(IpcChannel.DataMigrate_BackupCompleted, async () => {
       try {
-        this.notifyBackupCompleted()
+        await this.notifyBackupCompleted()
         return true
       } catch (error) {
         logger.error('IPC handler error: notifyBackupCompleted', error as Error)
@@ -114,14 +144,55 @@ class DataRefactorMigrateService {
       }
     })
 
-    ipcMain.handle(IpcChannel.DataMigrate_ShowBackupDialog, () => {
+    ipcMain.handle(IpcChannel.DataMigrate_ShowBackupDialog, async () => {
       try {
-        // Show the backup dialog/interface
-        // This could integrate with existing backup UI or create a new backup interface
-        logger.info('Backup dialog request received')
-        return true
+        logger.info('Opening backup dialog for migration')
+
+        // Update progress to indicate backup dialog is opening
+        await this.updateProgress('backup_progress', 10, 'Opening backup dialog...')
+
+        // Instead of performing backup automatically, let's open the file dialog
+        // and let the user choose where to save the backup
+        const { dialog } = await import('electron')
+        const result = await dialog.showSaveDialog({
+          title: 'Save Migration Backup',
+          defaultPath: `cherry-studio-migration-backup-${new Date().toISOString().split('T')[0]}.zip`,
+          filters: [
+            { name: 'Backup Files', extensions: ['zip'] },
+            { name: 'All Files', extensions: ['*'] }
+          ]
+        })
+
+        if (!result.canceled && result.filePath) {
+          logger.info('User selected backup location', { filePath: result.filePath })
+          await this.updateProgress('backup_progress', 50, 'Creating backup file...')
+
+          // Perform the actual backup to the selected location
+          const backupResult = await this.performBackupToFile(result.filePath)
+
+          if (backupResult.success) {
+            await this.updateProgress('backup_progress', 100, 'Backup created successfully!')
+            // Wait a moment to show the success message, then transition to confirmed state
+            setTimeout(async () => {
+              await this.updateProgress(
+                'backup_confirmed',
+                100,
+                'Backup completed! Ready to start migration. Click "Start Migration" to continue.'
+              )
+            }, 1000)
+          } else {
+            await this.updateProgress('backup_required', 0, `Backup failed: ${backupResult.error}`)
+          }
+
+          return backupResult
+        } else {
+          logger.info('User cancelled backup dialog')
+          await this.updateProgress('backup_required', 0, 'Backup cancelled. Please create a backup to continue.')
+          return { success: false, error: 'Backup cancelled by user' }
+        }
       } catch (error) {
         logger.error('IPC handler error: showBackupDialog', error as Error)
+        await this.updateProgress('backup_required', 0, 'Backup process failed')
         throw error
       }
     })
@@ -135,9 +206,9 @@ class DataRefactorMigrateService {
       }
     })
 
-    ipcMain.handle(IpcChannel.DataMigrate_RestartApp, () => {
+    ipcMain.handle(IpcChannel.DataMigrate_RestartApp, async () => {
       try {
-        this.restartApplication()
+        await this.restartApplication()
         return true
       } catch (error) {
         logger.error('IPC handler error: restartApplication', error as Error)
@@ -167,12 +238,14 @@ class DataRefactorMigrateService {
 
     try {
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_CheckNeeded)
-      ipcMain.removeAllListeners(IpcChannel.DataMigrate_StartMigration)
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_GetProgress)
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_Cancel)
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_BackupCompleted)
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_ShowBackupDialog)
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_StartFlow)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_ProceedToBackup)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_StartMigration)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_RetryMigration)
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_RestartApp)
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_CloseWindow)
 
@@ -200,6 +273,7 @@ class DataRefactorMigrateService {
         return true
       }
 
+      logger.info('Data Refactor Migration is needed')
       return false
     } catch (error) {
       logger.error('Failed to check migration status', error as Error)
@@ -212,18 +286,40 @@ class DataRefactorMigrateService {
    */
   private async isMigrationCompleted(): Promise<boolean> {
     try {
+      logger.debug('Checking migration completion status in database')
+
+      // First check if the database is available
+      if (!this.db) {
+        logger.warn('Database not initialized, assuming migration not completed')
+        return false
+      }
+
       const result = await this.db
         .select()
         .from(appStateTable)
         .where(eq(appStateTable.key, DATA_REFACTOR_MIGRATION_STATUS))
         .limit(1)
 
-      if (result.length === 0) return false
+      logger.debug('Migration status query result', { resultCount: result.length })
+
+      if (result.length === 0) {
+        logger.info('No migration status record found, migration needed')
+        return false
+      }
 
       const status = result[0].value as DataRefactorMigrationStatus
-      return status.completed === true
+      const isCompleted = status.completed === true
+
+      logger.info('Migration status found', {
+        completed: isCompleted,
+        completedAt: status.completedAt,
+        version: status.version
+      })
+
+      return isCompleted
     } catch (error) {
-      logger.warn('Failed to check migration state', error as Error)
+      logger.error('Failed to check migration state - treating as not completed', error as Error)
+      // In case of database errors, assume migration is needed to be safe
       return false
     }
   }
@@ -320,7 +416,7 @@ class DataRefactorMigrateService {
   }
 
   /**
-   * Run the complete migration process
+   * Show migration window and initialize introduction stage
    */
   async runMigration(): Promise<void> {
     if (this.isMigrating) {
@@ -331,6 +427,9 @@ class DataRefactorMigrateService {
 
     this.isMigrating = true
     logger.info('Showing migration window')
+
+    // Initialize introduction stage
+    await this.updateProgress('introduction', 0, 'Welcome to Cherry Studio data migration')
 
     // Create migration window
     const window = this.createMigrateWindow()
@@ -345,12 +444,45 @@ class DataRefactorMigrateService {
     })
   }
 
+  /**
+   * Start migration flow - simply ensure we're in introduction stage
+   * This is called when user first opens the migration window
+   */
   async startMigrationFlow(): Promise<void> {
     if (!this.isMigrating) {
       logger.warn('Migration not started, cannot execute flow.')
       return
     }
-    logger.info('Starting migration flow from user action')
+
+    logger.info('Confirming introduction stage for migration flow')
+    await this.updateProgress('introduction', 0, 'Ready to begin migration process. Please read the information below.')
+  }
+
+  /**
+   * Proceed from introduction to backup requirement stage
+   * This is called when user clicks "Next" in introduction
+   */
+  async proceedToBackup(): Promise<void> {
+    if (!this.isMigrating) {
+      logger.warn('Migration not started, cannot proceed to backup.')
+      return
+    }
+
+    logger.info('Proceeding from introduction to backup stage')
+    await this.updateProgress('backup_required', 0, 'Data backup is required before migration can proceed')
+  }
+
+  /**
+   * Start the actual migration process
+   * This is called when user confirms backup and clicks "Start Migration"
+   */
+  async startMigrationProcess(): Promise<void> {
+    if (!this.isMigrating) {
+      logger.warn('Migration not started, cannot start migration process.')
+      return
+    }
+
+    logger.info('Starting actual migration process')
     try {
       await this.executeMigrationFlow()
     } catch (error) {
@@ -360,21 +492,12 @@ class DataRefactorMigrateService {
   }
 
   /**
-   * Execute the complete migration flow
+   * Execute the actual migration process
+   * Called after user has confirmed backup completion
    */
   private async executeMigrationFlow(): Promise<void> {
     try {
-      // Step 1: Enforce backup
-      await this.updateProgress('backup', 0, 'Starting backup process...')
-      const backupSuccess = await this.enforceBackup()
-
-      if (!backupSuccess) {
-        throw new Error('Backup process failed or was cancelled by user')
-      }
-
-      await this.updateProgress('backup', 100, 'Backup completed successfully')
-
-      // Step 2: Execute migration
+      // Start migration
       await this.updateProgress('migration', 0, 'Starting data migration...')
       const migrationResult = await this.executeMigration()
 
@@ -388,16 +511,18 @@ class DataRefactorMigrateService {
         `Migration completed: ${migrationResult.migratedCount} items migrated`
       )
 
-      // Step 3: Mark as completed
+      // Mark as completed
       await this.markMigrationCompleted()
 
-      await this.updateProgress('completed', 100, 'Migration completed! Please restart the app.')
+      await this.updateProgress('completed', 100, 'Migration completed successfully! Click restart to continue.')
     } catch (error) {
       logger.error('Migration flow failed', error as Error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
       await this.updateProgress(
         'error',
         0,
-        `Migration failed: ${error instanceof Error ? error.message : String(error)}. Please close this window and restart the app to try again.`
+        'Migration failed. You can close this window and try again, or continue using the previous version.',
+        errorMessage
       )
 
       throw error
@@ -405,58 +530,113 @@ class DataRefactorMigrateService {
   }
 
   /**
-   * Enforce backup before migration
+   * Perform backup to a specific file location
    */
-  private async enforceBackup(): Promise<boolean> {
+  private async performBackupToFile(filePath: string): Promise<{ success: boolean; error?: string }> {
     try {
-      logger.info('Enforcing backup before migration')
+      logger.info('Performing backup to file', { filePath })
 
-      await this.updateProgress('backup', 0, 'Backup is required before migration')
+      // Get backup data from the current application state
+      const backupData = await this.getBackupData()
 
-      // Send backup requirement to renderer
-      if (this.migrateWindow && !this.migrateWindow.isDestroyed()) {
-        this.migrateWindow.webContents.send(IpcChannel.DataMigrate_RequireBackup)
-      }
+      // Extract directory and filename from the full path
+      const path = await import('path')
+      const destinationDir = path.dirname(filePath)
+      const fileName = path.basename(filePath)
 
-      // Wait for user to complete backup
-      const backupResult = await this.waitForBackupCompletion()
+      // Use the existing backup manager to create a backup
+      const backupPath = await this.backupManager.backup(
+        null as any, // IpcMainInvokeEvent - we're calling directly so pass null
+        fileName,
+        backupData,
+        destinationDir,
+        false // Don't skip backup files - full backup for migration safety
+      )
 
-      if (backupResult) {
-        await this.updateProgress('backup', 100, 'Backup completed successfully')
-        return true
+      if (backupPath) {
+        logger.info('Backup created successfully', { path: backupPath })
+        return { success: true }
       } else {
-        await this.updateProgress('backup', 0, 'Backup is required to proceed with migration')
-        return false
+        return {
+          success: false,
+          error: 'Backup process did not return a file path'
+        }
       }
     } catch (error) {
-      logger.error('Backup enforcement failed', error as Error)
-      await this.updateProgress('backup', 0, 'Backup process failed')
-      return false
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      logger.error('Backup failed during migration:', error as Error)
+      return {
+        success: false,
+        error: errorMessage
+      }
     }
   }
 
   /**
-   * Wait for user to complete backup
+   * Get backup data from the current application
+   * This creates a minimal backup with essential system information
    */
-  private async waitForBackupCompletion(): Promise<boolean> {
-    return new Promise((resolve) => {
-      // Store resolver for later use
-      this.backupCompletionResolver = resolve
+  private async getBackupData(): Promise<string> {
+    try {
+      const fs = await import('fs-extra')
+      const path = await import('path')
 
-      // The actual completion will be triggered by notifyBackupCompleted() method
-    })
+      // Gather basic system information
+      const data = {
+        backup: {
+          timestamp: new Date().toISOString(),
+          version: electronApp.getVersion(),
+          type: 'pre-migration-backup',
+          note: 'This is a safety backup created before data migration'
+        },
+        system: {
+          platform: process.platform,
+          arch: process.arch,
+          nodeVersion: process.version
+        },
+        // Include basic configuration files if they exist
+        configs: {} as Record<string, any>
+      }
+
+      // Try to read some basic configuration files (non-critical if they fail)
+      try {
+        const { getDataPath } = await import('@main/utils')
+        const dataPath = getDataPath()
+
+        // Check if there are any config files we should backup
+        const configFiles = ['config.json', 'settings.json', 'preferences.json']
+        for (const configFile of configFiles) {
+          const configPath = path.join(dataPath, configFile)
+          if (await fs.pathExists(configPath)) {
+            try {
+              const configContent = await fs.readJson(configPath)
+              data.configs[configFile] = configContent
+            } catch (err) {
+              logger.warn(`Could not read config file ${configFile}`, err as Error)
+            }
+          }
+        }
+      } catch (err) {
+        logger.warn('Could not access data directory for config backup', err as Error)
+      }
+
+      return JSON.stringify(data, null, 2)
+    } catch (error) {
+      logger.error('Failed to get backup data:', error as Error)
+      throw error
+    }
   }
 
   /**
    * Notify that backup has been completed (called from IPC handler)
    */
-  public notifyBackupCompleted(): void {
-    if (this.backupCompletionResolver) {
-      logger.info('Backup completed by user')
-
-      this.backupCompletionResolver(true)
-      this.backupCompletionResolver = null
-    }
+  public async notifyBackupCompleted(): Promise<void> {
+    logger.info('Backup completed by user')
+    await this.updateProgress(
+      'backup_confirmed',
+      100,
+      'Backup completed! Ready to start migration. Click "Start Migration" to continue.'
+    )
   }
 
   /**
@@ -494,12 +674,18 @@ class DataRefactorMigrateService {
   /**
    * Update migration progress and broadcast to window
    */
-  private async updateProgress(stage: string, progress: number, message: string): Promise<void> {
+  private async updateProgress(
+    stage: MigrationStage,
+    progress: number,
+    message: string,
+    error?: string
+  ): Promise<void> {
     this.currentProgress = {
       stage,
       progress,
       total: 100,
-      message
+      message,
+      error
     }
 
     if (this.migrateWindow && !this.migrateWindow.isDestroyed()) {
@@ -518,16 +704,34 @@ class DataRefactorMigrateService {
 
   /**
    * Cancel migration process
+   * Only allowed during introduction and backup phases
    */
   async cancelMigration(): Promise<void> {
     if (!this.isMigrating) {
       return
     }
 
+    const currentStage = this.currentProgress.stage
+    if (currentStage === 'migration') {
+      logger.warn('Cannot cancel migration during migration process')
+      return
+    }
+
     logger.info('Cancelling migration process')
     this.isMigrating = false
-    await this.updateProgress('cancelled', 0, 'Migration cancelled by user')
     this.closeMigrateWindow()
+  }
+
+  /**
+   * Retry migration after error
+   */
+  async retryMigration(): Promise<void> {
+    logger.info('Retrying migration process')
+    await this.updateProgress(
+      'introduction',
+      0,
+      'Ready to restart migration process. Please read the information below.'
+    )
   }
 
   /**
@@ -547,20 +751,71 @@ class DataRefactorMigrateService {
   /**
    * Restart the application after successful migration
    */
-  private restartApplication(): void {
+  private async restartApplication(): Promise<void> {
     try {
-      logger.info('Restarting application after migration completion')
+      logger.info('Preparing to restart application after migration completion')
 
-      // Clean up migration window and handlers before restart
-      this.closeMigrateWindow()
+      // Ensure migration status is properly saved before restart
+      await this.verifyMigrationStatus()
 
-      // Restart the app using Electron's relaunch mechanism
-      app.relaunch()
-      app.exit(0)
+      // Give some time for database operations to complete
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      logger.info('Restarting application now')
+
+      // In development mode, relaunch might not work properly
+      if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
+        logger.warn('Development mode detected - showing restart instruction instead of auto-restart')
+
+        const { dialog } = await import('electron')
+        await dialog.showMessageBox({
+          type: 'info',
+          title: 'Migration Complete - Restart Required',
+          message:
+            'Data migration completed successfully!\n\nSince you are in development mode, please manually restart the application to continue.',
+          buttons: ['Close App'],
+          defaultId: 0
+        })
+
+        // Clean up migration window and handlers after showing dialog
+        this.closeMigrateWindow()
+        app.quit()
+      } else {
+        // Production mode - clean up first, then relaunch
+        this.closeMigrateWindow()
+        app.relaunch()
+        app.exit(0)
+      }
     } catch (error) {
       logger.error('Failed to restart application', error as Error)
       // Fallback: just close migration window and let user manually restart
       this.closeMigrateWindow()
+    }
+  }
+
+  /**
+   * Verify that migration status is properly saved
+   */
+  private async verifyMigrationStatus(): Promise<void> {
+    try {
+      const isCompleted = await this.isMigrationCompleted()
+      if (isCompleted) {
+        logger.info('Migration status verified as completed')
+      } else {
+        logger.warn('Migration status not found as completed, attempting to mark again')
+        await this.markMigrationCompleted()
+
+        // Double-check
+        const recheck = await this.isMigrationCompleted()
+        if (recheck) {
+          logger.info('Migration status successfully marked as completed on retry')
+        } else {
+          logger.error('Failed to mark migration as completed even on retry')
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to verify migration status', error as Error)
+      // Don't throw - still allow restart
     }
   }
 }

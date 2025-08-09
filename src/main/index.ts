@@ -113,20 +113,43 @@ if (!app.requestSingleInstanceLock()) {
     // Data Refactor Migration
     // Check if data migration is needed BEFORE creating any windows
     try {
+      logger.info('Checking if data refactor migration is needed')
       const isMigrated = await dataRefactorMigrateService.isMigrated()
+      logger.info('Migration status check result', { isMigrated })
+
       if (!isMigrated) {
         logger.info('Data Refactor Migration needed, starting migration process')
-        await dataRefactorMigrateService.runMigration()
-        logger.info('Migration completed, app will restart automatically')
-        // Migration service will handle app restart, no need to continue startup
-        return
+
+        try {
+          await dataRefactorMigrateService.runMigration()
+          logger.info('Migration window created successfully')
+          // Migration service will handle the migration flow, no need to continue startup
+          return
+        } catch (migrationError) {
+          logger.error('Failed to start migration process', migrationError as Error)
+
+          // Migration is required for this version - show error and exit
+          await dialog.showErrorBox(
+            'Migration Required - Application Cannot Start',
+            `This version of Cherry Studio requires data migration to function properly.\n\nMigration window failed to start: ${(migrationError as Error).message}\n\nThe application will now exit. Please try starting again or contact support if the problem persists.`
+          )
+
+          logger.error('Exiting application due to failed migration startup')
+          app.quit()
+          return
+        }
       }
     } catch (error) {
-      logger.error('Migration process failed', error as Error)
-      dialog.showErrorBox(
-        'Fatal Error: Data Refactor Migration Failed',
-        `The application could not start due to a critical error during data migration.\n\nPlease contact support or try restoring data from a backup.\n\nError details:\n${(error as Error).message}`
+      logger.error('Migration status check failed', error as Error)
+
+      // If we can't check migration status, this could indicate a serious database issue
+      // Since migration may be required, it's safer to exit and let user investigate
+      await dialog.showErrorBox(
+        'Migration Status Check Failed - Application Cannot Start',
+        `Could not determine if data migration is completed.\n\nThis may indicate a database connectivity issue: ${(error as Error).message}\n\nThe application will now exit. Please check your installation and try again.`
       )
+
+      logger.error('Exiting application due to migration status check failure')
       app.quit()
       return
     }
@@ -140,7 +163,7 @@ if (!app.requestSingleInstanceLock()) {
       app.dock?.hide()
     }
 
-    // Only create main window if no migration was needed or migration failed
+    // Create main window - migration has either completed or was not needed
     const mainWindow = windowService.createMainWindow()
 
     new TrayService()

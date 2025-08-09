@@ -186,13 +186,15 @@ export enum IpcChannel {
 
   // data migration
   DataMigrate_CheckNeeded = 'data-migrate:check-needed',
-  DataMigrate_StartMigration = 'data-migrate:start-migration',
   DataMigrate_GetProgress = 'data-migrate:get-progress',
   DataMigrate_Cancel = 'data-migrate:cancel',
   DataMigrate_RequireBackup = 'data-migrate:require-backup',
   DataMigrate_BackupCompleted = 'data-migrate:backup-completed',
   DataMigrate_ShowBackupDialog = 'data-migrate:show-backup-dialog',
   DataMigrate_StartFlow = 'data-migrate:start-flow',
+  DataMigrate_ProceedToBackup = 'data-migrate:proceed-to-backup',
+  DataMigrate_StartMigration = 'data-migrate:start-migration',
+  DataMigrate_RetryMigration = 'data-migrate:retry-migration',
   DataMigrate_RestartApp = 'data-migrate:restart-app',
   DataMigrate_CloseWindow = 'data-migrate:close-window',
 
