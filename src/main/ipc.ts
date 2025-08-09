@@ -13,7 +13,6 @@ import { FileMetadata, Provider, Shortcut, ThemeMode } from '@types'
 import { BrowserWindow, dialog, ipcMain, ProxyConfig, session, shell, systemPreferences, webContents } from 'electron'
 import { Notification } from 'src/renderer/src/types/notification'
 
-import { migrateService } from './data/migrate/MigrateService'
 import appService from './services/AppService'
 import AppUpdater from './services/AppUpdater'
 import BackupManager from './services/BackupManager'
@@ -697,19 +696,4 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
     (_, spanId: string, modelName: string, context: string, msg: any) =>
       addStreamMessage(spanId, modelName, context, msg)
   )
-
-  // Data migration handlers
-  ipcMain.handle(IpcChannel.DataMigrate_CheckNeeded, () => migrateService.checkMigrationNeeded())
-  ipcMain.handle(IpcChannel.DataMigrate_StartMigration, () => migrateService.runMigration())
-  ipcMain.handle(IpcChannel.DataMigrate_GetProgress, () => migrateService.getCurrentProgress())
-  ipcMain.handle(IpcChannel.DataMigrate_Cancel, () => migrateService.cancelMigration())
-  ipcMain.handle(IpcChannel.DataMigrate_BackupCompleted, () => {
-    migrateService.notifyBackupCompleted()
-    return true
-  })
-  ipcMain.handle(IpcChannel.DataMigrate_ShowBackupDialog, () => {
-    // Show the backup dialog/interface
-    // This could integrate with existing backup UI or create a new backup interface
-    return true
-  })
 }

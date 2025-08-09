@@ -119,13 +119,15 @@ if (!app.requestSingleInstanceLock()) {
       app.dock?.hide()
     }
 
-    // Check if data migration is needed
+    // Check if data migration is needed BEFORE creating any windows
     try {
       const needsMigration = await migrateService.checkMigrationNeeded()
       if (needsMigration) {
         logger.info('Migration needed, starting migration process')
         await migrateService.runMigration()
-        logger.info('Migration completed, proceeding with normal startup')
+        logger.info('Migration completed, app will restart automatically')
+        // Migration service will handle app restart, no need to continue startup
+        return
       }
     } catch (error) {
       logger.error('Migration process failed', error as Error)
@@ -133,9 +135,10 @@ if (!app.requestSingleInstanceLock()) {
       // The user can retry migration later or use backup recovery
     }
 
+    // Only create main window if no migration was needed or migration failed
     const mainWindow = windowService.createMainWindow()
-    new TrayService()
 
+    new TrayService()
     nodeTraceService.init()
 
     app.on('activate', function () {
@@ -148,7 +151,6 @@ if (!app.requestSingleInstanceLock()) {
     })
 
     registerShortcuts(mainWindow)
-
     registerIpc(mainWindow, app)
 
     replaceDevtoolsFont(mainWindow)

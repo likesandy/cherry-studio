@@ -3,7 +3,7 @@ import { APP_STATE_KEYS, appStateTable, DataRefactorMigrationStatus } from '@dat
 import { loggerService } from '@logger'
 import { IpcChannel } from '@shared/IpcChannel'
 import { eq } from 'drizzle-orm'
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import { app as electronApp } from 'electron'
 import fs from 'fs-extra'
 import { join } from 'path'
@@ -51,6 +51,96 @@ export class MigrateService {
    */
   public getBackupManager(): BackupManager {
     return this.backupManager
+  }
+
+  /**
+   * Register migration-specific IPC handlers
+   * This creates an isolated IPC environment only for migration operations
+   */
+  public registerMigrationIpcHandlers(): void {
+    logger.info('Registering migration-specific IPC handlers')
+
+    // Only register the minimal IPC handlers needed for migration
+    ipcMain.handle(IpcChannel.DataMigrate_CheckNeeded, async () => {
+      try {
+        return await this.checkMigrationNeeded()
+      } catch (error) {
+        logger.error('IPC handler error: checkMigrationNeeded', error as Error)
+        throw error
+      }
+    })
+
+    ipcMain.handle(IpcChannel.DataMigrate_StartMigration, async () => {
+      try {
+        return await this.runMigration()
+      } catch (error) {
+        logger.error('IPC handler error: runMigration', error as Error)
+        throw error
+      }
+    })
+
+    ipcMain.handle(IpcChannel.DataMigrate_GetProgress, () => {
+      try {
+        return this.getCurrentProgress()
+      } catch (error) {
+        logger.error('IPC handler error: getCurrentProgress', error as Error)
+        throw error
+      }
+    })
+
+    ipcMain.handle(IpcChannel.DataMigrate_Cancel, async () => {
+      try {
+        return await this.cancelMigration()
+      } catch (error) {
+        logger.error('IPC handler error: cancelMigration', error as Error)
+        throw error
+      }
+    })
+
+    ipcMain.handle(IpcChannel.DataMigrate_BackupCompleted, () => {
+      try {
+        this.notifyBackupCompleted()
+        return true
+      } catch (error) {
+        logger.error('IPC handler error: notifyBackupCompleted', error as Error)
+        throw error
+      }
+    })
+
+    ipcMain.handle(IpcChannel.DataMigrate_ShowBackupDialog, () => {
+      try {
+        // Show the backup dialog/interface
+        // This could integrate with existing backup UI or create a new backup interface
+        logger.info('Backup dialog request received')
+        return true
+      } catch (error) {
+        logger.error('IPC handler error: showBackupDialog', error as Error)
+        throw error
+      }
+    })
+
+    logger.info('Migration IPC handlers registered successfully')
+  }
+
+  /**
+   * Remove migration-specific IPC handlers
+   * Clean up when migration is complete or cancelled
+   */
+  public unregisterMigrationIpcHandlers(): void {
+    logger.info('Unregistering migration-specific IPC handlers')
+
+    try {
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_CheckNeeded)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_StartMigration)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_GetProgress)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_Cancel)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_BackupCompleted)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_ShowBackupDialog)
+
+      logger.info('Migration IPC handlers unregistered successfully')
+    } catch (error) {
+      logger.warn('Error unregistering migration IPC handlers', error as Error)
+    }
   }
 
   public static getInstance(): MigrateService {
@@ -211,6 +301,9 @@ export class MigrateService {
       return this.migrateWindow
     }
 
+    // Register migration-specific IPC handlers before creating window
+    this.registerMigrationIpcHandlers()
+
     this.migrateWindow = new BrowserWindow({
       width: 600,
       height: 500,
@@ -245,6 +338,8 @@ export class MigrateService {
 
     this.migrateWindow.on('closed', () => {
       this.migrateWindow = null
+      // Clean up IPC handlers when window is closed
+      this.unregisterMigrationIpcHandlers()
     })
 
     logger.info('Migration window created')
@@ -318,19 +413,33 @@ export class MigrateService {
       // Step 3: Mark as completed
       await this.markMigrationCompleted()
 
-      await this.updateProgress('completed', 100, 'Migration process completed successfully')
+      await this.updateProgress('completed', 100, 'Migration completed! App will restart in 3 seconds...')
 
-      // Close migration window after a delay
-      setTimeout(() => {
-        this.closeMigrateWindow()
-      }, 3000)
+      // Wait a moment to show success message, then restart the app
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          logger.info('Migration completed successfully, restarting application')
+          this.restartApplication()
+          resolve()
+        }, 3000)
+      })
     } catch (error) {
       logger.error('Migration flow failed', error as Error)
       await this.updateProgress(
         'error',
         0,
-        `Migration failed: ${error instanceof Error ? error.message : String(error)}`
+        `Migration failed: ${error instanceof Error ? error.message : String(error)}. Please restart the app to try again.`
       )
+
+      // Wait a moment to show error message, then close migration window
+      // Do NOT restart on error - let user handle the situation
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          this.closeMigrateWindow()
+          resolve()
+        }, 8000) // Show error for longer (8 seconds) to give user time to read
+      })
+
       throw error
     }
   }
@@ -482,6 +591,29 @@ export class MigrateService {
     if (this.migrateWindow && !this.migrateWindow.isDestroyed()) {
       this.migrateWindow.close()
       this.migrateWindow = null
+    }
+
+    // Clean up migration-specific IPC handlers
+    this.unregisterMigrationIpcHandlers()
+  }
+
+  /**
+   * Restart the application after successful migration
+   */
+  private restartApplication(): void {
+    try {
+      logger.info('Restarting application after migration completion')
+
+      // Clean up migration window and handlers before restart
+      this.closeMigrateWindow()
+
+      // Restart the app using Electron's relaunch mechanism
+      app.relaunch()
+      app.exit(0)
+    } catch (error) {
+      logger.error('Failed to restart application', error as Error)
+      // Fallback: just close migration window and let user manually restart
+      this.closeMigrateWindow()
     }
   }
 }
