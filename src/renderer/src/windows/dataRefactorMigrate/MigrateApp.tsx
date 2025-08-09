@@ -1,4 +1,4 @@
-import { AppLogo } from '@renderer/config/env'
+import { CheckCircleOutlined, CloudUploadOutlined, LoadingOutlined, RocketOutlined } from '@ant-design/icons'
 import { IpcChannel } from '@shared/IpcChannel'
 import { Alert, Button, Card, Progress, Space, Steps, Typography } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -126,6 +126,26 @@ const MigrateApp: React.FC = () => {
     }
   }
 
+  const getCurrentStepIcon = () => {
+    switch (progress.stage) {
+      case 'introduction':
+        return <RocketOutlined style={{ fontSize: 64, color: '#1890ff', margin: '24px 0' }} />
+      case 'backup_required':
+      case 'backup_progress':
+        return <CloudUploadOutlined style={{ fontSize: 64, color: '#faad14', margin: '24px 0' }} />
+      case 'backup_confirmed':
+        return <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a', margin: '24px 0' }} />
+      case 'migration':
+        return <LoadingOutlined style={{ fontSize: 64, color: '#1890ff', margin: '24px 0' }} />
+      case 'completed':
+        return <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a', margin: '24px 0' }} />
+      case 'error':
+        return <div style={{ fontSize: 64, color: '#ff4d4f', margin: '24px 0' }}>⚠️</div>
+      default:
+        return <RocketOutlined style={{ fontSize: 64, color: '#1890ff', margin: '24px 0' }} />
+    }
+  }
+
   const renderActionButtons = () => {
     switch (progress.stage) {
       case 'introduction':
@@ -133,7 +153,7 @@ const MigrateApp: React.FC = () => {
           <Space>
             <Button onClick={handleCancel}>取消</Button>
             <Button type="primary" onClick={handleProceedToBackup}>
-              下一步
+              开始迁移
             </Button>
           </Space>
         )
@@ -183,23 +203,22 @@ const MigrateApp: React.FC = () => {
       <MigrationCard
         title={
           <div style={{ textAlign: 'center' }}>
-            <Title level={3} style={{ margin: 0 }}>
-              Cherry Studio Data Migration
+            <Title level={4} style={{ margin: 0, fontWeight: 'normal' }}>
+              数据迁移向导
             </Title>
           </div>
         }
         bordered={false}>
-        <LogoContainer>
-          <img src={AppLogo} alt="Cherry Studio" />
-        </LogoContainer>
-
-        <div style={{ margin: '24px 0' }}>
+        <div style={{ margin: '16px 0 32px 0' }}>
           <Steps
             current={currentStep}
             status={stepStatus}
+            size="small"
             items={[{ title: '介绍' }, { title: '备份' }, { title: '迁移' }, { title: '完成' }]}
           />
         </div>
+
+        <div style={{ textAlign: 'center' }}>{getCurrentStepIcon()}</div>
 
         {progress.stage !== 'introduction' && progress.stage !== 'error' && (
           <ProgressContainer>
@@ -219,8 +238,8 @@ const MigrateApp: React.FC = () => {
 
         {progress.stage === 'introduction' && (
           <Alert
-            message="欢迎使用Cherry Studio数据迁移向导"
-            description="本次更新将您的数据迁移到更高效的存储格式。迁移前会创建完整备份，确保数据安全。整个过程大约需要几分钟时间。"
+            message="数据迁移向导"
+            description="本次更新将数据迁移到更高效的存储格式，迁移前会创建完整备份确保数据安全。"
             type="info"
             showIcon
             style={{ marginTop: 16 }}
@@ -229,8 +248,8 @@ const MigrateApp: React.FC = () => {
 
         {progress.stage === 'backup_required' && (
           <Alert
-            message="需要数据备份"
-            description="为确保数据安全，迁移前必须创建数据备份。请点击'创建备份'按钮，或者如果您已经有最新备份，可以直接确认。"
+            message="创建数据备份"
+            description="迁移前必须创建数据备份以确保数据安全。请选择备份位置或确认已有最新备份。"
             type="warning"
             showIcon
             style={{ marginTop: 16 }}
@@ -240,7 +259,7 @@ const MigrateApp: React.FC = () => {
         {progress.stage === 'backup_confirmed' && (
           <Alert
             message="备份完成"
-            description="数据备份已完成，现在可以安全地开始迁移。点击'开始迁移'继续。"
+            description="数据备份已完成，现在可以安全地开始迁移。"
             type="success"
             showIcon
             style={{ marginTop: 16 }}
@@ -249,11 +268,8 @@ const MigrateApp: React.FC = () => {
 
         {progress.stage === 'error' && (
           <Alert
-            message="迁移出现错误"
-            description={
-              progress.error ||
-              '迁移过程中遇到错误。您可以关闭窗口重新尝试，或继续使用之前版本（所有原始数据都完好保存）。'
-            }
+            message="迁移失败"
+            description={progress.error || '迁移过程遇到错误，您可以重新尝试或继续使用之前版本（原始数据完好保存）。'}
             type="error"
             showIcon
             style={{ marginTop: 16 }}
@@ -262,8 +278,8 @@ const MigrateApp: React.FC = () => {
 
         {progress.stage === 'completed' && (
           <Alert
-            message="迁移成功完成"
-            description="数据已成功迁移到新格式。Cherry Studio将使用更新后的数据重新启动，享受更流畅的使用体验。"
+            message="迁移完成"
+            description="数据已成功迁移到新格式，应用将重新启动以应用更改。"
             type="success"
             showIcon
             style={{ marginTop: 16 }}
@@ -283,35 +299,23 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f5f5f5;
   padding: 20px;
 `
 
 const MigrationCard = styled(Card)`
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 
   .ant-card-head {
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
   }
 
   .ant-card-body {
-    padding: 32px 24px;
-  }
-`
-
-const LogoContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-bottom: 24px;
-
-  img {
-    width: 64px;
-    height: 64px;
-    border-radius: 8px;
+    padding: 24px 32px 32px 32px;
   }
 `
 

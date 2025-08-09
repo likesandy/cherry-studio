@@ -375,14 +375,14 @@ class DataRefactorMigrateService {
     this.registerMigrationIpcHandlers()
 
     this.migrateWindow = new BrowserWindow({
-      width: 600,
-      height: 500,
-      resizable: false,
-      maximizable: false,
-      minimizable: false,
+      width: 800,
+      height: 650,
+      resizable: true,
+      maximizable: true,
+      minimizable: true,
       show: false,
       autoHideMenuBar: true,
-      titleBarStyle: 'hidden',
+      titleBarStyle: 'default',
       webPreferences: {
         preload: join(__dirname, '../preload/index.js'),
         sandbox: false,
