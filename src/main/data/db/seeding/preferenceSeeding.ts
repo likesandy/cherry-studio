@@ -1,5 +1,5 @@
-import { preferenceTable } from '@main/db/schemas/preference'
-import { defaultPreferences } from '@shared/preferences'
+import { preferenceTable } from '@data/db/schemas/preference'
+import { defaultPreferences } from '@shared/data/preferences'
 
 import type { DbType, ISeed } from '../types'
 
