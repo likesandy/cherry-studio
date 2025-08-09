@@ -7,7 +7,7 @@ import '@main/config'
 
 import { loggerService } from '@logger'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
-import dbService from '@main/db/DbService'
+import dbService from '@data/db/DbService'
 import { replaceDevtoolsFont } from '@main/utils/windowUtil'
 import { app } from 'electron'
 import installExtension, { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer'
@@ -27,6 +27,7 @@ import selectionService, { initSelectionService } from './services/SelectionServ
 import { registerShortcuts } from './services/ShortcutService'
 import { TrayService } from './services/TrayService'
 import { windowService } from './services/WindowService'
+import { migrateService } from './data/migrate/MigrateService'
 import process from 'node:process'
 
 const logger = loggerService.withContext('MainEntry')
@@ -116,6 +117,20 @@ if (!app.requestSingleInstanceLock()) {
     const isLaunchToTray = configManager.getLaunchToTray()
     if (isLaunchToTray) {
       app.dock?.hide()
+    }
+
+    // Check if data migration is needed
+    try {
+      const needsMigration = await migrateService.checkMigrationNeeded()
+      if (needsMigration) {
+        logger.info('Migration needed, starting migration process')
+        await migrateService.runMigration()
+        logger.info('Migration completed, proceeding with normal startup')
+      }
+    } catch (error) {
+      logger.error('Migration process failed', error as Error)
+      // Continue with normal startup even if migration fails
+      // The user can retry migration later or use backup recovery
     }
 
     const mainWindow = windowService.createMainWindow()

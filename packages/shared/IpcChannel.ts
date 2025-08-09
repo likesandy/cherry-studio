@@ -184,6 +184,15 @@ export enum IpcChannel {
   Backup_DeleteS3File = 'backup:deleteS3File',
   Backup_CheckS3Connection = 'backup:checkS3Connection',
 
+  // data migration
+  DataMigrate_CheckNeeded = 'data-migrate:check-needed',
+  DataMigrate_StartMigration = 'data-migrate:start-migration',
+  DataMigrate_GetProgress = 'data-migrate:get-progress',
+  DataMigrate_Cancel = 'data-migrate:cancel',
+  DataMigrate_RequireBackup = 'data-migrate:require-backup',
+  DataMigrate_BackupCompleted = 'data-migrate:backup-completed',
+  DataMigrate_ShowBackupDialog = 'data-migrate:show-backup-dialog',
+
   // zip
   Zip_Compress = 'zip:compress',
   Zip_Decompress = 'zip:decompress',
@@ -197,6 +206,7 @@ export enum IpcChannel {
 
   // events
   BackupProgress = 'backup-progress',
+  DataMigrateProgress = 'data-migrate-progress',
   ThemeUpdated = 'theme:updated',
   UpdateDownloadedCancelled = 'update-downloaded-cancelled',
   RestoreProgress = 'restore-progress',
