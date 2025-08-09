@@ -1,34 +1,42 @@
 import dbService from '@data/db/DbService'
-import { APP_STATE_KEYS, appStateTable, DataRefactorMigrationStatus } from '@data/db/schemas/appState'
+import { appStateTable } from '@data/db/schemas/appState'
 import { loggerService } from '@logger'
+import { isDev } from '@main/constant'
+import BackupManager from '@main/services/BackupManager'
 import { IpcChannel } from '@shared/IpcChannel'
 import { eq } from 'drizzle-orm'
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { app as electronApp } from 'electron'
-import fs from 'fs-extra'
 import { join } from 'path'
 
-import icon from '../../../../build/icon.png?asset'
-import BackupManager from '../../services/BackupManager'
-import { PreferencesMigrator } from './PreferencesMigrator'
+import { PreferencesMigrator } from './migrators/PreferencesMigrator'
 
-const logger = loggerService.withContext('MigrateService')
+const logger = loggerService.withContext('DataRefactorMigrateService')
 
-export interface MigrationProgress {
+const DATA_REFACTOR_MIGRATION_STATUS = 'data_refactor_migration_status'
+
+// Data refactor migration status interface
+interface DataRefactorMigrationStatus {
+  completed: boolean
+  completedAt?: number
+  version?: string
+}
+
+interface MigrationProgress {
   stage: string
   progress: number
   total: number
   message: string
 }
 
-export interface MigrationResult {
+interface MigrationResult {
   success: boolean
   error?: string
   migratedCount: number
 }
 
-export class MigrateService {
-  private static instance: MigrateService | null = null
+class DataRefactorMigrateService {
+  private static instance: DataRefactorMigrateService | null = null
   private migrateWindow: BrowserWindow | null = null
   private backupManager: BackupManager
   private backupCompletionResolver: ((value: boolean) => void) | null = null
@@ -63,7 +71,7 @@ export class MigrateService {
     // Only register the minimal IPC handlers needed for migration
     ipcMain.handle(IpcChannel.DataMigrate_CheckNeeded, async () => {
       try {
-        return await this.checkMigrationNeeded()
+        return await this.isMigrated()
       } catch (error) {
         logger.error('IPC handler error: checkMigrationNeeded', error as Error)
         throw error
@@ -143,92 +151,27 @@ export class MigrateService {
     }
   }
 
-  public static getInstance(): MigrateService {
-    if (!MigrateService.instance) {
-      MigrateService.instance = new MigrateService()
+  public static getInstance(): DataRefactorMigrateService {
+    if (!DataRefactorMigrateService.instance) {
+      DataRefactorMigrateService.instance = new DataRefactorMigrateService()
     }
-    return MigrateService.instance
+    return DataRefactorMigrateService.instance
   }
 
   /**
    * Check if migration is needed
    */
-  async checkMigrationNeeded(): Promise<boolean> {
+  async isMigrated(): Promise<boolean> {
     try {
-      logger.info('Checking if migration is needed')
-
-      // 1. Check migration completion status
       const isMigrated = await this.isMigrationCompleted()
       if (isMigrated) {
-        logger.info('Migration already completed')
-        return false
+        logger.info('Data Refactor Migration already completed')
+        return true
       }
 
-      // 2. Check if there's old data that needs migration
-      const hasOldData = await this.hasOldFormatData()
-
-      logger.info('Migration check result', {
-        isMigrated,
-        hasOldData
-      })
-
-      return hasOldData
+      return false
     } catch (error) {
       logger.error('Failed to check migration status', error as Error)
-      return false
-    }
-  }
-
-  /**
-   * Check if old format data exists
-   */
-  private async hasOldFormatData(): Promise<boolean> {
-    const hasReduxData = await this.checkReduxPersistData()
-    const hasElectronStoreData = await this.checkElectronStoreData()
-
-    logger.debug('Old format data check', {
-      hasReduxData,
-      hasElectronStoreData
-    })
-
-    return hasReduxData || hasElectronStoreData
-  }
-
-  /**
-   * Check if Redux persist data exists
-   */
-  private async checkReduxPersistData(): Promise<boolean> {
-    try {
-      // In Electron, localStorage data is stored in userData/Local Storage/leveldb
-      // We'll check for the existence of these files as a proxy for Redux persist data
-      const userDataPath = app.getPath('userData')
-      const localStoragePath = join(userDataPath, 'Local Storage', 'leveldb')
-
-      const exists = await fs.pathExists(localStoragePath)
-      logger.debug('Redux persist data check', { localStoragePath, exists })
-
-      return exists
-    } catch (error) {
-      logger.warn('Failed to check Redux persist data', error as Error)
-      return false
-    }
-  }
-
-  /**
-   * Check if ElectronStore data exists
-   */
-  private async checkElectronStoreData(): Promise<boolean> {
-    try {
-      // ElectronStore typically stores data in config files
-      const userDataPath = app.getPath('userData')
-      const configPath = join(userDataPath, 'config.json')
-
-      const exists = await fs.pathExists(configPath)
-      logger.debug('ElectronStore data check', { configPath, exists })
-
-      return exists
-    } catch (error) {
-      logger.warn('Failed to check ElectronStore data', error as Error)
       return false
     }
   }
@@ -241,7 +184,7 @@ export class MigrateService {
       const result = await this.db
         .select()
         .from(appStateTable)
-        .where(eq(appStateTable.key, APP_STATE_KEYS.DATA_REFACTOR_MIGRATION_STATUS))
+        .where(eq(appStateTable.key, DATA_REFACTOR_MIGRATION_STATUS))
         .limit(1)
 
       if (result.length === 0) return false
@@ -268,7 +211,7 @@ export class MigrateService {
       await this.db
         .insert(appStateTable)
         .values({
-          key: APP_STATE_KEYS.DATA_REFACTOR_MIGRATION_STATUS,
+          key: DATA_REFACTOR_MIGRATION_STATUS,
           value: migrationStatus, // drizzle handles JSON serialization automatically
           description: 'Data refactoring migration status from legacy format (ElectronStore + Redux persist) to SQLite',
           createdAt: Date.now(),
@@ -318,15 +261,14 @@ export class MigrateService {
         sandbox: false,
         webSecurity: false,
         contextIsolation: true
-      },
-      ...(process.platform === 'linux' ? { icon } : {})
+      }
     })
 
     // Load the migration window
-    if (app.isPackaged) {
-      this.migrateWindow.loadFile(join(__dirname, '../renderer/dataMigrate.html'))
+    if (isDev && process.env['ELECTRON_RENDERER_URL']) {
+      this.migrateWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/dataRefactorMigrate.html')
     } else {
-      this.migrateWindow.loadURL('http://localhost:5173/dataMigrate.html')
+      this.migrateWindow.loadFile(join(__dirname, '../renderer/dataRefactorMigrate.html'))
     }
 
     this.migrateWindow.once('ready-to-show', () => {
@@ -619,4 +561,4 @@ export class MigrateService {
 }
 
 // Export singleton instance
-export const migrateService = MigrateService.getInstance()
+export const dataRefactorMigrateService = DataRefactorMigrateService.getInstance()

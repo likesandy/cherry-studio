@@ -9,7 +9,7 @@ import { loggerService } from '@logger'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import dbService from '@data/db/DbService'
 import { replaceDevtoolsFont } from '@main/utils/windowUtil'
-import { app } from 'electron'
+import { app, dialog } from 'electron'
 import installExtension, { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer'
 
 import { isDev, isLinux, isWin } from './constant'
@@ -27,7 +27,7 @@ import selectionService, { initSelectionService } from './services/SelectionServ
 import { registerShortcuts } from './services/ShortcutService'
 import { TrayService } from './services/TrayService'
 import { windowService } from './services/WindowService'
-import { migrateService } from './data/migrate/MigrateService'
+import { dataRefactorMigrateService } from './data/migrate/dataRefactor/DataRefactorMigrateService'
 import process from 'node:process'
 
 const logger = loggerService.withContext('MainEntry')
@@ -102,14 +102,35 @@ if (!app.requestSingleInstanceLock()) {
   app.quit()
   process.exit(0)
 } else {
-  dbService.migrateDb().then(async () => {
-    await dbService.migrateSeed('preference')
-  })
-
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
   app.whenReady().then(async () => {
+    // First of all, init & migrate the database
+    await dbService.migrateDb()
+    await dbService.migrateSeed('preference')
+
+    // Data Refactor Migration
+    // Check if data migration is needed BEFORE creating any windows
+    try {
+      const isMigrated = await dataRefactorMigrateService.isMigrated()
+      if (!isMigrated) {
+        logger.info('Data Refactor Migration needed, starting migration process')
+        await dataRefactorMigrateService.runMigration()
+        logger.info('Migration completed, app will restart automatically')
+        // Migration service will handle app restart, no need to continue startup
+        return
+      }
+    } catch (error) {
+      logger.error('Migration process failed', error as Error)
+      dialog.showErrorBox(
+        'Fatal Error: Data Refactor Migration Failed',
+        `The application could not start due to a critical error during data migration.\n\nPlease contact support or try restoring data from a backup.\n\nError details:\n${(error as Error).message}`
+      )
+      app.quit()
+      return
+    }
+
     // Set app user model id for windows
     electronApp.setAppUserModelId(import.meta.env.VITE_MAIN_BUNDLE_ID || 'com.kangfenmao.CherryStudio')
 
@@ -117,22 +138,6 @@ if (!app.requestSingleInstanceLock()) {
     const isLaunchToTray = configManager.getLaunchToTray()
     if (isLaunchToTray) {
       app.dock?.hide()
-    }
-
-    // Check if data migration is needed BEFORE creating any windows
-    try {
-      const needsMigration = await migrateService.checkMigrationNeeded()
-      if (needsMigration) {
-        logger.info('Migration needed, starting migration process')
-        await migrateService.runMigration()
-        logger.info('Migration completed, app will restart automatically')
-        // Migration service will handle app restart, no need to continue startup
-        return
-      }
-    } catch (error) {
-      logger.error('Migration process failed', error as Error)
-      // Continue with normal startup even if migration fails
-      // The user can retry migration later or use backup recovery
     }
 
     // Only create main window if no migration was needed or migration failed

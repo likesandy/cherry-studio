@@ -103,7 +103,7 @@ export default defineConfig({
           selectionToolbar: resolve(__dirname, 'src/renderer/selectionToolbar.html'),
           selectionAction: resolve(__dirname, 'src/renderer/selectionAction.html'),
           traceWindow: resolve(__dirname, 'src/renderer/traceWindow.html'),
-          dataMigrate: resolve(__dirname, 'src/renderer/dataMigrate.html')
+          dataRefactorMigrate: resolve(__dirname, 'src/renderer/dataRefactorMigrate.html')
         }
       }
     },

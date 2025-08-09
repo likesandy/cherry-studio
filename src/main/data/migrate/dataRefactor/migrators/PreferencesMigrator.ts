@@ -3,7 +3,7 @@ import { preferenceTable } from '@data/db/schemas/preference'
 import { loggerService } from '@logger'
 import { and, eq } from 'drizzle-orm'
 
-import { configManager } from '../../services/ConfigManager'
+import { configManager } from '../../../../services/ConfigManager'
 
 const logger = loggerService.withContext('PreferencesMigrator')
 
