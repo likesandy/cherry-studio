@@ -375,16 +375,16 @@ class DataRefactorMigrateService {
     this.registerMigrationIpcHandlers()
 
     this.migrateWindow = new BrowserWindow({
-      width: 800,
-      height: 650,
-      resizable: true,
-      maximizable: true,
-      minimizable: true,
+      width: 640,
+      height: 480,
+      resizable: false,
+      maximizable: false,
+      minimizable: false,
       show: false,
+      frame: false,
       autoHideMenuBar: true,
-      titleBarStyle: 'default',
       webPreferences: {
-        preload: join(__dirname, '../preload/index.js'),
+        preload: join(__dirname, '../preload/simplest.js'),
         sandbox: false,
         webSecurity: false,
         contextIsolation: true
@@ -400,9 +400,6 @@ class DataRefactorMigrateService {
 
     this.migrateWindow.once('ready-to-show', () => {
       this.migrateWindow?.show()
-      if (!app.isPackaged) {
-        this.migrateWindow?.webContents.openDevTools()
-      }
     })
 
     this.migrateWindow.on('closed', () => {

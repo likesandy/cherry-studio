@@ -1,10 +1,9 @@
-import { CheckCircleOutlined, CloudUploadOutlined, LoadingOutlined, RocketOutlined } from '@ant-design/icons'
+import { AppLogo } from '@renderer/config/env'
 import { IpcChannel } from '@shared/IpcChannel'
-import { Alert, Button, Card, Progress, Space, Steps, Typography } from 'antd'
+import { Button, Progress, Space, Steps } from 'antd'
+import { AlertTriangle, CheckCircle, Database, Loader2, Rocket } from 'lucide-react'
 import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
-
-const { Title, Text } = Typography
 
 type MigrationStage =
   | 'introduction' // Introduction phase - user can cancel
@@ -116,33 +115,37 @@ const MigrateApp: React.FC = () => {
   const getProgressColor = () => {
     switch (progress.stage) {
       case 'completed':
-        return '#52c41a'
+        return 'var(--color-primary)'
       case 'error':
         return '#ff4d4f'
       case 'backup_confirmed':
-        return '#52c41a'
+        return 'var(--color-primary)'
       default:
-        return '#1890ff'
+        return 'var(--color-primary)'
     }
   }
 
   const getCurrentStepIcon = () => {
     switch (progress.stage) {
       case 'introduction':
-        return <RocketOutlined style={{ fontSize: 64, color: '#1890ff', margin: '24px 0' }} />
+        return <Rocket size={48} color="var(--color-primary)" />
       case 'backup_required':
       case 'backup_progress':
-        return <CloudUploadOutlined style={{ fontSize: 64, color: '#faad14', margin: '24px 0' }} />
+        return <Database size={48} color="var(--color-primary)" />
       case 'backup_confirmed':
-        return <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a', margin: '24px 0' }} />
+        return <CheckCircle size={48} color="var(--color-primary)" />
       case 'migration':
-        return <LoadingOutlined style={{ fontSize: 64, color: '#1890ff', margin: '24px 0' }} />
+        return (
+          <SpinningIcon>
+            <Loader2 size={48} color="var(--color-primary)" />
+          </SpinningIcon>
+        )
       case 'completed':
-        return <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a', margin: '24px 0' }} />
+        return <CheckCircle size={48} color="var(--color-primary)" />
       case 'error':
-        return <div style={{ fontSize: 64, color: '#ff4d4f', margin: '24px 0' }}>⚠️</div>
+        return <AlertTriangle size={48} color="#ff4d4f" />
       default:
-        return <RocketOutlined style={{ fontSize: 64, color: '#1890ff', margin: '24px 0' }} />
+        return <Rocket size={48} color="var(--color-primary)" />
     }
   }
 
@@ -150,48 +153,62 @@ const MigrateApp: React.FC = () => {
     switch (progress.stage) {
       case 'introduction':
         return (
-          <Space>
+          <>
             <Button onClick={handleCancel}>取消</Button>
+            <Spacer />
             <Button type="primary" onClick={handleProceedToBackup}>
-              开始迁移
+              下一步
             </Button>
-          </Space>
+          </>
         )
       case 'backup_required':
         return (
-          <Space>
+          <>
             <Button onClick={handleCancel}>取消</Button>
+            <Spacer />
+            <Button onClick={handleBackupCompleted}>我已备份，开始迁移</Button>
             <Button type="primary" onClick={handleShowBackupDialog}>
               创建备份
             </Button>
-            <Button onClick={handleBackupCompleted}>我已完成备份</Button>
-          </Space>
+          </>
         )
       case 'backup_confirmed':
         return (
-          <Space>
+          <ButtonRow>
             <Button onClick={handleCancel}>取消</Button>
-            <Button type="primary" onClick={handleStartMigration}>
-              开始迁移
-            </Button>
-          </Space>
+            <Space>
+              <Button type="primary" onClick={handleStartMigration}>
+                开始迁移
+              </Button>
+            </Space>
+          </ButtonRow>
         )
       case 'migration':
-        return <Button disabled>迁移进行中...</Button>
+        return (
+          <ButtonRow>
+            <div></div>
+            <Button disabled>迁移进行中...</Button>
+          </ButtonRow>
+        )
       case 'completed':
         return (
-          <Button type="primary" onClick={handleRestartApp}>
-            重启应用
-          </Button>
+          <ButtonRow>
+            <div></div>
+            <Button type="primary" onClick={handleRestartApp}>
+              重启应用
+            </Button>
+          </ButtonRow>
         )
       case 'error':
         return (
-          <Space>
+          <ButtonRow>
             <Button onClick={handleCloseWindow}>关闭应用</Button>
-            <Button type="primary" onClick={handleRetryMigration}>
-              重新尝试
-            </Button>
-          </Space>
+            <Space>
+              <Button type="primary" onClick={handleRetryMigration}>
+                重新尝试
+              </Button>
+            </Space>
+          </ButtonRow>
         )
       default:
         return null
@@ -200,94 +217,109 @@ const MigrateApp: React.FC = () => {
 
   return (
     <Container>
-      <MigrationCard
-        title={
-          <div style={{ textAlign: 'center' }}>
-            <Title level={4} style={{ margin: 0, fontWeight: 'normal' }}>
-              数据迁移向导
-            </Title>
-          </div>
-        }
-        bordered={false}>
-        <div style={{ margin: '16px 0 32px 0' }}>
-          <Steps
-            current={currentStep}
-            status={stepStatus}
-            size="small"
-            items={[{ title: '介绍' }, { title: '备份' }, { title: '迁移' }, { title: '完成' }]}
-          />
-        </div>
+      {/* Header */}
+      <Header>
+        <HeaderLogo src={AppLogo} />
 
-        <div style={{ textAlign: 'center' }}>{getCurrentStepIcon()}</div>
+        <HeaderTitle>数据迁移向导</HeaderTitle>
+      </Header>
 
-        {progress.stage !== 'introduction' && progress.stage !== 'error' && (
-          <ProgressContainer>
-            <Progress
-              percent={progress.progress}
-              strokeColor={getProgressColor()}
-              trailColor="#f0f0f0"
-              size="default"
-              showInfo={true}
+      {/* Main Content */}
+      <MainContent>
+        {/* Left Sidebar with Steps */}
+        <LeftSidebar>
+          <StepsContainer>
+            <Steps
+              direction="vertical"
+              current={currentStep}
+              status={stepStatus}
+              size="small"
+              items={[{ title: '介绍' }, { title: '备份' }, { title: '迁移' }, { title: '完成' }]}
             />
-          </ProgressContainer>
-        )}
+          </StepsContainer>
+        </LeftSidebar>
 
-        <MessageContainer>
-          <Text type="secondary">{progress.message}</Text>
-        </MessageContainer>
+        {/* Right Content Area */}
+        <RightContent>
+          <ContentArea>
+            <InfoIcon>{getCurrentStepIcon()}</InfoIcon>
 
-        {progress.stage === 'introduction' && (
-          <Alert
-            message="数据迁移向导"
-            description="本次更新将数据迁移到更高效的存储格式，迁移前会创建完整备份确保数据安全。"
-            type="info"
-            showIcon
-            style={{ marginTop: 16 }}
-          />
-        )}
+            {progress.stage === 'introduction' && (
+              <InfoCard>
+                <InfoTitle>将数据迁移到新的架构中</InfoTitle>
+                <InfoDescription>
+                  Cherry Studio对数据的存储和使用方式进行了重大重构，在新的架构下，效率和安全性将会得到极大提升。
+                  <br />
+                  <br />
+                  数据必须进行迁移，才能在新版本中使用。
+                  <br />
+                  <br />
+                  我们会指导你完成迁移，迁移过程不会损坏原来的数据，你随时可以取消迁移，并继续使用旧版本。
+                </InfoDescription>
+              </InfoCard>
+            )}
 
-        {progress.stage === 'backup_required' && (
-          <Alert
-            message="创建数据备份"
-            description="迁移前必须创建数据备份以确保数据安全。请选择备份位置或确认已有最新备份。"
-            type="warning"
-            showIcon
-            style={{ marginTop: 16 }}
-          />
-        )}
+            {progress.stage === 'backup_required' && (
+              <InfoCard variant="warning">
+                <InfoTitle>创建数据备份</InfoTitle>
+                <InfoDescription style={{ textAlign: 'center' }}>
+                  迁移前必须创建数据备份以确保数据安全。请选择备份位置或确认已有最新备份。
+                </InfoDescription>
+              </InfoCard>
+            )}
 
-        {progress.stage === 'backup_confirmed' && (
-          <Alert
-            message="备份完成"
-            description="数据备份已完成，现在可以安全地开始迁移。"
-            type="success"
-            showIcon
-            style={{ marginTop: 16 }}
-          />
-        )}
+            {progress.stage === 'backup_progress' && (
+              <InfoCard variant="warning">
+                <InfoTitle>准备数据备份</InfoTitle>
+                <InfoDescription style={{ textAlign: 'center' }}>请选择备份位置，保存后等待备份完成。</InfoDescription>
+              </InfoCard>
+            )}
 
-        {progress.stage === 'error' && (
-          <Alert
-            message="迁移失败"
-            description={progress.error || '迁移过程遇到错误，您可以重新尝试或继续使用之前版本（原始数据完好保存）。'}
-            type="error"
-            showIcon
-            style={{ marginTop: 16 }}
-          />
-        )}
+            {progress.stage === 'backup_confirmed' && (
+              <InfoCard variant="success">
+                <InfoTitle>备份完成</InfoTitle>
+                <InfoDescription style={{ textAlign: 'center' }}>
+                  数据备份已完成，现在可以安全地开始迁移。
+                </InfoDescription>
+              </InfoCard>
+            )}
 
-        {progress.stage === 'completed' && (
-          <Alert
-            message="迁移完成"
-            description="数据已成功迁移到新格式，应用将重新启动以应用更改。"
-            type="success"
-            showIcon
-            style={{ marginTop: 16 }}
-          />
-        )}
+            {progress.stage === 'error' && (
+              <InfoCard variant="error">
+                <InfoTitle>迁移失败</InfoTitle>
+                <InfoDescription>
+                  {progress.error || '迁移过程遇到错误，您可以重新尝试或继续使用之前版本（原始数据完好保存）。'}
+                </InfoDescription>
+              </InfoCard>
+            )}
 
-        <div style={{ textAlign: 'center', marginTop: 24 }}>{renderActionButtons()}</div>
-      </MigrationCard>
+            {progress.stage === 'completed' && (
+              <InfoCard variant="success">
+                <InfoTitle>迁移完成</InfoTitle>
+                <InfoDescription>数据已成功迁移，重启应用后即可正常使用。</InfoDescription>
+              </InfoCard>
+            )}
+
+            {progress.stage !== 'introduction' &&
+              progress.stage !== 'error' &&
+              progress.stage !== 'backup_required' &&
+              progress.stage !== 'backup_confirmed' && (
+                <ProgressContainer>
+                  <Progress
+                    percent={progress.progress}
+                    strokeColor={getProgressColor()}
+                    trailColor="#f0f0f0"
+                    size="default"
+                    showInfo={true}
+                  />
+                </ProgressContainer>
+              )}
+          </ContentArea>
+        </RightContent>
+      </MainContent>
+
+      {/* Footer */}
+      <Footer>{renderActionButtons()}</Footer>
     </Container>
   )
 }
@@ -297,36 +329,163 @@ const Container = styled.div`
   height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: #f5f5f5;
-  padding: 20px;
+  background: #fff;
 `
 
-const MigrationCard = styled(Card)`
+const Header = styled.div`
+  height: 48px;
+  background: rgb(240, 240, 240);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  -webkit-app-region: drag;
+  user-select: none;
+`
+
+const HeaderTitle = styled.div`
+  font-size: 16px;
+  font-weight: 600;
+  color: black;
+  margin-left: 12px;
+`
+
+const HeaderLogo = styled.img`
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+`
+
+const MainContent = styled.div`
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+`
+
+const LeftSidebar = styled.div`
+  width: 150px;
+  background: #fff;
+  border-right: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+`
+
+const StepsContainer = styled.div`
+  padding: 32px 24px;
+  flex: 1;
+
+  .ant-steps-item-process .ant-steps-item-icon {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary-soft);
+  }
+
+  .ant-steps-item-finish .ant-steps-item-icon {
+    background-color: var(--color-primary-mute);
+    border-color: var(--color-primary-mute);
+  }
+
+  .ant-steps-item-finish .ant-steps-item-icon > .ant-steps-icon {
+    color: var(--color-primary);
+  }
+
+  .ant-steps-item-process .ant-steps-item-icon > .ant-steps-icon {
+    color: #fff;
+  }
+
+  .ant-steps-item-wait .ant-steps-item-icon {
+    border-color: #d9d9d9;
+  }
+`
+
+const RightContent = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+`
+
+const ContentArea = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+  /* align-items: center; */
+  /* margin: 0 auto; */
   width: 100%;
-  max-width: 600px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+`
 
-  .ant-card-head {
-    background: #fff;
-    border-bottom: 1px solid #f0f0f0;
-  }
+const Footer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 
-  .ant-card-body {
-    padding: 24px 32px 32px 32px;
-  }
+  background: rgb(250, 250, 250);
+
+  height: 64px;
+
+  padding: 0 24px;
+  gap: 16px;
+`
+
+const Spacer = styled.div`
+  flex: 1;
 `
 
 const ProgressContainer = styled.div`
-  margin: 24px 0;
+  margin: 32px 0;
+  width: 100%;
 `
 
-const MessageContainer = styled.div`
+const ButtonRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-width: 300px;
+`
+
+const InfoIcon = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+`
+
+const InfoCard = styled.div<{ variant?: 'info' | 'warning' | 'success' | 'error' }>`
+  width: 100%;
+`
+
+const InfoTitle = styled.div`
+  margin-bottom: 32px;
+  margin-top: 32px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-primary);
+  line-height: 1.4;
   text-align: center;
-  margin: 16px 0;
-  min-height: 24px;
+`
+
+const InfoDescription = styled.p`
+  margin: 0;
+  color: rgba(0, 0, 0, 0.68);
+  line-height: 1.8;
+  max-width: 420px;
+  margin: 0 auto;
+`
+
+const SpinningIcon = styled.div`
+  display: inline-block;
+  animation: spin 2s linear infinite;
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
 `
 
 export default MigrateApp

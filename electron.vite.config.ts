@@ -54,7 +54,18 @@ export default defineConfig({
       }
     },
     build: {
-      sourcemap: isDev
+      sourcemap: isDev,
+      rollupOptions: {
+        // Unlike renderer which auto-discovers entries from HTML files,
+        // preload requires explicit entry point configuration for multiple scripts
+        input: {
+          index: resolve(__dirname, 'src/preload/index.ts'),
+          simplest: resolve(__dirname, 'src/preload/simplest.ts') // Minimal preload
+        },
+        output: {
+          entryFileNames: '[name].js'
+        }
+      }
     }
   },
   renderer: {

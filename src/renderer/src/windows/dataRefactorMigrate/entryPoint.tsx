@@ -1,9 +1,10 @@
-import '../../assets/styles/index.scss'
+import '@ant-design/v5-patch-for-react-19'
+import '@renderer/assets/styles/index.scss'
 
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
 
 import MigrateApp from './MigrateApp'
 
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
+const root = createRoot(document.getElementById('root') as HTMLElement)
 
 root.render(<MigrateApp />)
