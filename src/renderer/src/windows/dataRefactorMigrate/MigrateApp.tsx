@@ -1,9 +1,12 @@
 import { AppLogo } from '@renderer/config/env'
+import { loggerService } from '@renderer/services/LoggerService'
 import { IpcChannel } from '@shared/IpcChannel'
 import { Button, Progress, Space, Steps } from 'antd'
 import { AlertTriangle, CheckCircle, Database, Loader2, Rocket } from 'lucide-react'
 import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
+
+const logger = loggerService.withContext('MigrateApp')
 
 type MigrationStage =
   | 'introduction' // Introduction phase - user can cancel
@@ -78,12 +81,68 @@ const MigrateApp: React.FC = () => {
     return 'process'
   }, [progress.stage])
 
+  /**
+   * Extract Redux persist data from localStorage and send to main process
+   */
+  const extractAndSendReduxData = async () => {
+    try {
+      logger.info('Extracting Redux persist data for migration...')
+
+      // Get the Redux persist key (this should match the key used in store configuration)
+      const persistKey = 'persist:cherry-studio'
+
+      // Read the persisted data from localStorage
+      const persistedDataString = localStorage.getItem(persistKey)
+
+      if (!persistedDataString) {
+        logger.warn('No Redux persist data found in localStorage', { persistKey })
+        // Send empty data to indicate no Redux data available
+        await window.electron.ipcRenderer.invoke(IpcChannel.DataMigrate_SendReduxData, null)
+        return
+      }
+
+      // Parse the persisted data
+      const persistedData = JSON.parse(persistedDataString)
+
+      logger.info('Found Redux persist data:', {
+        keys: Object.keys(persistedData),
+        hasData: !!persistedData,
+        dataSize: persistedDataString.length,
+        persistKey
+      })
+
+      // Send the Redux data to main process for migration
+      const result = await window.electron.ipcRenderer.invoke(IpcChannel.DataMigrate_SendReduxData, persistedData)
+
+      if (result?.success) {
+        logger.info('Successfully sent Redux data to main process for migration')
+      } else {
+        logger.warn('Failed to send Redux data to main process', { result })
+      }
+    } catch (error) {
+      logger.error('Error extracting Redux persist data', error as Error)
+      // Send null to indicate extraction failed
+      await window.electron.ipcRenderer.invoke(IpcChannel.DataMigrate_SendReduxData, null)
+      throw error
+    }
+  }
+
   const handleProceedToBackup = () => {
     window.electron.ipcRenderer.invoke(IpcChannel.DataMigrate_ProceedToBackup)
   }
 
-  const handleStartMigration = () => {
-    window.electron.ipcRenderer.invoke(IpcChannel.DataMigrate_StartMigration)
+  const handleStartMigration = async () => {
+    try {
+      // First, extract Redux persist data and send to main process
+      await extractAndSendReduxData()
+
+      // Then start the migration process
+      window.electron.ipcRenderer.invoke(IpcChannel.DataMigrate_StartMigration)
+    } catch (error) {
+      logger.error('Failed to extract Redux data for migration', error as Error)
+      // Still proceed with migration even if Redux data extraction fails
+      window.electron.ipcRenderer.invoke(IpcChannel.DataMigrate_StartMigration)
+    }
   }
 
   const handleRestartApp = () => {
@@ -256,6 +315,22 @@ const MigrateApp: React.FC = () => {
                   <br />
                   我们会指导你完成迁移，迁移过程不会损坏原来的数据，你随时可以取消迁移，并继续使用旧版本。
                 </InfoDescription>
+                {/* Debug button to test Redux data extraction */}
+                <div style={{ marginTop: '24px', textAlign: 'center' }}>
+                  <Button
+                    size="small"
+                    type="dashed"
+                    onClick={async () => {
+                      try {
+                        await extractAndSendReduxData()
+                        alert('Redux数据提取成功！请查看应用日志。')
+                      } catch (error) {
+                        alert('Redux数据提取失败：' + (error as Error).message)
+                      }
+                    }}>
+                    测试Redux数据提取
+                  </Button>
+                </div>
               </InfoCard>
             )}
 

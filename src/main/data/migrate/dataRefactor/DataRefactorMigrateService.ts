@@ -57,6 +57,7 @@ class DataRefactorMigrateService {
     message: 'Ready to start data migration'
   }
   private isMigrating: boolean = false
+  private reduxData: any = null // Cache for Redux persist data
 
   constructor() {
     this.backupManager = new BackupManager()
@@ -67,6 +68,24 @@ class DataRefactorMigrateService {
    */
   public getBackupManager(): BackupManager {
     return this.backupManager
+  }
+
+  /**
+   * Get cached Redux persist data for migration
+   */
+  public getReduxData(): any {
+    return this.reduxData
+  }
+
+  /**
+   * Set Redux persist data from renderer process
+   */
+  public setReduxData(data: any): void {
+    this.reduxData = data
+    logger.info('Redux data cached for migration', {
+      dataKeys: data ? Object.keys(data) : [],
+      hasData: !!data
+    })
   }
 
   /**
@@ -226,6 +245,25 @@ class DataRefactorMigrateService {
       }
     })
 
+    ipcMain.handle(IpcChannel.DataMigrate_SendReduxData, (_event, data) => {
+      try {
+        this.setReduxData(data)
+        return { success: true }
+      } catch (error) {
+        logger.error('IPC handler error: sendReduxData', error as Error)
+        throw error
+      }
+    })
+
+    ipcMain.handle(IpcChannel.DataMigrate_GetReduxData, () => {
+      try {
+        return this.getReduxData()
+      } catch (error) {
+        logger.error('IPC handler error: getReduxData', error as Error)
+        throw error
+      }
+    })
+
     logger.info('Migration IPC handlers registered successfully')
   }
 
@@ -248,6 +286,8 @@ class DataRefactorMigrateService {
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_RetryMigration)
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_RestartApp)
       ipcMain.removeAllListeners(IpcChannel.DataMigrate_CloseWindow)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_SendReduxData)
+      ipcMain.removeAllListeners(IpcChannel.DataMigrate_GetReduxData)
 
       logger.info('Migration IPC handlers unregistered successfully')
     } catch (error) {
@@ -643,8 +683,8 @@ class DataRefactorMigrateService {
     try {
       logger.info('Executing migration')
 
-      // Create preferences migrator
-      const preferencesMigrator = new PreferencesMigrator()
+      // Create preferences migrator with reference to this service for Redux data access
+      const preferencesMigrator = new PreferencesMigrator(this)
 
       // Execute preferences migration with progress updates
       const result = await preferencesMigrator.migrate((progress, message) => {

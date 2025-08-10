@@ -1,9 +1,11 @@
 import dbService from '@data/db/DbService'
 import { preferenceTable } from '@data/db/schemas/preference'
 import { loggerService } from '@logger'
+import { defaultPreferences } from '@shared/data/preferences'
 import { and, eq } from 'drizzle-orm'
 
 import { configManager } from '../../../../services/ConfigManager'
+import { ELECTRON_STORE_MAPPINGS, REDUX_STORE_MAPPINGS } from './PreferencesMappings'
 
 const logger = loggerService.withContext('PreferencesMigrator')
 
@@ -13,7 +15,7 @@ export interface MigrationItem {
   type: string
   defaultValue: any
   source: 'electronStore' | 'redux'
-  sourceCategory: string
+  sourceCategory?: string // Optional for electronStore
 }
 
 export interface MigrationResult {
@@ -27,6 +29,11 @@ export interface MigrationResult {
 
 export class PreferencesMigrator {
   private db = dbService.getDb()
+  private migrateService: any // Reference to DataRefactorMigrateService
+
+  constructor(migrateService?: any) {
+    this.migrateService = migrateService
+  }
 
   /**
    * Execute preferences migration from all sources
@@ -43,6 +50,7 @@ export class PreferencesMigrator {
     try {
       // Get migration items from classification.json
       const migrationItems = await this.loadMigrationItems()
+
       const totalItems = migrationItems.length
 
       logger.info(`Found ${totalItems} items to migrate`)
@@ -83,70 +91,45 @@ export class PreferencesMigrator {
   }
 
   /**
-   * Load migration items from the generated preferences.ts mappings
-   * For now, we'll use a simplified set based on the current generated migration code
+   * Load migration items from generated mapping relationships
+   * This uses the auto-generated PreferencesMappings.ts file
    */
   private async loadMigrationItems(): Promise<MigrationItem[]> {
-    // This is a simplified implementation. In the full version, this would read from
-    // the classification.json and apply the same deduplication logic as the generators
+    logger.info('Loading migration items from generated mappings')
+    const items: MigrationItem[] = []
 
-    const items: MigrationItem[] = [
-      // ElectronStore items (from generated migration code)
-      {
-        originalKey: 'Language',
-        targetKey: 'app.language',
-        sourceCategory: 'Language',
-        type: 'unknown',
-        defaultValue: null,
+    // Process ElectronStore mappings - no sourceCategory needed
+    ELECTRON_STORE_MAPPINGS.forEach((mapping) => {
+      const defaultValue = defaultPreferences.default[mapping.targetKey] ?? null
+      items.push({
+        originalKey: mapping.originalKey,
+        targetKey: mapping.targetKey,
+        type: 'unknown', // Type will be inferred from defaultValue during conversion
+        defaultValue,
         source: 'electronStore'
-      },
-      {
-        originalKey: 'SelectionAssistantFollowToolbar',
-        targetKey: 'feature.selection.follow_toolbar',
-        sourceCategory: 'SelectionAssistantFollowToolbar',
-        type: 'unknown',
-        defaultValue: null,
-        source: 'electronStore'
-      },
-      {
-        originalKey: 'SelectionAssistantRemeberWinSize',
-        targetKey: 'feature.selection.remember_win_size',
-        sourceCategory: 'SelectionAssistantRemeberWinSize',
-        type: 'unknown',
-        defaultValue: null,
-        source: 'electronStore'
-      },
-      {
-        originalKey: 'ZoomFactor',
-        targetKey: 'app.zoom_factor',
-        sourceCategory: 'ZoomFactor',
-        type: 'unknown',
-        defaultValue: null,
-        source: 'electronStore'
-      }
-    ]
+      })
+    })
 
-    // Add some sample Redux items (in full implementation, these would be loaded from classification.json)
-    const reduxItems: MigrationItem[] = [
-      {
-        originalKey: 'theme',
-        targetKey: 'app.theme.mode',
-        sourceCategory: 'settings',
-        type: 'string',
-        defaultValue: 'ThemeMode.system',
-        source: 'redux'
-      },
-      {
-        originalKey: 'language',
-        targetKey: 'app.language',
-        sourceCategory: 'settings',
-        type: 'string',
-        defaultValue: 'en',
-        source: 'redux'
-      }
-    ]
+    // Process Redux mappings
+    Object.entries(REDUX_STORE_MAPPINGS).forEach(([category, mappings]) => {
+      mappings.forEach((mapping) => {
+        const defaultValue = defaultPreferences.default[mapping.targetKey] ?? null
+        items.push({
+          originalKey: mapping.originalKey, // May contain nested paths like "codeEditor.enabled"
+          targetKey: mapping.targetKey,
+          sourceCategory: category,
+          type: 'unknown', // Type will be inferred from defaultValue during conversion
+          defaultValue,
+          source: 'redux'
+        })
+      })
+    })
 
-    items.push(...reduxItems)
+    logger.info('Successfully loaded migration items from generated mappings', {
+      totalItems: items.length,
+      electronStoreItems: items.filter((i) => i.source === 'electronStore').length,
+      reduxItems: items.filter((i) => i.source === 'redux').length
+    })
 
     return items
   }
@@ -163,28 +146,80 @@ export class PreferencesMigrator {
     if (item.source === 'electronStore') {
       originalValue = await this.readFromElectronStore(item.originalKey)
     } else if (item.source === 'redux') {
+      if (!item.sourceCategory) {
+        throw new Error(`Redux source requires sourceCategory for item: ${item.originalKey}`)
+      }
       originalValue = await this.readFromReduxPersist(item.sourceCategory, item.originalKey)
     } else {
       throw new Error(`Unknown source: ${item.source}`)
     }
 
-    // Use default value if original value is not found
+    // IMPORTANT: Only migrate if we actually found data, or if we want to set defaults
+    // Skip migration if no original data found and no meaningful default
     let valueToMigrate = originalValue
+    let shouldSkipMigration = false
+
     if (originalValue === undefined || originalValue === null) {
-      valueToMigrate = item.defaultValue
+      // Check if we have a meaningful default value (not null)
+      if (item.defaultValue !== null && item.defaultValue !== undefined) {
+        valueToMigrate = item.defaultValue
+        logger.info('Using default value for migration', {
+          targetKey: item.targetKey,
+          defaultValue: item.defaultValue,
+          source: item.source,
+          originalKey: item.originalKey
+        })
+      } else {
+        // Skip migration if no data found and no meaningful default
+        shouldSkipMigration = true
+        logger.info('Skipping migration - no data found and no meaningful default', {
+          targetKey: item.targetKey,
+          originalValue,
+          defaultValue: item.defaultValue,
+          source: item.source,
+          originalKey: item.originalKey
+        })
+      }
+    } else {
+      // Found original data, log the successful data retrieval
+      logger.info('Found original data for migration', {
+        targetKey: item.targetKey,
+        source: item.source,
+        originalKey: item.originalKey,
+        valueType: typeof originalValue,
+        valuePreview: JSON.stringify(originalValue).substring(0, 100)
+      })
+    }
+
+    if (shouldSkipMigration) {
+      return
     }
 
     // Convert value to appropriate type
     const convertedValue = this.convertValue(valueToMigrate, item.type)
 
     // Write to preferences table using Drizzle
-    await this.writeToPreferences(item.targetKey, convertedValue)
+    try {
+      await this.writeToPreferences(item.targetKey, convertedValue)
 
-    logger.debug('Successfully migrated preference item', {
-      targetKey: item.targetKey,
-      originalValue,
-      convertedValue
-    })
+      logger.info('Successfully migrated preference item', {
+        targetKey: item.targetKey,
+        source: item.source,
+        originalKey: item.originalKey,
+        originalValue,
+        convertedValue,
+        migrationSuccessful: true
+      })
+    } catch (writeError) {
+      logger.error('Failed to write preference to database', {
+        targetKey: item.targetKey,
+        source: item.source,
+        originalKey: item.originalKey,
+        convertedValue,
+        writeError
+      })
+      throw writeError
+    }
   }
 
   /**
@@ -200,18 +235,104 @@ export class PreferencesMigrator {
   }
 
   /**
-   * Read value from Redux persist data
+   * Read value from Redux persist data with support for nested paths
    */
   private async readFromReduxPersist(category: string, key: string): Promise<any> {
     try {
-      // This is a simplified implementation
-      // In the full version, we would need to properly parse the leveldb files
-      // For now, we'll return undefined to use default values
+      // Get cached Redux data from migrate service
+      const reduxData = this.migrateService?.getReduxData()
 
-      logger.debug('Redux persist read not fully implemented', { category, key })
-      return undefined
+      if (!reduxData) {
+        logger.warn('No Redux persist data available in cache', { category, key })
+        return undefined
+      }
+
+      logger.debug('Reading from cached Redux persist data', {
+        category,
+        key,
+        availableCategories: Object.keys(reduxData),
+        isNestedKey: key.includes('.')
+      })
+
+      // Get the category data from Redux persist cache
+      const categoryData = reduxData[category]
+      if (!categoryData) {
+        logger.debug('Category not found in Redux persist data', {
+          category,
+          availableCategories: Object.keys(reduxData)
+        })
+        return undefined
+      }
+
+      // Redux persist usually stores data as JSON strings
+      let parsedCategoryData
+      try {
+        parsedCategoryData = typeof categoryData === 'string' ? JSON.parse(categoryData) : categoryData
+      } catch (parseError) {
+        logger.warn('Failed to parse Redux persist category data', {
+          category,
+          categoryData: typeof categoryData,
+          parseError
+        })
+        return undefined
+      }
+
+      // Handle nested paths (e.g., "codeEditor.enabled")
+      let value
+      if (key.includes('.')) {
+        // Parse nested path
+        const keyPath = key.split('.')
+        let current = parsedCategoryData
+
+        logger.debug('Parsing nested key path', {
+          category,
+          key,
+          keyPath,
+          rootDataKeys: current ? Object.keys(current) : []
+        })
+
+        for (const pathSegment of keyPath) {
+          if (current && typeof current === 'object' && !Array.isArray(current)) {
+            current = current[pathSegment]
+            logger.debug('Navigated to path segment', {
+              pathSegment,
+              foundValue: current !== undefined,
+              valueType: typeof current
+            })
+          } else {
+            logger.debug('Failed to navigate nested path - invalid structure', {
+              pathSegment,
+              currentType: typeof current,
+              isArray: Array.isArray(current)
+            })
+            return undefined
+          }
+        }
+        value = current
+      } else {
+        // Direct field access (e.g., "theme")
+        value = parsedCategoryData[key]
+      }
+
+      if (value !== undefined) {
+        logger.debug('Successfully read from Redux persist cache', {
+          category,
+          key,
+          value,
+          valueType: typeof value,
+          isNested: key.includes('.')
+        })
+      } else {
+        logger.debug('Key not found in Redux persist data', {
+          category,
+          key,
+          availableKeys: parsedCategoryData ? Object.keys(parsedCategoryData) : []
+        })
+      }
+
+      return value
     } catch (error) {
-      logger.warn('Failed to read from Redux persist', { category, key, error })
+      logger.warn('Failed to read from Redux persist cache', { category, key, error })
       return undefined
     }
   }
