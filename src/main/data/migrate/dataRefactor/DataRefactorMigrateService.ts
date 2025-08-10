@@ -45,7 +45,7 @@ interface MigrationResult {
   migratedCount: number
 }
 
-class DataRefactorMigrateService {
+export class DataRefactorMigrateService {
   private static instance: DataRefactorMigrateService | null = null
   private migrateWindow: BrowserWindow | null = null
   private backupManager: BackupManager
@@ -168,7 +168,7 @@ class DataRefactorMigrateService {
         logger.info('Opening backup dialog for migration')
 
         // Update progress to indicate backup dialog is opening
-        await this.updateProgress('backup_progress', 10, 'Opening backup dialog...')
+        // await this.updateProgress('backup_progress', 10, 'Opening backup dialog...')
 
         // Instead of performing backup automatically, let's open the file dialog
         // and let the user choose where to save the backup
@@ -184,7 +184,7 @@ class DataRefactorMigrateService {
 
         if (!result.canceled && result.filePath) {
           logger.info('User selected backup location', { filePath: result.filePath })
-          await this.updateProgress('backup_progress', 50, 'Creating backup file...')
+          await this.updateProgress('backup_progress', 10, 'Creating backup file...')
 
           // Perform the actual backup to the selected location
           const backupResult = await this.performBackupToFile(result.filePath)
@@ -825,6 +825,13 @@ class DataRefactorMigrateService {
       }
     } catch (error) {
       logger.error('Failed to restart application', error as Error)
+      // Update UI to show restart failure and provide manual restart instruction
+      await this.updateProgress(
+        'error',
+        0,
+        'Application restart failed. Please manually restart the application to complete migration.',
+        error instanceof Error ? error.message : String(error)
+      )
       // Fallback: just close migration window and let user manually restart
       this.closeMigrateWindow()
     }

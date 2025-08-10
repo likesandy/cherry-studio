@@ -363,7 +363,10 @@ const MigrateApp: React.FC = () => {
               <InfoCard variant="error">
                 <InfoTitle>迁移失败</InfoTitle>
                 <InfoDescription>
-                  {progress.error || '迁移过程遇到错误，您可以重新尝试或继续使用之前版本（原始数据完好保存）。'}
+                  迁移过程遇到错误，您可以重新尝试或继续使用之前版本（原始数据完好保存）。
+                  <br />
+                  <br />
+                  错误信息：{progress.error}
                 </InfoDescription>
               </InfoCard>
             )}
@@ -375,20 +378,17 @@ const MigrateApp: React.FC = () => {
               </InfoCard>
             )}
 
-            {progress.stage !== 'introduction' &&
-              progress.stage !== 'error' &&
-              progress.stage !== 'backup_required' &&
-              progress.stage !== 'backup_confirmed' && (
-                <ProgressContainer>
-                  <Progress
-                    percent={progress.progress}
-                    strokeColor={getProgressColor()}
-                    trailColor="#f0f0f0"
-                    size="default"
-                    showInfo={true}
-                  />
-                </ProgressContainer>
-              )}
+            {(progress.stage == 'backup_progress' || progress.stage == 'migration') && (
+              <ProgressContainer>
+                <Progress
+                  percent={progress.progress}
+                  strokeColor={getProgressColor()}
+                  trailColor="#f0f0f0"
+                  size="default"
+                  showInfo={true}
+                />
+              </ProgressContainer>
+            )}
           </ContentArea>
         </RightContent>
       </MainContent>

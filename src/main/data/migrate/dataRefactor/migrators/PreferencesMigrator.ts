@@ -5,6 +5,7 @@ import { defaultPreferences } from '@shared/data/preferences'
 import { and, eq } from 'drizzle-orm'
 
 import { configManager } from '../../../../services/ConfigManager'
+import { DataRefactorMigrateService } from '../DataRefactorMigrateService'
 import { ELECTRON_STORE_MAPPINGS, REDUX_STORE_MAPPINGS } from './PreferencesMappings'
 
 const logger = loggerService.withContext('PreferencesMigrator')
@@ -27,19 +28,37 @@ export interface MigrationResult {
   }>
 }
 
+export interface PreparedMigrationData {
+  targetKey: string
+  value: any
+  source: 'electronStore' | 'redux'
+  originalKey: string
+  sourceCategory?: string
+}
+
+export interface BatchMigrationResult {
+  newPreferences: PreparedMigrationData[]
+  updatedPreferences: PreparedMigrationData[]
+  skippedCount: number
+  preparationErrors: Array<{
+    key: string
+    error: string
+  }>
+}
+
 export class PreferencesMigrator {
   private db = dbService.getDb()
-  private migrateService: any // Reference to DataRefactorMigrateService
+  private migrateService: DataRefactorMigrateService
 
-  constructor(migrateService?: any) {
+  constructor(migrateService: DataRefactorMigrateService) {
     this.migrateService = migrateService
   }
 
   /**
-   * Execute preferences migration from all sources
+   * Execute preferences migration from all sources using batch operations and transactions
    */
   async migrate(onProgress?: (progress: number, message: string) => void): Promise<MigrationResult> {
-    logger.info('Starting preferences migration')
+    logger.info('Starting preferences migration with batch operations')
 
     const result: MigrationResult = {
       success: true,
@@ -48,35 +67,67 @@ export class PreferencesMigrator {
     }
 
     try {
-      // Get migration items from classification.json
+      // Phase 1: Prepare all migration data in memory (50% of progress)
+      onProgress?.(10, 'Loading migration items...')
       const migrationItems = await this.loadMigrationItems()
+      logger.info(`Found ${migrationItems.length} items to migrate`)
 
-      const totalItems = migrationItems.length
+      onProgress?.(25, 'Preparing migration data...')
+      const batchResult = await this.prepareMigrationData(migrationItems, (progress) => {
+        // Map preparation progress to 25-50% of total progress
+        const totalProgress = 25 + Math.floor(progress * 0.25)
+        onProgress?.(totalProgress, 'Preparing migration data...')
+      })
 
-      logger.info(`Found ${totalItems} items to migrate`)
+      // Add preparation errors to result
+      result.errors.push(...batchResult.preparationErrors)
 
-      for (let i = 0; i < migrationItems.length; i++) {
-        const item = migrationItems[i]
-
-        try {
-          await this.migrateItem(item)
-          result.migratedCount++
-
-          const progress = Math.floor(((i + 1) / totalItems) * 100)
-          onProgress?.(progress, `Migrated: ${item.targetKey}`)
-        } catch (error) {
-          logger.error('Failed to migrate item', { item, error })
-          result.errors.push({
-            key: item.originalKey,
-            error: error instanceof Error ? error.message : String(error)
-          })
-          result.success = false
-        }
+      if (batchResult.preparationErrors.length > 0) {
+        logger.warn('Some items failed during preparation', {
+          errorCount: batchResult.preparationErrors.length
+        })
       }
+
+      // Phase 2: Execute batch migration in transaction (50% of progress)
+      onProgress?.(50, 'Executing batch migration...')
+
+      const totalOperations = batchResult.newPreferences.length + batchResult.updatedPreferences.length
+      if (totalOperations > 0) {
+        try {
+          await this.executeBatchMigration(batchResult, (progress) => {
+            // Map execution progress to 50-90% of total progress
+            const totalProgress = 50 + Math.floor(progress * 0.4)
+            onProgress?.(totalProgress, 'Executing batch migration...')
+          })
+
+          result.migratedCount = totalOperations
+          logger.info('Batch migration completed successfully', {
+            newPreferences: batchResult.newPreferences.length,
+            updatedPreferences: batchResult.updatedPreferences.length,
+            skippedCount: batchResult.skippedCount
+          })
+        } catch (batchError) {
+          logger.error('Batch migration transaction failed - all changes rolled back', batchError as Error)
+          result.success = false
+          result.errors.push({
+            key: 'batch_migration',
+            error: `Transaction failed: ${batchError instanceof Error ? batchError.message : String(batchError)}`
+          })
+          // Note: No need to manually rollback - transaction handles this automatically
+        }
+      } else {
+        logger.info('No preferences to migrate')
+      }
+
+      onProgress?.(100, 'Migration completed')
+
+      // Set success based on whether we had any critical errors
+      result.success = result.errors.length === 0
 
       logger.info('Preferences migration completed', {
         migratedCount: result.migratedCount,
-        errorCount: result.errors.length
+        errorCount: result.errors.length,
+        skippedCount: batchResult.skippedCount
       })
     } catch (error) {
       logger.error('Preferences migration failed', error as Error)
@@ -135,91 +186,257 @@ export class PreferencesMigrator {
   }
 
   /**
-   * Migrate a single preference item
+   * Prepare all migration data in memory before database operations
+   * This phase reads all source data and performs conversions/validations
    */
-  private async migrateItem(item: MigrationItem): Promise<void> {
-    logger.debug('Migrating preference item', { item })
+  private async prepareMigrationData(
+    migrationItems: MigrationItem[],
+    onProgress?: (progress: number) => void
+  ): Promise<BatchMigrationResult> {
+    logger.info('Starting migration data preparation', { itemCount: migrationItems.length })
 
-    let originalValue: any
-
-    // Read value from the appropriate source
-    if (item.source === 'electronStore') {
-      originalValue = await this.readFromElectronStore(item.originalKey)
-    } else if (item.source === 'redux') {
-      if (!item.sourceCategory) {
-        throw new Error(`Redux source requires sourceCategory for item: ${item.originalKey}`)
-      }
-      originalValue = await this.readFromReduxPersist(item.sourceCategory, item.originalKey)
-    } else {
-      throw new Error(`Unknown source: ${item.source}`)
+    const batchResult: BatchMigrationResult = {
+      newPreferences: [],
+      updatedPreferences: [],
+      skippedCount: 0,
+      preparationErrors: []
     }
 
-    // IMPORTANT: Only migrate if we actually found data, or if we want to set defaults
-    // Skip migration if no original data found and no meaningful default
-    let valueToMigrate = originalValue
-    let shouldSkipMigration = false
+    // Get existing preferences to determine which are new vs updated
+    const existingPreferences = await this.getExistingPreferences()
+    const existingKeys = new Set(existingPreferences.map((p) => p.key))
 
-    if (originalValue === undefined || originalValue === null) {
-      // Check if we have a meaningful default value (not null)
-      if (item.defaultValue !== null && item.defaultValue !== undefined) {
-        valueToMigrate = item.defaultValue
-        logger.info('Using default value for migration', {
-          targetKey: item.targetKey,
-          defaultValue: item.defaultValue,
-          source: item.source,
-          originalKey: item.originalKey
+    // Process each migration item
+    for (let i = 0; i < migrationItems.length; i++) {
+      const item = migrationItems[i]
+
+      try {
+        // Read original value from source
+        let originalValue: any
+        if (item.source === 'electronStore') {
+          originalValue = await this.readFromElectronStore(item.originalKey)
+        } else if (item.source === 'redux') {
+          if (!item.sourceCategory) {
+            throw new Error(`Redux source requires sourceCategory for item: ${item.originalKey}`)
+          }
+          originalValue = await this.readFromReduxPersist(item.sourceCategory, item.originalKey)
+        } else {
+          throw new Error(`Unknown source: ${item.source}`)
+        }
+
+        // Determine value to migrate
+        let valueToMigrate = originalValue
+        let shouldSkip = false
+
+        if (originalValue === undefined || originalValue === null) {
+          if (item.defaultValue !== null && item.defaultValue !== undefined) {
+            valueToMigrate = item.defaultValue
+            logger.debug('Using default value for preparation', {
+              targetKey: item.targetKey,
+              source: item.source,
+              originalKey: item.originalKey
+            })
+          } else {
+            shouldSkip = true
+            batchResult.skippedCount++
+            logger.debug('Skipping item - no data and no meaningful default', {
+              targetKey: item.targetKey,
+              source: item.source,
+              originalKey: item.originalKey
+            })
+          }
+        }
+
+        if (!shouldSkip) {
+          // Convert value to appropriate type
+          const convertedValue = this.convertValue(valueToMigrate, item.type)
+
+          // Create prepared migration data
+          const preparedData: PreparedMigrationData = {
+            targetKey: item.targetKey,
+            value: convertedValue,
+            source: item.source,
+            originalKey: item.originalKey,
+            sourceCategory: item.sourceCategory
+          }
+
+          // Categorize as new or updated
+          if (existingKeys.has(item.targetKey)) {
+            batchResult.updatedPreferences.push(preparedData)
+          } else {
+            batchResult.newPreferences.push(preparedData)
+          }
+
+          logger.debug('Prepared migration data', {
+            targetKey: item.targetKey,
+            isUpdate: existingKeys.has(item.targetKey),
+            source: item.source
+          })
+        }
+      } catch (error) {
+        logger.error('Failed to prepare migration item', { item, error })
+        batchResult.preparationErrors.push({
+          key: item.originalKey,
+          error: error instanceof Error ? error.message : String(error)
         })
-      } else {
-        // Skip migration if no data found and no meaningful default
-        shouldSkipMigration = true
-        logger.info('Skipping migration - no data found and no meaningful default', {
-          targetKey: item.targetKey,
-          originalValue,
-          defaultValue: item.defaultValue,
-          source: item.source,
-          originalKey: item.originalKey
-        })
       }
-    } else {
-      // Found original data, log the successful data retrieval
-      logger.info('Found original data for migration', {
-        targetKey: item.targetKey,
-        source: item.source,
-        originalKey: item.originalKey,
-        valueType: typeof originalValue,
-        valuePreview: JSON.stringify(originalValue).substring(0, 100)
-      })
+
+      // Report progress
+      const progress = Math.floor(((i + 1) / migrationItems.length) * 100)
+      onProgress?.(progress)
     }
 
-    if (shouldSkipMigration) {
-      return
-    }
+    logger.info('Migration data preparation completed', {
+      newPreferences: batchResult.newPreferences.length,
+      updatedPreferences: batchResult.updatedPreferences.length,
+      skippedCount: batchResult.skippedCount,
+      errorCount: batchResult.preparationErrors.length
+    })
 
-    // Convert value to appropriate type
-    const convertedValue = this.convertValue(valueToMigrate, item.type)
+    return batchResult
+  }
 
-    // Write to preferences table using Drizzle
+  /**
+   * Get all existing preferences from database to determine new vs updated items
+   */
+  private async getExistingPreferences(): Promise<Array<{ key: string; value: any }>> {
     try {
-      await this.writeToPreferences(item.targetKey, convertedValue)
+      const preferences = await this.db
+        .select({
+          key: preferenceTable.key,
+          value: preferenceTable.value
+        })
+        .from(preferenceTable)
+        .where(eq(preferenceTable.scope, 'default'))
 
-      logger.info('Successfully migrated preference item', {
-        targetKey: item.targetKey,
-        source: item.source,
-        originalKey: item.originalKey,
-        originalValue,
-        convertedValue,
-        migrationSuccessful: true
-      })
-    } catch (writeError) {
-      logger.error('Failed to write preference to database', {
-        targetKey: item.targetKey,
-        source: item.source,
-        originalKey: item.originalKey,
-        convertedValue,
-        writeError
-      })
-      throw writeError
+      logger.debug('Loaded existing preferences', { count: preferences.length })
+      return preferences
+    } catch (error) {
+      logger.error('Failed to load existing preferences', error as Error)
+      return []
     }
+  }
+
+  /**
+   * Execute batch migration using database transaction with bulk operations
+   */
+  private async executeBatchMigration(
+    batchData: BatchMigrationResult,
+    onProgress?: (progress: number) => void
+  ): Promise<void> {
+    logger.info('Starting batch migration execution', {
+      newCount: batchData.newPreferences.length,
+      updateCount: batchData.updatedPreferences.length
+    })
+
+    // Validate batch data before starting transaction
+    this.validateBatchData(batchData)
+
+    await dbService.transaction(async (tx) => {
+      const scope = 'default'
+      const timestamp = Date.now()
+      let completedOperations = 0
+      const totalOperations = batchData.newPreferences.length + batchData.updatedPreferences.length
+
+      // Batch insert new preferences
+      if (batchData.newPreferences.length > 0) {
+        logger.debug('Executing batch insert for new preferences', { count: batchData.newPreferences.length })
+
+        const insertValues = batchData.newPreferences.map((item) => ({
+          scope,
+          key: item.targetKey,
+          value: item.value,
+          createdAt: timestamp,
+          updatedAt: timestamp
+        }))
+
+        await tx.insert(preferenceTable).values(insertValues)
+
+        completedOperations += batchData.newPreferences.length
+        const progress = Math.floor((completedOperations / totalOperations) * 100)
+        onProgress?.(progress)
+
+        logger.info('Batch insert completed', { insertedCount: batchData.newPreferences.length })
+      }
+
+      // Batch update existing preferences
+      if (batchData.updatedPreferences.length > 0) {
+        logger.debug('Executing batch updates for existing preferences', { count: batchData.updatedPreferences.length })
+
+        // Execute updates in batches to avoid SQL limitations
+        const BATCH_SIZE = 50
+        const updateBatches = this.chunkArray(batchData.updatedPreferences, BATCH_SIZE)
+
+        for (const batch of updateBatches) {
+          // Use Promise.all to execute updates in parallel within the transaction
+          await Promise.all(
+            batch.map((item) =>
+              tx
+                .update(preferenceTable)
+                .set({
+                  value: item.value,
+                  updatedAt: timestamp
+                })
+                .where(and(eq(preferenceTable.scope, scope), eq(preferenceTable.key, item.targetKey)))
+            )
+          )
+
+          completedOperations += batch.length
+          const progress = Math.floor((completedOperations / totalOperations) * 100)
+          onProgress?.(progress)
+        }
+
+        logger.info('Batch updates completed', { updatedCount: batchData.updatedPreferences.length })
+      }
+
+      logger.info('Transaction completed successfully', {
+        totalOperations: completedOperations,
+        newPreferences: batchData.newPreferences.length,
+        updatedPreferences: batchData.updatedPreferences.length
+      })
+    })
+  }
+
+  /**
+   * Validate batch data before executing migration
+   */
+  private validateBatchData(batchData: BatchMigrationResult): void {
+    const allData = [...batchData.newPreferences, ...batchData.updatedPreferences]
+
+    // Check for duplicate target keys
+    const targetKeys = allData.map((item) => item.targetKey)
+    const duplicateKeys = targetKeys.filter((key, index) => targetKeys.indexOf(key) !== index)
+
+    if (duplicateKeys.length > 0) {
+      throw new Error(`Duplicate target keys found in migration data: ${duplicateKeys.join(', ')}`)
+    }
+
+    // Validate each item has required fields
+    for (const item of allData) {
+      if (!item.targetKey || item.targetKey.trim() === '') {
+        throw new Error(`Invalid targetKey found: '${item.targetKey}'`)
+      }
+
+      if (item.value === undefined) {
+        throw new Error(`Undefined value for targetKey: '${item.targetKey}'`)
+      }
+    }
+
+    logger.debug('Batch data validation passed', {
+      totalItems: allData.length,
+      uniqueKeys: targetKeys.length
+    })
+  }
+
+  /**
+   * Split array into chunks of specified size for batch processing
+   */
+  private chunkArray<T>(array: T[], chunkSize: number): T[][] {
+    const chunks: T[][] = []
+    for (let i = 0; i < array.length; i += chunkSize) {
+      chunks.push(array.slice(i, i + chunkSize))
+    }
+    return chunks
   }
 
   /**
@@ -421,46 +638,5 @@ export class PreferencesMigrator {
       }
     }
     return { value }
-  }
-
-  /**
-   * Write value to preferences table using direct Drizzle operations
-   */
-  private async writeToPreferences(targetKey: string, value: any): Promise<void> {
-    const scope = 'default'
-
-    try {
-      // Check if preference already exists
-      const existing = await this.db
-        .select()
-        .from(preferenceTable)
-        .where(and(eq(preferenceTable.scope, scope), eq(preferenceTable.key, targetKey)))
-        .limit(1)
-
-      if (existing.length > 0) {
-        // Update existing preference
-        await this.db
-          .update(preferenceTable)
-          .set({
-            value: value, // drizzle handles JSON serialization automatically
-            updatedAt: Date.now()
-          })
-          .where(and(eq(preferenceTable.scope, scope), eq(preferenceTable.key, targetKey)))
-      } else {
-        // Insert new preference
-        await this.db.insert(preferenceTable).values({
-          scope,
-          key: targetKey,
-          value: value, // drizzle handles JSON serialization automatically
-          createdAt: Date.now(),
-          updatedAt: Date.now()
-        })
-      }
-
-      logger.debug('Successfully wrote to preferences table', { targetKey, value })
-    } catch (error) {
-      logger.error('Failed to write to preferences table', { targetKey, value, error })
-      throw error
-    }
   }
 }
