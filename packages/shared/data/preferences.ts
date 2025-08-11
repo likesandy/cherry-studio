@@ -332,7 +332,7 @@ export interface PreferencesType {
 }
 
 /* eslint sort-keys: ["error", "asc", {"caseSensitive": true, "natural": false}] */
-export const defaultPreferences: PreferencesType = {
+export const DefaultPreferences: PreferencesType = {
   default: {
     'app.developer_mode.enabled': false,
     'app.disable_hardware_acceleration': false,

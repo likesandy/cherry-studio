@@ -13,6 +13,7 @@ import { FileMetadata, Provider, Shortcut, ThemeMode } from '@types'
 import { BrowserWindow, dialog, ipcMain, ProxyConfig, session, shell, systemPreferences, webContents } from 'electron'
 import { Notification } from 'src/renderer/src/types/notification'
 
+import preferenceService from './data/PreferenceService'
 import appService from './services/AppService'
 import AppUpdater from './services/AppUpdater'
 import BackupManager from './services/BackupManager'
@@ -696,4 +697,28 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
     (_, spanId: string, modelName: string, context: string, msg: any) =>
       addStreamMessage(spanId, modelName, context, msg)
   )
+
+  // Preference handlers
+  ipcMain.handle(IpcChannel.Preference_Get, async (_, key: string) => {
+    return preferenceService.get(key as any)
+  })
+
+  ipcMain.handle(IpcChannel.Preference_Set, async (_, key: string, value: any) => {
+    await preferenceService.set(key as any, value)
+  })
+
+  ipcMain.handle(IpcChannel.Preference_GetMultiple, async (_, keys: string[]) => {
+    return preferenceService.getMultiple(keys)
+  })
+
+  ipcMain.handle(IpcChannel.Preference_SetMultiple, async (_, updates: Record<string, any>) => {
+    await preferenceService.setMultiple(updates)
+  })
+
+  ipcMain.handle(IpcChannel.Preference_Subscribe, async (event, keys: string[]) => {
+    const windowId = BrowserWindow.fromWebContents(event.sender)?.id
+    if (windowId) {
+      preferenceService.subscribe(windowId, keys)
+    }
+  })
 }

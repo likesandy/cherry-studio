@@ -278,6 +278,14 @@ export enum IpcChannel {
   Memory_DeleteAllMemoriesForUser = 'memory:delete-all-memories-for-user',
   Memory_GetUsersList = 'memory:get-users-list',
 
+  // Preference
+  Preference_Get = 'preference:get',
+  Preference_Set = 'preference:set',
+  Preference_GetMultiple = 'preference:get-multiple',
+  Preference_SetMultiple = 'preference:set-multiple',
+  Preference_Subscribe = 'preference:subscribe',
+  Preference_Changed = 'preference:changed',
+
   // TRACE
   TRACE_SAVE_DATA = 'trace:saveData',
   TRACE_GET_DATA = 'trace:getData',

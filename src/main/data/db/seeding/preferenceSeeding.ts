@@ -1,5 +1,5 @@
 import { preferenceTable } from '@data/db/schemas/preference'
-import { defaultPreferences } from '@shared/data/preferences'
+import { DefaultPreferences } from '@shared/data/preferences'
 
 import type { DbType, ISeed } from '../types'
 
@@ -18,7 +18,7 @@ class PreferenceSeed implements ISeed {
     }> = []
 
     // Process each scope in defaultPreferences
-    for (const [scope, scopeData] of Object.entries(defaultPreferences)) {
+    for (const [scope, scopeData] of Object.entries(DefaultPreferences)) {
       // Process each key-value pair in the scope
       for (const [key, value] of Object.entries(scopeData)) {
         const prefKey = `${scope}.${key}`

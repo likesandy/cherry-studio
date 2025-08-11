@@ -4,6 +4,7 @@ import { SpanEntity, TokenUsage } from '@mcp-trace/trace-core'
 import { SpanContext } from '@opentelemetry/api'
 import { UpgradeChannel } from '@shared/config/constant'
 import type { LogLevel, LogSourceWithContext } from '@shared/config/logger'
+import type { PreferencesType } from '@shared/data/preferences'
 import { IpcChannel } from '@shared/IpcChannel'
 import {
   AddMemoryOptions,
@@ -393,6 +394,24 @@ const api = {
     cleanLocalData: () => ipcRenderer.invoke(IpcChannel.TRACE_CLEAN_LOCAL_DATA),
     addStreamMessage: (spanId: string, modelName: string, context: string, message: any) =>
       ipcRenderer.invoke(IpcChannel.TRACE_ADD_STREAM_MESSAGE, spanId, modelName, context, message)
+  },
+  preference: {
+    get: <K extends keyof PreferencesType['default']>(key: K) => ipcRenderer.invoke(IpcChannel.Preference_Get, key),
+
+    set: <K extends keyof PreferencesType['default']>(key: K, value: PreferencesType['default'][K]) =>
+      ipcRenderer.invoke(IpcChannel.Preference_Set, key, value),
+
+    getMultiple: (keys: string[]) => ipcRenderer.invoke(IpcChannel.Preference_GetMultiple, keys),
+
+    setMultiple: (updates: Record<string, any>) => ipcRenderer.invoke(IpcChannel.Preference_SetMultiple, updates),
+
+    subscribe: (keys: string[]) => ipcRenderer.invoke(IpcChannel.Preference_Subscribe, keys),
+
+    onChanged: (callback: (key: string, value: any, scope: string) => void) => {
+      const listener = (_: any, key: string, value: any, scope: string) => callback(key, value, scope)
+      ipcRenderer.on(IpcChannel.Preference_Changed, listener)
+      return () => ipcRenderer.off(IpcChannel.Preference_Changed, listener)
+    }
   }
 }
 

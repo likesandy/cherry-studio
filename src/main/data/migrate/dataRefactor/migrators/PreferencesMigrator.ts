@@ -1,7 +1,7 @@
 import dbService from '@data/db/DbService'
 import { preferenceTable } from '@data/db/schemas/preference'
 import { loggerService } from '@logger'
-import { defaultPreferences } from '@shared/data/preferences'
+import { DefaultPreferences } from '@shared/data/preferences'
 import { and, eq } from 'drizzle-orm'
 
 import { configManager } from '../../../../services/ConfigManager'
@@ -151,7 +151,7 @@ export class PreferencesMigrator {
 
     // Process ElectronStore mappings - no sourceCategory needed
     ELECTRON_STORE_MAPPINGS.forEach((mapping) => {
-      const defaultValue = defaultPreferences.default[mapping.targetKey] ?? null
+      const defaultValue = DefaultPreferences.default[mapping.targetKey] ?? null
       items.push({
         originalKey: mapping.originalKey,
         targetKey: mapping.targetKey,
@@ -164,7 +164,7 @@ export class PreferencesMigrator {
     // Process Redux mappings
     Object.entries(REDUX_STORE_MAPPINGS).forEach(([category, mappings]) => {
       mappings.forEach((mapping) => {
-        const defaultValue = defaultPreferences.default[mapping.targetKey] ?? null
+        const defaultValue = DefaultPreferences.default[mapping.targetKey] ?? null
         items.push({
           originalKey: mapping.originalKey, // May contain nested paths like "codeEditor.enabled"
           targetKey: mapping.targetKey,
