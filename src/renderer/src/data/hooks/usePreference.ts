@@ -1,12 +1,10 @@
 import { loggerService } from '@logger'
-import type { PreferencesType } from '@shared/data/preferences'
+import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data/types'
 import { useCallback, useEffect, useSyncExternalStore } from 'react'
 
 import { preferenceService } from '../PreferenceService'
 
 const logger = loggerService.withContext('usePreference')
-
-type PreferenceKey = keyof PreferencesType['default']
 
 /**
  * React hook for managing a single preference value
@@ -15,9 +13,9 @@ type PreferenceKey = keyof PreferencesType['default']
  * @param key - The preference key to manage
  * @returns [value, setValue] - Current value and setter function
  */
-export function usePreference<K extends PreferenceKey>(
+export function usePreference<K extends PreferenceKeyType>(
   key: K
-): [PreferencesType['default'][K] | undefined, (value: PreferencesType['default'][K]) => Promise<void>] {
+): [PreferenceDefaultScopeType[K] | undefined, (value: PreferenceDefaultScopeType[K]) => Promise<void>] {
   // Subscribe to changes for this specific preference
   const value = useSyncExternalStore(
     preferenceService.subscribeToKey(key),
@@ -36,7 +34,7 @@ export function usePreference<K extends PreferenceKey>(
 
   // Memoized setter function
   const setValue = useCallback(
-    async (newValue: PreferencesType['default'][K]) => {
+    async (newValue: PreferenceDefaultScopeType[K]) => {
       try {
         await preferenceService.set(key, newValue)
       } catch (error) {
@@ -57,11 +55,11 @@ export function usePreference<K extends PreferenceKey>(
  * @param keys - Object mapping local names to preference keys
  * @returns [values, updateValues] - Current values and batch update function
  */
-export function usePreferences<T extends Record<string, PreferenceKey>>(
+export function usePreferences<T extends Record<string, PreferenceKeyType>>(
   keys: T
 ): [
-  { [P in keyof T]: PreferencesType['default'][T[P]] | undefined },
-  (updates: Partial<{ [P in keyof T]: PreferencesType['default'][T[P]] }>) => Promise<void>
+  { [P in keyof T]: PreferenceDefaultScopeType[T[P]] | undefined },
+  (updates: Partial<{ [P in keyof T]: PreferenceDefaultScopeType[T[P]] }>) => Promise<void>
 ] {
   // Track changes to any of the specified keys
   const keyList = Object.values(keys)
@@ -104,7 +102,7 @@ export function usePreferences<T extends Record<string, PreferenceKey>>(
 
   // Memoized batch update function
   const updateValues = useCallback(
-    async (updates: Partial<{ [P in keyof T]: PreferencesType['default'][T[P]] }>) => {
+    async (updates: Partial<{ [P in keyof T]: PreferenceDefaultScopeType[T[P]] }>) => {
       try {
         // Convert local keys back to preference keys
         const prefUpdates: Record<string, any> = {}
@@ -125,7 +123,7 @@ export function usePreferences<T extends Record<string, PreferenceKey>>(
   )
 
   // Type-cast the values to the expected shape
-  const typedValues = allValues as { [P in keyof T]: PreferencesType['default'][T[P]] | undefined }
+  const typedValues = allValues as { [P in keyof T]: PreferenceDefaultScopeType[T[P]] | undefined }
 
   return [typedValues, updateValues]
 }
@@ -136,7 +134,7 @@ export function usePreferences<T extends Record<string, PreferenceKey>>(
  *
  * @param keys - Array of preference keys to preload
  */
-export function usePreferencePreload(keys: PreferenceKey[]): void {
+export function usePreferencePreload(keys: PreferenceKeyType[]): void {
   const keysString = keys.join(',')
   useEffect(() => {
     preferenceService.preload(keys).catch((error) => {

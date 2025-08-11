@@ -1,10 +1,8 @@
 import { loggerService } from '@logger'
-import type { PreferencesType } from '@shared/data/preferences'
 import { DefaultPreferences } from '@shared/data/preferences'
+import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data/types'
 
 const logger = loggerService.withContext('PreferenceService')
-
-type PreferenceKey = keyof PreferencesType['default']
 
 /**
  * Renderer-side PreferenceService providing cached access to preferences
@@ -12,22 +10,15 @@ type PreferenceKey = keyof PreferencesType['default']
  */
 export class PreferenceService {
   private static instance: PreferenceService
-  private cache = new Map<string, any>()
+  private cache: Partial<PreferenceDefaultScopeType> = {}
   private listeners = new Set<() => void>()
   private keyListeners = new Map<string, Set<() => void>>()
   private changeListenerCleanup: (() => void) | null = null
   private subscribedKeys = new Set<string>()
+  private fullCacheLoaded = false
 
   private constructor() {
     this.setupChangeListener()
-    // Initialize window source for logging if not already done
-    if (typeof loggerService.initWindowSource === 'function') {
-      try {
-        loggerService.initWindowSource('main')
-      } catch (error) {
-        // Window source already initialized, ignore error
-      }
-    }
   }
 
   /**
@@ -49,16 +40,11 @@ export class PreferenceService {
       return
     }
 
-    this.changeListenerCleanup = window.api.preference.onChanged((key, value, scope) => {
-      // Only handle default scope since we simplified API
-      if (scope !== 'default') {
-        return
-      }
-
-      const oldValue = this.cache.get(key)
+    this.changeListenerCleanup = window.api.preference.onChanged((key, value) => {
+      const oldValue = this.cache[key]
 
       if (oldValue !== value) {
-        this.cache.set(key, value)
+        this.cache[key] = value
         this.notifyListeners(key)
         logger.debug(`Preference ${key} updated to:`, { value })
       }
@@ -82,16 +68,16 @@ export class PreferenceService {
   /**
    * Get a single preference value with caching
    */
-  async get<K extends PreferenceKey>(key: K): Promise<PreferencesType['default'][K]> {
+  async get<K extends PreferenceKeyType>(key: K): Promise<PreferenceDefaultScopeType[K]> {
     // Check cache first
-    if (this.cache.has(key)) {
-      return this.cache.get(key)
+    if (key in this.cache && this.cache[key] !== undefined) {
+      return this.cache[key] as PreferenceDefaultScopeType[K]
     }
 
     try {
       // Fetch from main process if not cached
       const value = await window.api.preference.get(key)
-      this.cache.set(key, value)
+      this.cache[key] = value
 
       // Auto-subscribe to this key for future updates
       if (!this.subscribedKeys.has(key)) {
@@ -102,19 +88,19 @@ export class PreferenceService {
     } catch (error) {
       logger.error(`Failed to get preference ${key}:`, error as Error)
       // Return default value on error
-      return DefaultPreferences.default[key] as PreferencesType['default'][K]
+      return DefaultPreferences.default[key] as PreferenceDefaultScopeType[K]
     }
   }
 
   /**
    * Set a single preference value
    */
-  async set<K extends PreferenceKey>(key: K, value: PreferencesType['default'][K]): Promise<void> {
+  async set<K extends PreferenceKeyType>(key: K, value: PreferenceDefaultScopeType[K]): Promise<void> {
     try {
       await window.api.preference.set(key, value)
 
       // Update local cache immediately for responsive UI
-      this.cache.set(key, value)
+      this.cache[key] = value
       this.notifyListeners(key)
 
       logger.debug(`Preference ${key} set to:`, { value })
@@ -127,14 +113,14 @@ export class PreferenceService {
   /**
    * Get multiple preferences at once
    */
-  async getMultiple(keys: string[]): Promise<Record<string, any>> {
+  async getMultiple(keys: PreferenceKeyType[]): Promise<Record<string, any>> {
     // Check which keys are already cached
-    const cachedResults: Record<string, any> = {}
-    const uncachedKeys: string[] = []
+    const cachedResults: Partial<PreferenceDefaultScopeType> = {}
+    const uncachedKeys: PreferenceKeyType[] = []
 
     for (const key of keys) {
-      if (this.cache.has(key)) {
-        cachedResults[key] = this.cache.get(key)
+      if (key in this.cache && this.cache[key] !== undefined) {
+        ;(cachedResults as any)[key] = this.cache[key]
       } else {
         uncachedKeys.push(key)
       }
@@ -147,7 +133,7 @@ export class PreferenceService {
 
         // Update cache with new results
         for (const [key, value] of Object.entries(uncachedResults)) {
-          this.cache.set(key, value)
+          ;(this.cache as any)[key] = value
         }
 
         // Auto-subscribe to new keys
@@ -165,7 +151,7 @@ export class PreferenceService {
         const defaultResults: Record<string, any> = {}
         for (const key of uncachedKeys) {
           if (key in DefaultPreferences.default) {
-            defaultResults[key] = DefaultPreferences.default[key as PreferenceKey]
+            defaultResults[key] = DefaultPreferences.default[key as PreferenceKeyType]
           }
         }
 
@@ -179,13 +165,13 @@ export class PreferenceService {
   /**
    * Set multiple preferences at once
    */
-  async setMultiple(updates: Record<string, any>): Promise<void> {
+  async setMultiple(updates: Partial<PreferenceDefaultScopeType>): Promise<void> {
     try {
       await window.api.preference.setMultiple(updates)
 
       // Update local cache for all updated values
       for (const [key, value] of Object.entries(updates)) {
-        this.cache.set(key, value)
+        ;(this.cache as any)[key] = value
         this.notifyListeners(key)
       }
 
@@ -199,7 +185,7 @@ export class PreferenceService {
   /**
    * Subscribe to a specific key for change notifications
    */
-  private async subscribeToKeyInternal(key: string): Promise<void> {
+  private async subscribeToKeyInternal(key: PreferenceKeyType): Promise<void> {
     if (!this.subscribedKeys.has(key)) {
       try {
         await window.api.preference.subscribe([key])
@@ -225,7 +211,7 @@ export class PreferenceService {
    * Subscribe to specific key changes (for useSyncExternalStore)
    */
   subscribeToKey =
-    (key: string) =>
+    (key: PreferenceKeyType) =>
     (callback: () => void): (() => void) => {
       if (!this.keyListeners.has(key)) {
         this.keyListeners.set(key, new Set())
@@ -249,29 +235,64 @@ export class PreferenceService {
    * Get snapshot for useSyncExternalStore
    */
   getSnapshot =
-    <K extends PreferenceKey>(key: K) =>
-    (): PreferencesType['default'][K] | undefined => {
-      return this.cache.get(key)
+    <K extends PreferenceKeyType>(key: K) =>
+    (): PreferenceDefaultScopeType[K] | undefined => {
+      return this.cache[key]
     }
 
   /**
    * Get cached value without async fetch
    */
-  getCachedValue<K extends PreferenceKey>(key: K): PreferencesType['default'][K] | undefined {
-    return this.cache.get(key)
+  getCachedValue<K extends PreferenceKeyType>(key: K): PreferenceDefaultScopeType[K] | undefined {
+    return this.cache[key]
   }
 
   /**
    * Check if a preference is cached
    */
-  isCached(key: string): boolean {
-    return this.cache.has(key)
+  isCached(key: PreferenceKeyType): boolean {
+    return key in this.cache && this.cache[key] !== undefined
+  }
+
+  /**
+   * Load all preferences from main process at once
+   * Provides optimal performance by loading complete preference set into memory
+   */
+  async loadAll(): Promise<PreferenceDefaultScopeType> {
+    try {
+      const allPreferences = await window.api.preference.getAll()
+
+      // Update local cache with all preferences
+      for (const [key, value] of Object.entries(allPreferences)) {
+        ;(this.cache as any)[key] = value
+
+        // Auto-subscribe to this key if not already subscribed
+        if (!this.subscribedKeys.has(key)) {
+          await this.subscribeToKeyInternal(key as PreferenceKeyType)
+        }
+      }
+
+      this.fullCacheLoaded = true
+      logger.info(`Loaded all ${Object.keys(allPreferences).length} preferences into cache`)
+
+      return allPreferences
+    } catch (error) {
+      logger.error('Failed to load all preferences:', error as Error)
+      throw error
+    }
+  }
+
+  /**
+   * Check if all preferences are loaded in cache
+   */
+  isFullyCached(): boolean {
+    return this.fullCacheLoaded
   }
 
   /**
    * Preload specific preferences into cache
    */
-  async preload(keys: string[]): Promise<void> {
+  async preload(keys: PreferenceKeyType[]): Promise<void> {
     const uncachedKeys = keys.filter((key) => !this.isCached(key))
 
     if (uncachedKeys.length > 0) {
@@ -288,18 +309,9 @@ export class PreferenceService {
    * Clear all cached preferences (for testing/debugging)
    */
   clearCache(): void {
-    this.cache.clear()
+    this.cache = {}
+    this.fullCacheLoaded = false
     logger.debug('Preference cache cleared')
-  }
-
-  /**
-   * Get cache statistics (for debugging)
-   */
-  getCacheStats(): { size: number; keys: string[] } {
-    return {
-      size: this.cache.size,
-      keys: Array.from(this.cache.keys())
-    }
   }
 
   /**

@@ -274,6 +274,19 @@ export class PreferenceService {
   }
 
   /**
+   * Get all preferences from memory cache
+   * Returns complete preference object for bulk operations
+   */
+  getAll(): PreferenceDefaultScopeType {
+    if (!this.initialized) {
+      logger.warn('Preference cache not initialized, returning defaults')
+      return DefaultPreferences.default
+    }
+
+    return { ...this.cache }
+  }
+
+  /**
    * Get all current subscriptions (for debugging)
    */
   getSubscriptions(): Map<number, Set<string>> {

@@ -722,6 +722,10 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
     await preferenceService.setMultiple(updates)
   })
 
+  ipcMain.handle(IpcChannel.Preference_GetAll, () => {
+    return preferenceService.getAll()
+  })
+
   ipcMain.handle(IpcChannel.Preference_Subscribe, async (event, keys: string[]) => {
     const windowId = BrowserWindow.fromWebContents(event.sender)?.id
     if (windowId) {
