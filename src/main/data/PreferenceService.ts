@@ -1,6 +1,6 @@
 import { loggerService } from '@logger'
-import type { PreferencesType } from '@shared/data/preferences'
 import { DefaultPreferences } from '@shared/data/preferences'
+import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data/types'
 import { IpcChannel } from '@shared/IpcChannel'
 import { and, eq } from 'drizzle-orm'
 import { BrowserWindow } from 'electron'
@@ -10,8 +10,9 @@ import { preferenceTable } from './db/schemas/preference'
 
 const logger = loggerService.withContext('PreferenceService')
 
-type PreferenceKey = keyof PreferencesType['default']
+type MultiPreferencesResultType<K extends PreferenceKeyType> = { [P in K]: PreferenceDefaultScopeType[P] | undefined }
 
+const DefaultScope = 'default'
 /**
  * PreferenceService manages preference data storage and synchronization across multiple windows
  *
@@ -26,7 +27,7 @@ type PreferenceKey = keyof PreferencesType['default']
 export class PreferenceService {
   private static instance: PreferenceService
   private subscriptions = new Map<number, Set<string>>() // windowId -> Set<keys>
-  private cache: Record<string, any> = { ...DefaultPreferences.default }
+  private cache: PreferenceDefaultScopeType = DefaultPreferences.default
   private initialized = false
 
   private constructor() {
@@ -54,13 +55,13 @@ export class PreferenceService {
 
     try {
       const db = dbService.getDb()
-      const results = await db.select().from(preferenceTable).where(eq(preferenceTable.scope, 'default'))
+      const results = await db.select().from(preferenceTable).where(eq(preferenceTable.scope, DefaultScope))
 
       // Update cache with database values, keeping defaults for missing keys
       for (const result of results) {
-        const key = result.key as PreferenceKey
+        const key = result.key
         if (key in this.cache) {
-          this.cache[key] = result.value as any
+          this.cache[key] = result.value
         }
       }
 
@@ -69,7 +70,7 @@ export class PreferenceService {
     } catch (error) {
       logger.error('Failed to initialize preference cache:', error as Error)
       // Keep default values on initialization failure
-      this.initialized = true
+      this.initialized = false
     }
   }
 
@@ -77,7 +78,7 @@ export class PreferenceService {
    * Get a single preference value from memory cache
    * Fast synchronous access - no database queries after initialization
    */
-  get<K extends PreferenceKey>(key: K): PreferencesType['default'][K] {
+  get<K extends PreferenceKeyType>(key: K): PreferenceDefaultScopeType[K] {
     if (!this.initialized) {
       logger.warn(`Preference cache not initialized, returning default for ${key}`)
       return DefaultPreferences.default[key]
@@ -90,34 +91,20 @@ export class PreferenceService {
    * Set a single preference value
    * Updates both database and memory cache, then broadcasts changes to subscribed windows
    */
-  async set<K extends PreferenceKey>(key: K, value: PreferencesType['default'][K]): Promise<void> {
+  async set<K extends PreferenceKeyType>(key: K, value: PreferenceDefaultScopeType[K]): Promise<void> {
     try {
+      if (!(key in this.cache)) {
+        throw new Error(`Preference ${key} not found in cache`)
+      }
+
       const db = dbService.getDb()
-      const scope = 'default'
 
-      // First try to update existing record
-      const existing = await db
-        .select()
-        .from(preferenceTable)
-        .where(and(eq(preferenceTable.scope, scope), eq(preferenceTable.key, key)))
-        .limit(1)
-
-      if (existing.length > 0) {
-        // Update existing record
-        await db
-          .update(preferenceTable)
-          .set({
-            value: value as any
-          })
-          .where(and(eq(preferenceTable.scope, scope), eq(preferenceTable.key, key)))
-      } else {
-        // Insert new record
-        await db.insert(preferenceTable).values({
-          scope,
-          key,
+      await db
+        .update(preferenceTable)
+        .set({
           value: value as any
         })
-      }
+        .where(and(eq(preferenceTable.scope, DefaultScope), eq(preferenceTable.key, key)))
 
       // Update memory cache immediately
       this.cache[key] = value
@@ -136,24 +123,24 @@ export class PreferenceService {
    * Get multiple preferences at once from memory cache
    * Fast synchronous access - no database queries
    */
-  getMultiple(keys: string[]): Record<string, any> {
+  getMultiple<K extends PreferenceKeyType>(keys: K[]): MultiPreferencesResultType<K> {
     if (!this.initialized) {
       logger.warn('Preference cache not initialized, returning defaults for multiple keys')
-      const output: Record<string, any> = {}
+      const output: MultiPreferencesResultType<K> = {} as MultiPreferencesResultType<K>
       for (const key of keys) {
         if (key in DefaultPreferences.default) {
-          output[key] = DefaultPreferences.default[key as PreferenceKey]
+          output[key] = DefaultPreferences.default[key]
         } else {
-          output[key] = undefined
+          output[key] = undefined as MultiPreferencesResultType<K>[K]
         }
       }
       return output
     }
 
-    const output: Record<string, any> = {}
+    const output: MultiPreferencesResultType<K> = {} as MultiPreferencesResultType<K>
     for (const key of keys) {
       if (key in this.cache) {
-        output[key] = this.cache[key as PreferenceKey]
+        output[key] = this.cache[key]
       } else {
         output[key] = undefined
       }
@@ -166,42 +153,30 @@ export class PreferenceService {
    * Set multiple preferences at once
    * Updates both database and memory cache in a transaction, then broadcasts changes
    */
-  async setMultiple(updates: Record<string, any>): Promise<void> {
+  async setMultiple(updates: Partial<PreferenceDefaultScopeType>): Promise<void> {
     try {
-      const scope = 'default'
+      //check if all keys are in the cache
+      for (const [key, value] of Object.entries(updates)) {
+        if (!(key in this.cache) || value === undefined || value === null) {
+          throw new Error(`Preference ${key} not found in cache or value is undefined or null`)
+        }
+      }
 
-      await dbService.transaction(async (tx) => {
+      await dbService.getDb().transaction(async (tx) => {
         for (const [key, value] of Object.entries(updates)) {
-          // Check if record exists
-          const existing = await tx
-            .select()
-            .from(preferenceTable)
-            .where(and(eq(preferenceTable.scope, scope), eq(preferenceTable.key, key)))
-            .limit(1)
-
-          if (existing.length > 0) {
-            // Update existing record
-            await tx
-              .update(preferenceTable)
-              .set({
-                value
-              })
-              .where(and(eq(preferenceTable.scope, scope), eq(preferenceTable.key, key)))
-          } else {
-            // Insert new record
-            await tx.insert(preferenceTable).values({
-              scope,
-              key,
+          await tx
+            .update(preferenceTable)
+            .set({
               value
             })
-          }
+            .where(and(eq(preferenceTable.scope, DefaultScope), eq(preferenceTable.key, key)))
         }
       })
 
       // Update memory cache for all changed keys
       for (const [key, value] of Object.entries(updates)) {
         if (key in this.cache) {
-          this.cache[key as PreferenceKey] = value
+          this.cache[key] = value
         }
       }
 
@@ -260,7 +235,7 @@ export class PreferenceService {
       try {
         const window = BrowserWindow.fromId(windowId)
         if (window && !window.isDestroyed()) {
-          window.webContents.send(IpcChannel.Preference_Changed, key, value, 'default')
+          window.webContents.send(IpcChannel.Preference_Changed, key, value, DefaultScope)
         } else {
           // Clean up invalid window subscription
           this.subscriptions.delete(windowId)

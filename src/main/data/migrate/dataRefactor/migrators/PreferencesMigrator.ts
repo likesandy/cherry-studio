@@ -332,7 +332,7 @@ export class PreferencesMigrator {
     // Validate batch data before starting transaction
     this.validateBatchData(batchData)
 
-    await dbService.transaction(async (tx) => {
+    await this.db.transaction(async (tx) => {
       const scope = 'default'
       const timestamp = Date.now()
       let completedOperations = 0

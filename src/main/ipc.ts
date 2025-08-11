@@ -8,6 +8,7 @@ import { getBinaryPath, isBinaryExists, runInstallScript } from '@main/utils/pro
 import { handleZoomFactor } from '@main/utils/zoom'
 import { SpanEntity, TokenUsage } from '@mcp-trace/trace-core'
 import { UpgradeChannel } from '@shared/config/constant'
+import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data/types'
 import { IpcChannel } from '@shared/IpcChannel'
 import { FileMetadata, Provider, Shortcut, ThemeMode } from '@types'
 import { BrowserWindow, dialog, ipcMain, ProxyConfig, session, shell, systemPreferences, webContents } from 'electron'
@@ -699,19 +700,25 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   )
 
   // Preference handlers
-  ipcMain.handle(IpcChannel.Preference_Get, async (_, key: string) => {
-    return preferenceService.get(key as any)
+
+  // TODO move to preferenceService
+
+  ipcMain.handle(IpcChannel.Preference_Get, (_, key: PreferenceKeyType) => {
+    return preferenceService.get(key)
   })
 
-  ipcMain.handle(IpcChannel.Preference_Set, async (_, key: string, value: any) => {
-    await preferenceService.set(key as any, value)
-  })
+  ipcMain.handle(
+    IpcChannel.Preference_Set,
+    async (_, key: PreferenceKeyType, value: PreferenceDefaultScopeType[PreferenceKeyType]) => {
+      await preferenceService.set(key, value)
+    }
+  )
 
-  ipcMain.handle(IpcChannel.Preference_GetMultiple, async (_, keys: string[]) => {
+  ipcMain.handle(IpcChannel.Preference_GetMultiple, (_, keys: PreferenceKeyType[]) => {
     return preferenceService.getMultiple(keys)
   })
 
-  ipcMain.handle(IpcChannel.Preference_SetMultiple, async (_, updates: Record<string, any>) => {
+  ipcMain.handle(IpcChannel.Preference_SetMultiple, async (_, updates: Partial<PreferenceDefaultScopeType>) => {
     await preferenceService.setMultiple(updates)
   })
 

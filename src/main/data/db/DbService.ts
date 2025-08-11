@@ -40,26 +40,6 @@ class DbService {
     return this.db
   }
 
-  /**
-   * Execute operations within a database transaction
-   * Automatically handles rollback on error and commit on success
-   */
-  public async transaction<T>(callback: (tx: any) => Promise<T>): Promise<T> {
-    logger.debug('Starting database transaction')
-
-    try {
-      const result = await this.db.transaction(async (tx) => {
-        return await callback(tx)
-      })
-
-      logger.debug('Database transaction completed successfully')
-      return result
-    } catch (error) {
-      logger.error('Database transaction failed, rolling back', error as Error)
-      throw error
-    }
-  }
-
   public async migrateSeed(seedName: keyof typeof Seeding): Promise<boolean> {
     try {
       const Seed = Seeding[seedName]
