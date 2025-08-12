@@ -1,6 +1,6 @@
 import { usePreference } from '@renderer/data/hooks/usePreference'
 import type { PreferenceKeyType } from '@shared/data/types'
-import { Button, Input, message, Select, Space, Switch, Typography } from 'antd'
+import { Button, Input, message, Select, Slider, Space, Switch, Typography } from 'antd'
 import React, { useState } from 'react'
 import styled from 'styled-components'
 
@@ -18,6 +18,10 @@ const PreferenceBasicTests: React.FC = () => {
   const [value, setValue] = usePreference(selectedKey)
 
   const [inputValue, setInputValue] = useState<string>('')
+
+  // Add theme monitoring for visual changes
+  const [currentTheme] = usePreference('app.theme.mode')
+  const isDarkTheme = currentTheme === 'ThemeMode.dark'
 
   const handleSetValue = async () => {
     try {
@@ -47,15 +51,33 @@ const PreferenceBasicTests: React.FC = () => {
   }
 
   const testCases = [
-    { key: 'app.theme.mode', label: 'App Theme Mode', sampleValue: 'ThemeMode.dark' },
-    { key: 'app.language', label: 'App Language', sampleValue: 'zh-CN' },
-    { key: 'app.spell_check.enabled', label: 'Spell Check', sampleValue: 'true' },
-    { key: 'app.zoom_factor', label: 'Zoom Factor', sampleValue: '1.2' },
-    { key: 'app.tray.enabled', label: 'Tray Enabled', sampleValue: 'true' }
+    { key: 'app.theme.mode', label: 'App Theme Mode', sampleValue: 'ThemeMode.dark', type: 'enum' },
+    { key: 'app.language', label: 'App Language', sampleValue: 'zh-CN', type: 'enum' },
+    { key: 'app.spell_check.enabled', label: 'Spell Check', sampleValue: 'true', type: 'boolean' },
+    { key: 'app.zoom_factor', label: 'Zoom Factor', sampleValue: '1.2', type: 'number', min: 0.5, max: 2.0, step: 0.1 },
+    { key: 'app.tray.enabled', label: 'Tray Enabled', sampleValue: 'true', type: 'boolean' },
+    {
+      key: 'chat.message.font_size',
+      label: 'Message Font Size',
+      sampleValue: '14',
+      type: 'number',
+      min: 8,
+      max: 72,
+      step: 1
+    },
+    {
+      key: 'feature.selection.action_window_opacity',
+      label: 'Selection Window Opacity',
+      sampleValue: '95',
+      type: 'number',
+      min: 10,
+      max: 100,
+      step: 5
+    }
   ]
 
   return (
-    <TestContainer>
+    <TestContainer isDark={isDarkTheme}>
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
         {/* Key Selection */}
         <div>
@@ -74,7 +96,7 @@ const PreferenceBasicTests: React.FC = () => {
         </div>
 
         {/* Current Value Display */}
-        <CurrentValueContainer>
+        <CurrentValueContainer isDark={isDarkTheme}>
           <Text strong>当前值:</Text>
           <ValueDisplay>
             {value !== undefined ? (
@@ -109,12 +131,14 @@ const PreferenceBasicTests: React.FC = () => {
         <div>
           <Text strong>快速操作:</Text>
           <Space wrap style={{ marginTop: 8 }}>
-            {/* Theme Toggle */}
+            {/* Theme Toggle with Visual Feedback */}
             {selectedKey === 'app.theme.mode' && (
               <Button
                 size="small"
+                type={isDarkTheme ? 'default' : 'primary'}
+                icon={isDarkTheme ? '🌙' : '☀️'}
                 onClick={() => setValue(value === 'ThemeMode.dark' ? 'ThemeMode.light' : 'ThemeMode.dark')}>
-                切换主题 ({value === 'ThemeMode.dark' ? 'light' : 'dark'})
+                切换主题 ({value === 'ThemeMode.dark' ? '→ Light' : '→ Dark'})
               </Button>
             )}
 
@@ -140,20 +164,134 @@ const PreferenceBasicTests: React.FC = () => {
               </>
             )}
 
-            {/* Zoom Factor */}
-            {selectedKey === 'app.zoom_factor' && (
-              <>
-                <Button size="small" onClick={() => setValue(0.8)}>
-                  80%
-                </Button>
-                <Button size="small" onClick={() => setValue(1.0)}>
-                  100%
-                </Button>
-                <Button size="small" onClick={() => setValue(1.2)}>
-                  120%
-                </Button>
-              </>
-            )}
+            {/* Number Type Sliders */}
+            {(() => {
+              const currentTestCase = testCases.find((tc) => tc.key === selectedKey)
+              if (currentTestCase?.type === 'number') {
+                const numValue =
+                  typeof value === 'number'
+                    ? value
+                    : typeof value === 'string'
+                      ? parseFloat(value)
+                      : currentTestCase.min || 0
+                const min = currentTestCase.min || 0
+                const max = currentTestCase.max || 100
+                const step = currentTestCase.step || 1
+
+                const getDisplayValue = () => {
+                  if (selectedKey === 'app.zoom_factor') {
+                    return `${Math.round(numValue * 100)}%`
+                  } else if (selectedKey === 'feature.selection.action_window_opacity') {
+                    return `${Math.round(numValue)}%`
+                  } else {
+                    return numValue.toString()
+                  }
+                }
+
+                const getMarks = () => {
+                  if (selectedKey === 'app.zoom_factor') {
+                    return {
+                      0.5: '50%',
+                      0.8: '80%',
+                      1.0: '100%',
+                      1.2: '120%',
+                      1.5: '150%',
+                      2.0: '200%'
+                    }
+                  } else if (selectedKey === 'chat.message.font_size') {
+                    return {
+                      8: '8px',
+                      12: '12px',
+                      14: '14px',
+                      16: '16px',
+                      18: '18px',
+                      24: '24px',
+                      36: '36px',
+                      72: '72px'
+                    }
+                  } else if (selectedKey === 'feature.selection.action_window_opacity') {
+                    return {
+                      10: '10%',
+                      30: '30%',
+                      50: '50%',
+                      70: '70%',
+                      90: '90%',
+                      100: '100%'
+                    }
+                  }
+                  return {}
+                }
+
+                return (
+                  <div style={{ width: '100%', marginTop: 8 }}>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      <Text>
+                        {currentTestCase.label}: <strong>{getDisplayValue()}</strong>
+                      </Text>
+                      <Slider
+                        min={min}
+                        max={max}
+                        step={step}
+                        value={numValue}
+                        onChange={(val) => setValue(val)}
+                        marks={getMarks()}
+                        tooltip={{
+                          formatter: (val) => {
+                            if (selectedKey === 'app.zoom_factor') {
+                              return `${Math.round((val || 0) * 100)}%`
+                            } else if (selectedKey === 'feature.selection.action_window_opacity') {
+                              return `${Math.round(val || 0)}%`
+                            }
+                            return val?.toString() || '0'
+                          }
+                        }}
+                        style={{ width: '100%', marginBottom: 8 }}
+                      />
+                      {selectedKey === 'app.zoom_factor' && (
+                        <Space>
+                          <Button size="small" onClick={() => setValue(0.8)}>
+                            80%
+                          </Button>
+                          <Button size="small" onClick={() => setValue(1.0)}>
+                            100%
+                          </Button>
+                          <Button size="small" onClick={() => setValue(1.2)}>
+                            120%
+                          </Button>
+                        </Space>
+                      )}
+                      {selectedKey === 'chat.message.font_size' && (
+                        <Space>
+                          <Button size="small" onClick={() => setValue(12)}>
+                            Small
+                          </Button>
+                          <Button size="small" onClick={() => setValue(14)}>
+                            Normal
+                          </Button>
+                          <Button size="small" onClick={() => setValue(16)}>
+                            Large
+                          </Button>
+                        </Space>
+                      )}
+                      {selectedKey === 'feature.selection.action_window_opacity' && (
+                        <Space>
+                          <Button size="small" onClick={() => setValue(50)}>
+                            50%
+                          </Button>
+                          <Button size="small" onClick={() => setValue(80)}>
+                            80%
+                          </Button>
+                          <Button size="small" onClick={() => setValue(100)}>
+                            100%
+                          </Button>
+                        </Space>
+                      )}
+                    </Space>
+                  </div>
+                )
+              }
+              return null
+            })()}
 
             {/* Sample Values */}
             <Button
@@ -181,15 +319,31 @@ const PreferenceBasicTests: React.FC = () => {
   )
 }
 
-const TestContainer = styled.div`
+const TestContainer = styled.div<{ isDark: boolean }>`
   padding: 16px;
-  background: #fafafa;
+  background: ${(props) => (props.isDark ? '#262626' : '#fafafa')};
   border-radius: 8px;
+
+  .ant-typography {
+    color: ${(props) => (props.isDark ? '#fff' : 'inherit')} !important;
+  }
+
+  .ant-select-selector {
+    background-color: ${(props) => (props.isDark ? '#1f1f1f' : '#fff')} !important;
+    border-color: ${(props) => (props.isDark ? '#434343' : '#d9d9d9')} !important;
+    color: ${(props) => (props.isDark ? '#fff' : '#000')} !important;
+  }
+
+  .ant-input {
+    background-color: ${(props) => (props.isDark ? '#1f1f1f' : '#fff')} !important;
+    border-color: ${(props) => (props.isDark ? '#434343' : '#d9d9d9')} !important;
+    color: ${(props) => (props.isDark ? '#fff' : '#000')} !important;
+  }
 `
 
-const CurrentValueContainer = styled.div`
+const CurrentValueContainer = styled.div<{ isDark?: boolean }>`
   padding: 12px;
-  background: #f0f0f0;
+  background: ${(props) => (props.isDark ? '#1f1f1f' : '#f0f0f0')};
   border-radius: 6px;
   border-left: 4px solid var(--color-primary);
 `

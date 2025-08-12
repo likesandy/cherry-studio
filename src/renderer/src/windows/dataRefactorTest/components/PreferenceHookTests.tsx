@@ -1,4 +1,6 @@
-import { usePreference, usePreferencePreload, usePreferenceService } from '@renderer/data/hooks/usePreference'
+import { usePreference } from '@renderer/data/hooks/usePreference'
+import { preferenceService } from '@renderer/data/PreferenceService'
+import { loggerService } from '@renderer/services/LoggerService'
 import type { PreferenceKeyType } from '@shared/data/types'
 import { Button, Card, message, Space, Typography } from 'antd'
 import React, { useState } from 'react'
@@ -6,12 +8,13 @@ import styled from 'styled-components'
 
 const { Text } = Typography
 
+const logger = loggerService.withContext('PreferenceHookTests')
+
 /**
  * Advanced usePreference hook testing component
  * Tests preloading, service access, and hook behavior
  */
 const PreferenceHookTests: React.FC = () => {
-  const preferenceService = usePreferenceService()
   const [subscriptionCount, setSubscriptionCount] = useState(0)
 
   // Test multiple hooks with same key
@@ -19,8 +22,13 @@ const PreferenceHookTests: React.FC = () => {
   const [theme2] = usePreference('app.theme.mode')
   const [language] = usePreference('app.language')
 
-  // Preload test
-  usePreferencePreload(['app.theme.mode', 'app.language', 'app.zoom_factor'])
+  // Manual preload implementation using useEffect
+  React.useEffect(() => {
+    const preloadKeys: PreferenceKeyType[] = ['app.theme.mode', 'app.language', 'app.zoom_factor']
+    preferenceService.preload(preloadKeys).catch((error) => {
+      logger.error('Failed to preload preferences:', error as Error)
+    })
+  }, [])
 
   // Use useRef to track render count without causing re-renders
   const renderCountRef = React.useRef(0)
@@ -28,7 +36,7 @@ const PreferenceHookTests: React.FC = () => {
 
   const testSubscriptions = () => {
     // Test subscription behavior
-    const unsubscribe = preferenceService.subscribeToKey('app.theme.mode')(() => {
+    const unsubscribe = preferenceService.subscribeKeyChange('app.theme.mode')(() => {
       setSubscriptionCount((prev) => prev + 1)
     })
 
@@ -53,7 +61,7 @@ const PreferenceHookTests: React.FC = () => {
       }))
 
       message.success(`预加载完成。缓存状态: ${cachedStates.filter((s) => s.isCached).length}/${keys.length}`)
-      console.log('Cache states:', cachedStates)
+      logger.debug('Cache states:', { cachedStates })
     } catch (error) {
       message.error(`预加载失败: ${(error as Error).message}`)
     }
@@ -65,7 +73,7 @@ const PreferenceHookTests: React.FC = () => {
       const result = await preferenceService.getMultiple(keys)
 
       message.success(`批量获取成功: ${Object.keys(result).length} 项`)
-      console.log('Batch get result:', result)
+      logger.debug('Batch get result:', { result })
 
       // Test batch set
       await preferenceService.setMultiple({

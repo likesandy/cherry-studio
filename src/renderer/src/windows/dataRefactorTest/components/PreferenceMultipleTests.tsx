@@ -1,5 +1,5 @@
 import { useMultiplePreferences } from '@renderer/data/hooks/usePreference'
-import { Button, Card, Input, message, Select, Space, Table, Typography } from 'antd'
+import { Button, Card, Input, message, Select, Slider, Space, Table, Typography } from 'antd'
 import { ColumnType } from 'antd/es/table'
 import React, { useState } from 'react'
 import styled from 'styled-components'
@@ -30,6 +30,11 @@ const PreferenceMultipleTests: React.FC = () => {
       tray: 'app.tray.enabled',
       userName: 'app.user.name',
       devMode: 'app.developer_mode.enabled'
+    },
+    numbers: {
+      zoomFactor: 'app.zoom_factor',
+      fontSize: 'chat.message.font_size',
+      opacity: 'feature.selection.action_window_opacity'
     },
     custom: {
       key1: 'app.theme.mode',
@@ -85,6 +90,12 @@ const PreferenceMultipleTests: React.FC = () => {
           break
         case 'app.spell_check.enabled':
           sampleUpdates[localKey] = !values[localKey]
+          break
+        case 'chat.message.font_size':
+          sampleUpdates[localKey] = 14 + index * 2
+          break
+        case 'feature.selection.action_window_opacity':
+          sampleUpdates[localKey] = 80 + index * 10
           break
         default:
           sampleUpdates[localKey] = `sample_value_${index}`
@@ -184,10 +195,11 @@ const PreferenceMultipleTests: React.FC = () => {
         <Card size="small" title="测试场景选择">
           <Space align="center" wrap>
             <Text>选择测试场景:</Text>
-            <Select value={scenario} onChange={setScenario} style={{ width: 200 }}>
+            <Select value={scenario} onChange={setScenario} style={{ width: 250 }}>
               <Option value="basic">基础设置 (theme, language, zoom)</Option>
               <Option value="ui">UI设置 (theme, zoom, spell)</Option>
               <Option value="user">用户设置 (tray, userName, devMode)</Option>
+              <Option value="numbers">🎛️ 数值设置 (zoom, fontSize, selection opacity)</Option>
               <Option value="custom">自定义组合 (4项设置)</Option>
             </Select>
             <Text type="secondary">当前映射: {Object.keys(currentKeys).length} 项</Text>
@@ -198,6 +210,86 @@ const PreferenceMultipleTests: React.FC = () => {
         <Card size="small" title="当前值状态">
           <Table columns={columns} dataSource={tableData} pagination={false} size="small" bordered />
         </Card>
+
+        {/* Interactive Slider Controls for Numbers Scenario */}
+        {scenario === 'numbers' && (
+          <Card size="small" title="🎛️ 实时Slider联动控制" style={{ backgroundColor: '#f0f8ff' }}>
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              <Text type="secondary">拖动任一滑块，观察其他窗口中相同偏好设置的实时同步变化</Text>
+
+              {/* Zoom Factor Slider */}
+              <div>
+                <Text strong>
+                  缩放因子: {Math.round((typeof (values as any).zoomFactor === 'number' ? (values as any).zoomFactor : 1.0) * 100)}%
+                </Text>
+                <Slider
+                  min={0.5}
+                  max={2.0}
+                  step={0.1}
+                  value={typeof (values as any).zoomFactor === 'number' ? (values as any).zoomFactor : 1.0}
+                  onChange={(val) => updateValues({ zoomFactor: val } as any)}
+                  marks={{
+                    0.5: '50%',
+                    1.0: '100%',
+                    1.5: '150%',
+                    2.0: '200%'
+                  }}
+                  tooltip={{ formatter: (val) => `${Math.round((val || 1) * 100)}%` }}
+                />
+              </div>
+
+              {/* Font Size Slider */}
+              <div>
+                <Text strong>字体大小: {typeof (values as any).fontSize === 'number' ? (values as any).fontSize : 14}px</Text>
+                <Slider
+                  min={8}
+                  max={72}
+                  step={1}
+                  value={typeof (values as any).fontSize === 'number' ? (values as any).fontSize : 14}
+                  onChange={(val) => updateValues({ fontSize: val } as any)}
+                  marks={{
+                    8: '8px',
+                    12: '12px',
+                    16: '16px',
+                    24: '24px',
+                    36: '36px',
+                    72: '72px'
+                  }}
+                  tooltip={{ formatter: (val) => `${val}px` }}
+                />
+              </div>
+
+              {/* Selection Window Opacity Slider */}
+              <div>
+                <Text strong>
+                  选择窗口透明度: {Math.round(typeof (values as any).opacity === 'number' ? (values as any).opacity : 100)}%
+                </Text>
+                <Slider
+                  min={10}
+                  max={100}
+                  step={5}
+                  value={typeof (values as any).opacity === 'number' ? (values as any).opacity : 100}
+                  onChange={(val) => updateValues({ opacity: val } as any)}
+                  marks={{
+                    10: '10%',
+                    30: '30%',
+                    50: '50%',
+                    70: '70%',
+                    90: '90%',
+                    100: '100%'
+                  }}
+                  tooltip={{ formatter: (val) => `${Math.round(val || 100)}%` }}
+                />
+              </div>
+
+              <div style={{ padding: '8px', backgroundColor: '#e6f7ff', borderRadius: '4px' }}>
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  💡 测试提示：同时拖动多个滑块，观察另一个测试窗口中的同步效果！
+                </Text>
+              </div>
+            </Space>
+          </Card>
+        )}
 
         {/* Batch Update */}
         <Card size="small" title="批量更新">
