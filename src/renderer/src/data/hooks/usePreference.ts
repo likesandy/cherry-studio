@@ -1,6 +1,6 @@
 import { loggerService } from '@logger'
 import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data/types'
-import { useCallback, useEffect, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react'
 
 import { preferenceService } from '../PreferenceService'
 
@@ -62,7 +62,7 @@ export function usePreferences<T extends Record<string, PreferenceKeyType>>(
   (updates: Partial<{ [P in keyof T]: PreferenceDefaultScopeType[T[P]] }>) => Promise<void>
 ] {
   // Track changes to any of the specified keys
-  const keyList = Object.values(keys)
+  const keyList = useMemo(() => Object.values(keys), [keys])
   const keyListString = keyList.join(',')
   const allValues = useSyncExternalStore(
     useCallback(

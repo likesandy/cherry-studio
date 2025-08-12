@@ -92,6 +92,7 @@ export default defineConfig({
         '@renderer': resolve('src/renderer/src'),
         '@shared': resolve('packages/shared'),
         '@logger': resolve('src/renderer/src/services/LoggerService'),
+        '@data': resolve('src/renderer/src/data'),
         '@mcp-trace/trace-core': resolve('packages/mcp-trace/trace-core'),
         '@mcp-trace/trace-web': resolve('packages/mcp-trace/trace-web')
       }
