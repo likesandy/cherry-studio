@@ -34,16 +34,22 @@ const PreferenceServiceTests: React.FC = () => {
     try {
       setLoading(true)
       let parsedValue: any = testValue
-      
+
       // Try to parse as JSON if it looks like an object/array/boolean/number
-      if (testValue.startsWith('{') || testValue.startsWith('[') || testValue === 'true' || testValue === 'false' || !isNaN(Number(testValue))) {
+      if (
+        testValue.startsWith('{') ||
+        testValue.startsWith('[') ||
+        testValue === 'true' ||
+        testValue === 'false' ||
+        !isNaN(Number(testValue))
+      ) {
         try {
           parsedValue = JSON.parse(testValue)
         } catch {
           // Keep as string if JSON parsing fails
         }
       }
-      
+
       await preferenceService.set(testKey as PreferenceKeyType, parsedValue)
       message.success('设置成功')
       // Automatically get the updated value
@@ -93,7 +99,13 @@ const PreferenceServiceTests: React.FC = () => {
     try {
       setLoading(true)
       // Get multiple keys to simulate getAll functionality
-      const sampleKeys = ['app.theme.mode', 'app.language', 'app.zoom_factor', 'app.spell_check.enabled', 'app.user.name'] as PreferenceKeyType[]
+      const sampleKeys = [
+        'app.theme.mode',
+        'app.language',
+        'app.zoom_factor',
+        'app.spell_check.enabled',
+        'app.user.name'
+      ] as PreferenceKeyType[]
       const result = await preferenceService.getMultiple(sampleKeys)
       setGetResult(`Sample preferences (${Object.keys(result).length} keys):\n${JSON.stringify(result, null, 2)}`)
       message.success('获取示例偏好设置成功')
@@ -138,12 +150,8 @@ const PreferenceServiceTests: React.FC = () => {
           <Button onClick={handleSet} loading={loading}>
             Set
           </Button>
-          <Button onClick={handleGetCached}>
-            Get Cached
-          </Button>
-          <Button onClick={handleIsCached}>
-            Is Cached
-          </Button>
+          <Button onClick={handleGetCached}>Get Cached</Button>
+          <Button onClick={handleIsCached}>Is Cached</Button>
           <Button onClick={handlePreload} loading={loading}>
             Preload
           </Button>
@@ -156,7 +164,9 @@ const PreferenceServiceTests: React.FC = () => {
         {getResult !== null && (
           <ResultContainer>
             <Text strong>Result:</Text>
-            <ResultText>{typeof getResult === 'object' ? JSON.stringify(getResult, null, 2) : String(getResult)}</ResultText>
+            <ResultText>
+              {typeof getResult === 'object' ? JSON.stringify(getResult, null, 2) : String(getResult)}
+            </ResultText>
           </ResultContainer>
         )}
 

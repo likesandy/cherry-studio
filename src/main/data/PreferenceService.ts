@@ -97,9 +97,8 @@ export class PreferenceService {
         throw new Error(`Preference ${key} not found in cache`)
       }
 
-      const db = dbService.getDb()
-
-      await db
+      await dbService
+        .getDb()
         .update(preferenceTable)
         .set({
           value: value as any

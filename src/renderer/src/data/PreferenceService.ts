@@ -10,7 +10,7 @@ const logger = loggerService.withContext('PreferenceService')
  */
 export class PreferenceService {
   private static instance: PreferenceService
-  private cache: Partial<PreferenceDefaultScopeType> = {}
+  private cache: Record<string, any> = {}
   private listeners = new Set<() => void>()
   private keyListeners = new Map<string, Set<() => void>>()
   private changeListenerCleanup: (() => void) | null = null
@@ -24,7 +24,7 @@ export class PreferenceService {
   /**
    * Get the singleton instance of PreferenceService
    */
-  static getInstance(): PreferenceService {
+  public static getInstance(): PreferenceService {
     if (!PreferenceService.instance) {
       PreferenceService.instance = new PreferenceService()
     }
@@ -68,7 +68,7 @@ export class PreferenceService {
   /**
    * Get a single preference value with caching
    */
-  async get<K extends PreferenceKeyType>(key: K): Promise<PreferenceDefaultScopeType[K]> {
+  public async get<K extends PreferenceKeyType>(key: K): Promise<PreferenceDefaultScopeType[K]> {
     // Check cache first
     if (key in this.cache && this.cache[key] !== undefined) {
       return this.cache[key] as PreferenceDefaultScopeType[K]
@@ -95,7 +95,7 @@ export class PreferenceService {
   /**
    * Set a single preference value
    */
-  async set<K extends PreferenceKeyType>(key: K, value: PreferenceDefaultScopeType[K]): Promise<void> {
+  public async set<K extends PreferenceKeyType>(key: K, value: PreferenceDefaultScopeType[K]): Promise<void> {
     try {
       await window.api.preference.set(key, value)
 
@@ -113,14 +113,14 @@ export class PreferenceService {
   /**
    * Get multiple preferences at once
    */
-  async getMultiple(keys: PreferenceKeyType[]): Promise<Record<string, any>> {
+  public async getMultiple(keys: PreferenceKeyType[]): Promise<Record<string, any>> {
     // Check which keys are already cached
     const cachedResults: Partial<PreferenceDefaultScopeType> = {}
     const uncachedKeys: PreferenceKeyType[] = []
 
     for (const key of keys) {
       if (key in this.cache && this.cache[key] !== undefined) {
-        ;(cachedResults as any)[key] = this.cache[key]
+        cachedResults[key] = this.cache[key]
       } else {
         uncachedKeys.push(key)
       }
@@ -133,7 +133,7 @@ export class PreferenceService {
 
         // Update cache with new results
         for (const [key, value] of Object.entries(uncachedResults)) {
-          ;(this.cache as any)[key] = value
+          this.cache[key as PreferenceKeyType] = value
         }
 
         // Auto-subscribe to new keys
@@ -165,13 +165,13 @@ export class PreferenceService {
   /**
    * Set multiple preferences at once
    */
-  async setMultiple(updates: Partial<PreferenceDefaultScopeType>): Promise<void> {
+  public async setMultiple(updates: Partial<PreferenceDefaultScopeType>): Promise<void> {
     try {
       await window.api.preference.setMultiple(updates)
 
       // Update local cache for all updated values
       for (const [key, value] of Object.entries(updates)) {
-        ;(this.cache as any)[key] = value
+        this.cache[key as PreferenceKeyType] = value
         this.notifyListeners(key)
       }
 
@@ -200,7 +200,7 @@ export class PreferenceService {
   /**
    * Subscribe to global preference changes (for useSyncExternalStore)
    */
-  subscribe = (callback: () => void): (() => void) => {
+  public subscribe = (callback: () => void): (() => void) => {
     this.listeners.add(callback)
     return () => {
       this.listeners.delete(callback)
@@ -210,7 +210,7 @@ export class PreferenceService {
   /**
    * Subscribe to specific key changes (for useSyncExternalStore)
    */
-  subscribeToKey =
+  public subscribeToKey =
     (key: PreferenceKeyType) =>
     (callback: () => void): (() => void) => {
       if (!this.keyListeners.has(key)) {
@@ -234,7 +234,7 @@ export class PreferenceService {
   /**
    * Get snapshot for useSyncExternalStore
    */
-  getSnapshot =
+  public getSnapshot =
     <K extends PreferenceKeyType>(key: K) =>
     (): PreferenceDefaultScopeType[K] | undefined => {
       return this.cache[key]
@@ -243,14 +243,14 @@ export class PreferenceService {
   /**
    * Get cached value without async fetch
    */
-  getCachedValue<K extends PreferenceKeyType>(key: K): PreferenceDefaultScopeType[K] | undefined {
+  public getCachedValue<K extends PreferenceKeyType>(key: K): PreferenceDefaultScopeType[K] | undefined {
     return this.cache[key]
   }
 
   /**
    * Check if a preference is cached
    */
-  isCached(key: PreferenceKeyType): boolean {
+  public isCached(key: PreferenceKeyType): boolean {
     return key in this.cache && this.cache[key] !== undefined
   }
 
@@ -258,13 +258,13 @@ export class PreferenceService {
    * Load all preferences from main process at once
    * Provides optimal performance by loading complete preference set into memory
    */
-  async loadAll(): Promise<PreferenceDefaultScopeType> {
+  public async loadAll(): Promise<PreferenceDefaultScopeType> {
     try {
       const allPreferences = await window.api.preference.getAll()
 
       // Update local cache with all preferences
       for (const [key, value] of Object.entries(allPreferences)) {
-        ;(this.cache as any)[key] = value
+        this.cache[key as PreferenceKeyType] = value
 
         // Auto-subscribe to this key if not already subscribed
         if (!this.subscribedKeys.has(key)) {
@@ -285,7 +285,7 @@ export class PreferenceService {
   /**
    * Check if all preferences are loaded in cache
    */
-  isFullyCached(): boolean {
+  public isFullyCached(): boolean {
     return this.fullCacheLoaded
   }
 
@@ -308,7 +308,7 @@ export class PreferenceService {
   /**
    * Clear all cached preferences (for testing/debugging)
    */
-  clearCache(): void {
+  public clearCache(): void {
     this.cache = {}
     this.fullCacheLoaded = false
     logger.debug('Preference cache cleared')
@@ -317,7 +317,7 @@ export class PreferenceService {
   /**
    * Cleanup service (call when shutting down)
    */
-  cleanup(): void {
+  public cleanup(): void {
     if (this.changeListenerCleanup) {
       this.changeListenerCleanup()
       this.changeListenerCleanup = null

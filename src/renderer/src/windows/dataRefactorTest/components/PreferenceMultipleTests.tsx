@@ -1,4 +1,4 @@
-import { usePreferences } from '@renderer/data/hooks/usePreference'
+import { useMultiplePreferences } from '@renderer/data/hooks/usePreference'
 import { Button, Card, Input, message, Select, Space, Table, Typography } from 'antd'
 import { ColumnType } from 'antd/es/table'
 import React, { useState } from 'react'
@@ -40,7 +40,7 @@ const PreferenceMultipleTests: React.FC = () => {
   } as const
 
   const currentKeys = scenarios[scenario as keyof typeof scenarios]
-  const [values, updateValues] = usePreferences(currentKeys)
+  const [values, updateValues] = useMultiplePreferences(currentKeys)
 
   const [batchInput, setBatchInput] = useState<string>('')
 
@@ -72,7 +72,7 @@ const PreferenceMultipleTests: React.FC = () => {
     const sampleUpdates: Record<string, any> = {}
     Object.keys(currentKeys).forEach((localKey, index) => {
       const prefKey = currentKeys[localKey as keyof typeof currentKeys]
-      
+
       switch (prefKey) {
         case 'app.theme.mode':
           sampleUpdates[localKey] = values[localKey] === 'ThemeMode.dark' ? 'ThemeMode.light' : 'ThemeMode.dark'
@@ -81,7 +81,7 @@ const PreferenceMultipleTests: React.FC = () => {
           sampleUpdates[localKey] = values[localKey] === 'zh-CN' ? 'en-US' : 'zh-CN'
           break
         case 'app.zoom_factor':
-          sampleUpdates[localKey] = 1.0 + (index * 0.1)
+          sampleUpdates[localKey] = 1.0 + index * 0.1
           break
         case 'app.spell_check.enabled':
           sampleUpdates[localKey] = !values[localKey]
@@ -90,7 +90,7 @@ const PreferenceMultipleTests: React.FC = () => {
           sampleUpdates[localKey] = `sample_value_${index}`
       }
     })
-    
+
     setBatchInput(JSON.stringify(sampleUpdates, null, 2))
   }
 
@@ -115,7 +115,11 @@ const PreferenceMultipleTests: React.FC = () => {
       render: (value: any) => (
         <ValueDisplay>
           {value !== undefined ? (
-            typeof value === 'object' ? JSON.stringify(value) : String(value)
+            typeof value === 'object' ? (
+              JSON.stringify(value)
+            ) : (
+              String(value)
+            )
           ) : (
             <Text type="secondary">undefined</Text>
           )}
@@ -136,7 +140,14 @@ const PreferenceMultipleTests: React.FC = () => {
       render: (_, record) => (
         <Space size="small">
           {record.prefKey === 'app.theme.mode' && (
-            <Button size="small" onClick={() => handleQuickUpdate(record.localKey, record.value === 'ThemeMode.dark' ? 'ThemeMode.light' : 'ThemeMode.dark')}>
+            <Button
+              size="small"
+              onClick={() =>
+                handleQuickUpdate(
+                  record.localKey,
+                  record.value === 'ThemeMode.dark' ? 'ThemeMode.light' : 'ThemeMode.dark'
+                )
+              }>
               切换
             </Button>
           )}
@@ -146,7 +157,9 @@ const PreferenceMultipleTests: React.FC = () => {
             </Button>
           )}
           {record.prefKey === 'app.language' && (
-            <Button size="small" onClick={() => handleQuickUpdate(record.localKey, record.value === 'zh-CN' ? 'en-US' : 'zh-CN')}>
+            <Button
+              size="small"
+              onClick={() => handleQuickUpdate(record.localKey, record.value === 'zh-CN' ? 'en-US' : 'zh-CN')}>
               切换
             </Button>
           )}
@@ -183,35 +196,27 @@ const PreferenceMultipleTests: React.FC = () => {
 
         {/* Current Values Table */}
         <Card size="small" title="当前值状态">
-          <Table
-            columns={columns}
-            dataSource={tableData}
-            pagination={false}
-            size="small"
-            bordered
-          />
+          <Table columns={columns} dataSource={tableData} pagination={false} size="small" bordered />
         </Card>
 
         {/* Batch Update */}
         <Card size="small" title="批量更新">
           <Space direction="vertical" size="middle" style={{ width: '100%' }}>
             <Space>
-              <Button onClick={generateSampleBatch}>
-                生成示例更新
-              </Button>
+              <Button onClick={generateSampleBatch}>生成示例更新</Button>
               <Button type="primary" onClick={handleBatchUpdate} disabled={!batchInput.trim()}>
                 执行批量更新
               </Button>
             </Space>
-            
+
             <Input.TextArea
               value={batchInput}
               onChange={(e) => setBatchInput(e.target.value)}
-              placeholder="输入JSON格式的批量更新数据，例如: {&quot;theme&quot;: &quot;dark&quot;, &quot;language&quot;: &quot;en-US&quot;}"
+              placeholder='输入JSON格式的批量更新数据，例如: {"theme": "dark", "language": "en-US"}'
               rows={6}
               style={{ fontFamily: 'monospace' }}
             />
-            
+
             <Text type="secondary" style={{ fontSize: '12px' }}>
               格式: &#123;"localKey": "newValue", ...&#125; - 使用本地键名，不是完整的偏好设置键名
             </Text>
@@ -221,15 +226,17 @@ const PreferenceMultipleTests: React.FC = () => {
         {/* Quick Actions */}
         <Card size="small" title="快速操作">
           <Space wrap>
-            <Button 
-              onClick={() => updateValues(Object.fromEntries(Object.keys(currentKeys).map(key => [key, 'test_value'])))}>
+            <Button
+              onClick={() =>
+                updateValues(Object.fromEntries(Object.keys(currentKeys).map((key) => [key, 'test_value'])))
+              }>
               设置所有为测试值
             </Button>
-            <Button 
-              onClick={() => updateValues(Object.fromEntries(Object.keys(currentKeys).map(key => [key, undefined])))}>
+            <Button
+              onClick={() => updateValues(Object.fromEntries(Object.keys(currentKeys).map((key) => [key, undefined])))}>
               清空所有值
             </Button>
-            <Button 
+            <Button
               onClick={async () => {
                 const toggles: Record<string, any> = {}
                 Object.entries(currentKeys).forEach(([localKey, prefKey]) => {
@@ -259,7 +266,7 @@ const PreferenceMultipleTests: React.FC = () => {
               返回值数量: <Text strong>{Object.keys(values).length}</Text>
             </Text>
             <Text>
-              已定义值: <Text strong>{Object.values(values).filter(v => v !== undefined).length}</Text>
+              已定义值: <Text strong>{Object.values(values).filter((v) => v !== undefined).length}</Text>
             </Text>
             <Text type="secondary" style={{ fontSize: '12px' }}>
               usePreferences 返回的值对象使用本地键名，内部自动映射到实际的偏好设置键
