@@ -1,4 +1,4 @@
-import dbService from '@data/db/DbService'
+import { dbService } from '@data/db/DbService'
 import { appStateTable } from '@data/db/schemas/appState'
 import { loggerService } from '@logger'
 import { isDev } from '@main/constant'
@@ -48,6 +48,7 @@ interface MigrationResult {
 export class DataRefactorMigrateService {
   private static instance: DataRefactorMigrateService | null = null
   private migrateWindow: BrowserWindow | null = null
+  private testWindows: BrowserWindow[] = []
   private backupManager: BackupManager
   private db = dbService.getDb()
   private currentProgress: MigrationProgress = {
@@ -300,6 +301,14 @@ export class DataRefactorMigrateService {
       DataRefactorMigrateService.instance = new DataRefactorMigrateService()
     }
     return DataRefactorMigrateService.instance
+  }
+
+  /**
+   * Convenient static method to open test window
+   */
+  public static openTestWindow(): BrowserWindow {
+    const instance = DataRefactorMigrateService.getInstance()
+    return instance.createTestWindow()
   }
 
   /**
@@ -861,6 +870,112 @@ export class DataRefactorMigrateService {
       logger.error('Failed to verify migration status', error as Error)
       // Don't throw - still allow restart
     }
+  }
+
+  /**
+   * Create and show test window for testing PreferenceService and usePreference functionality
+   */
+  public createTestWindow(): BrowserWindow {
+    const windowNumber = this.testWindows.length + 1
+
+    const testWindow = new BrowserWindow({
+      width: 1000,
+      height: 700,
+      minWidth: 800,
+      minHeight: 600,
+      resizable: true,
+      maximizable: true,
+      minimizable: true,
+      show: false,
+      frame: true,
+      autoHideMenuBar: true,
+      title: `Data Refactor Test Window #${windowNumber} - PreferenceService Testing`,
+      webPreferences: {
+        preload: join(__dirname, '../preload/index.js'),
+        sandbox: false,
+        webSecurity: false,
+        contextIsolation: true
+      }
+    })
+
+    // Add to test windows array
+    this.testWindows.push(testWindow)
+
+    // Load the test window
+    if (isDev && process.env['ELECTRON_RENDERER_URL']) {
+      testWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/dataRefactorTest.html')
+      // Open DevTools in development mode for easier testing
+      testWindow.webContents.openDevTools()
+    } else {
+      testWindow.loadFile(join(__dirname, '../renderer/dataRefactorTest.html'))
+    }
+
+    testWindow.once('ready-to-show', () => {
+      testWindow?.show()
+      testWindow?.focus()
+    })
+
+    testWindow.on('closed', () => {
+      // Remove from test windows array when closed
+      const index = this.testWindows.indexOf(testWindow)
+      if (index > -1) {
+        this.testWindows.splice(index, 1)
+      }
+    })
+
+    logger.info(`Test window #${windowNumber} created for PreferenceService testing`)
+    return testWindow
+  }
+
+  /**
+   * Get test window instance (first one)
+   */
+  public getTestWindow(): BrowserWindow | null {
+    return this.testWindows.length > 0 ? this.testWindows[0] : null
+  }
+
+  /**
+   * Get all test windows
+   */
+  public getTestWindows(): BrowserWindow[] {
+    return this.testWindows.filter((window) => !window.isDestroyed())
+  }
+
+  /**
+   * Close all test windows
+   */
+  public closeTestWindows(): void {
+    this.testWindows.forEach((window) => {
+      if (!window.isDestroyed()) {
+        window.close()
+      }
+    })
+    this.testWindows = []
+    logger.info('All test windows closed')
+  }
+
+  /**
+   * Close a specific test window
+   */
+  public closeTestWindow(window?: BrowserWindow): void {
+    if (window) {
+      if (!window.isDestroyed()) {
+        window.close()
+      }
+    } else {
+      // Close first window if no specific window provided
+      const firstWindow = this.getTestWindow()
+      if (firstWindow && !firstWindow.isDestroyed()) {
+        firstWindow.close()
+      }
+    }
+  }
+
+  /**
+   * Check if any test windows are open
+   */
+  public isTestWindowOpen(): boolean {
+    return this.testWindows.some((window) => !window.isDestroyed())
   }
 }
 

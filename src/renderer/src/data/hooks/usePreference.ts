@@ -1,6 +1,6 @@
 import { loggerService } from '@logger'
 import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data/types'
-import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 
 import { preferenceService } from '../PreferenceService'
 
@@ -18,8 +18,8 @@ export function usePreference<K extends PreferenceKeyType>(
 ): [PreferenceDefaultScopeType[K] | undefined, (value: PreferenceDefaultScopeType[K]) => Promise<void>] {
   // Subscribe to changes for this specific preference
   const value = useSyncExternalStore(
-    preferenceService.subscribeToKey(key),
-    preferenceService.getSnapshot(key),
+    useCallback((callback) => preferenceService.subscribeToKey(key)(callback), [key]),
+    useCallback(() => preferenceService.getCachedValue(key), [key]),
     () => undefined // SSR snapshot (not used in Electron context)
   )
 
@@ -61,12 +61,16 @@ export function usePreferences<T extends Record<string, PreferenceKeyType>>(
   { [P in keyof T]: PreferenceDefaultScopeType[T[P]] | undefined },
   (updates: Partial<{ [P in keyof T]: PreferenceDefaultScopeType[T[P]] }>) => Promise<void>
 ] {
-  // Track changes to any of the specified keys
+  // Create stable key dependencies
   const keyList = useMemo(() => Object.values(keys), [keys])
-  const keyListString = keyList.join(',')
+  const keysStringified = useMemo(() => JSON.stringify(keys), [keys])
+
+  // Cache the last snapshot to avoid infinite loops
+  const lastSnapshotRef = useRef<Record<string, any>>({})
+
   const allValues = useSyncExternalStore(
     useCallback(
-      (callback) => {
+      (callback: () => void) => {
         // Subscribe to all keys and aggregate the unsubscribe functions
         const unsubscribeFunctions = keyList.map((key) => preferenceService.subscribeToKey(key)(callback))
 
@@ -74,17 +78,30 @@ export function usePreferences<T extends Record<string, PreferenceKeyType>>(
           unsubscribeFunctions.forEach((unsubscribe) => unsubscribe())
         }
       },
-      [keyList]
+      [keysStringified]
     ),
 
     useCallback(() => {
-      // Return current snapshot of all values
-      const snapshot: Record<string, any> = {}
+      // Check if any values have actually changed
+      let hasChanged = Object.keys(lastSnapshotRef.current).length === 0 // First time
+      const newSnapshot: Record<string, any> = {}
+
       for (const [localKey, prefKey] of Object.entries(keys)) {
-        snapshot[localKey] = preferenceService.getCachedValue(prefKey)
+        const currentValue = preferenceService.getCachedValue(prefKey)
+        newSnapshot[localKey] = currentValue
+
+        if (!hasChanged && lastSnapshotRef.current[localKey] !== currentValue) {
+          hasChanged = true
+        }
       }
-      return snapshot
-    }, [keys]),
+
+      // Only create new object if data actually changed
+      if (hasChanged) {
+        lastSnapshotRef.current = newSnapshot
+      }
+
+      return lastSnapshotRef.current
+    }, [keysStringified]),
 
     () => ({}) // SSR snapshot
   )
@@ -98,7 +115,7 @@ export function usePreferences<T extends Record<string, PreferenceKeyType>>(
         logger.error('Failed to load initial preferences:', error as Error)
       })
     }
-  }, [keyList, keyListString])
+  }, [keysStringified])
 
   // Memoized batch update function
   const updateValues = useCallback(
@@ -119,7 +136,7 @@ export function usePreferences<T extends Record<string, PreferenceKeyType>>(
         throw error
       }
     },
-    [keys]
+    [keysStringified]
   )
 
   // Type-cast the values to the expected shape
@@ -135,12 +152,12 @@ export function usePreferences<T extends Record<string, PreferenceKeyType>>(
  * @param keys - Array of preference keys to preload
  */
 export function usePreferencePreload(keys: PreferenceKeyType[]): void {
-  const keysString = keys.join(',')
+  const keysString = useMemo(() => keys.join(','), [keys])
   useEffect(() => {
     preferenceService.preload(keys).catch((error) => {
       logger.error('Failed to preload preferences:', error as Error)
     })
-  }, [keys, keysString])
+  }, [keysString])
 }
 
 /**

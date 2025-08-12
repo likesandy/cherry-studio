@@ -67,6 +67,4 @@ class DbService {
 }
 
 // Export a singleton instance
-const dbService = DbService.getInstance()
-
-export default dbService
+export const dbService = DbService.getInstance()

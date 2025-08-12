@@ -1,3 +1,4 @@
+import { dbService } from '@data/db/DbService'
 import { loggerService } from '@logger'
 import { DefaultPreferences } from '@shared/data/preferences'
 import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data/types'
@@ -5,7 +6,6 @@ import { IpcChannel } from '@shared/IpcChannel'
 import { and, eq } from 'drizzle-orm'
 import { BrowserWindow } from 'electron'
 
-import dbService from './db/DbService'
 import { preferenceTable } from './db/schemas/preference'
 
 const logger = loggerService.withContext('PreferenceService')
@@ -296,4 +296,3 @@ export class PreferenceService {
 
 // Export singleton instance
 export const preferenceService = PreferenceService.getInstance()
-export default preferenceService

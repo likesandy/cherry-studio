@@ -1,4 +1,4 @@
-import dbService from '@data/db/DbService'
+import { dbService } from '@data/db/DbService'
 import { preferenceTable } from '@data/db/schemas/preference'
 import { loggerService } from '@logger'
 import { DefaultPreferences } from '@shared/data/preferences'
