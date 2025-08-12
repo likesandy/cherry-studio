@@ -10,15 +10,19 @@ const logger = loggerService.withContext('PreferenceService')
  */
 export class PreferenceService {
   private static instance: PreferenceService
+
   private cache: Record<string, any> = {}
-  private listeners = new Set<() => void>()
-  private keyListeners = new Map<string, Set<() => void>>()
+
+  private allChangesListeners = new Set<() => void>()
+  private keyChangeListeners = new Map<string, Set<() => void>>()
   private changeListenerCleanup: (() => void) | null = null
+
   private subscribedKeys = new Set<string>()
+
   private fullCacheLoaded = false
 
   private constructor() {
-    this.setupChangeListener()
+    this.setupChangeListeners()
   }
 
   /**
@@ -34,7 +38,7 @@ export class PreferenceService {
   /**
    * Setup IPC change listener for preference updates from main process
    */
-  private setupChangeListener() {
+  private setupChangeListeners() {
     if (!window.api?.preference?.onChanged) {
       logger.error('Preference API not available in preload context')
       return
@@ -45,7 +49,7 @@ export class PreferenceService {
 
       if (oldValue !== value) {
         this.cache[key] = value
-        this.notifyListeners(key)
+        this.notifyChangeListeners(key)
         logger.debug(`Preference ${key} updated to:`, { value })
       }
     })
@@ -54,12 +58,12 @@ export class PreferenceService {
   /**
    * Notify all relevant listeners about preference changes
    */
-  private notifyListeners(key: string) {
+  private notifyChangeListeners(key: string) {
     // Notify global listeners
-    this.listeners.forEach((listener) => listener())
+    this.allChangesListeners.forEach((listener) => listener())
 
     // Notify specific key listeners
-    const keyListeners = this.keyListeners.get(key)
+    const keyListeners = this.keyChangeListeners.get(key)
     if (keyListeners) {
       keyListeners.forEach((listener) => listener())
     }
@@ -101,7 +105,7 @@ export class PreferenceService {
 
       // Update local cache immediately for responsive UI
       this.cache[key] = value
-      this.notifyListeners(key)
+      this.notifyChangeListeners(key)
 
       logger.debug(`Preference ${key} set to:`, { value })
     } catch (error) {
@@ -113,7 +117,7 @@ export class PreferenceService {
   /**
    * Get multiple preferences at once
    */
-  public async getMultiple(keys: PreferenceKeyType[]): Promise<Record<string, any>> {
+  public async getMultiple(keys: PreferenceKeyType[]): Promise<Partial<PreferenceDefaultScopeType>> {
     // Check which keys are already cached
     const cachedResults: Partial<PreferenceDefaultScopeType> = {}
     const uncachedKeys: PreferenceKeyType[] = []
@@ -148,10 +152,10 @@ export class PreferenceService {
         logger.error('Failed to get multiple preferences:', error as Error)
 
         // Fill in default values for failed keys
-        const defaultResults: Record<string, any> = {}
+        const defaultResults: Partial<PreferenceDefaultScopeType> = {}
         for (const key of uncachedKeys) {
           if (key in DefaultPreferences.default) {
-            defaultResults[key] = DefaultPreferences.default[key as PreferenceKeyType]
+            ;(defaultResults as any)[key] = DefaultPreferences.default[key]
           }
         }
 
@@ -161,7 +165,6 @@ export class PreferenceService {
 
     return cachedResults
   }
-
   /**
    * Set multiple preferences at once
    */
@@ -172,7 +175,7 @@ export class PreferenceService {
       // Update local cache for all updated values
       for (const [key, value] of Object.entries(updates)) {
         this.cache[key as PreferenceKeyType] = value
-        this.notifyListeners(key)
+        this.notifyChangeListeners(key)
       }
 
       logger.debug(`Updated ${Object.keys(updates).length} preferences`)
@@ -200,24 +203,24 @@ export class PreferenceService {
   /**
    * Subscribe to global preference changes (for useSyncExternalStore)
    */
-  public subscribe = (callback: () => void): (() => void) => {
-    this.listeners.add(callback)
+  public subscribeAllChanges = (callback: () => void): (() => void) => {
+    this.allChangesListeners.add(callback)
     return () => {
-      this.listeners.delete(callback)
+      this.allChangesListeners.delete(callback)
     }
   }
 
   /**
    * Subscribe to specific key changes (for useSyncExternalStore)
    */
-  public subscribeToKey =
+  public subscribeKeyChange =
     (key: PreferenceKeyType) =>
     (callback: () => void): (() => void) => {
-      if (!this.keyListeners.has(key)) {
-        this.keyListeners.set(key, new Set())
+      if (!this.keyChangeListeners.has(key)) {
+        this.keyChangeListeners.set(key, new Set())
       }
 
-      const keyListeners = this.keyListeners.get(key)!
+      const keyListeners = this.keyChangeListeners.get(key)!
       keyListeners.add(callback)
 
       // Auto-subscribe to this key for updates
@@ -226,18 +229,9 @@ export class PreferenceService {
       return () => {
         keyListeners.delete(callback)
         if (keyListeners.size === 0) {
-          this.keyListeners.delete(key)
+          this.keyChangeListeners.delete(key)
         }
       }
-    }
-
-  /**
-   * Get snapshot for useSyncExternalStore
-   */
-  public getSnapshot =
-    <K extends PreferenceKeyType>(key: K) =>
-    (): PreferenceDefaultScopeType[K] | undefined => {
-      return this.cache[key]
     }
 
   /**
@@ -323,8 +317,8 @@ export class PreferenceService {
       this.changeListenerCleanup = null
     }
     this.clearCache()
-    this.listeners.clear()
-    this.keyListeners.clear()
+    this.allChangesListeners.clear()
+    this.keyChangeListeners.clear()
     this.subscribedKeys.clear()
   }
 }

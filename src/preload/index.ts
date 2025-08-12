@@ -396,10 +396,12 @@ const api = {
       ipcRenderer.invoke(IpcChannel.TRACE_ADD_STREAM_MESSAGE, spanId, modelName, context, message)
   },
   preference: {
-    get: <K extends PreferenceKeyType>(key: K) => ipcRenderer.invoke(IpcChannel.Preference_Get, key),
-    set: <K extends PreferenceKeyType>(key: K, value: PreferenceDefaultScopeType[K]) =>
+    get: <K extends PreferenceKeyType>(key: K): Promise<PreferenceDefaultScopeType[K]> =>
+      ipcRenderer.invoke(IpcChannel.Preference_Get, key),
+    set: <K extends PreferenceKeyType>(key: K, value: PreferenceDefaultScopeType[K]): Promise<void> =>
       ipcRenderer.invoke(IpcChannel.Preference_Set, key, value),
-    getMultiple: (keys: PreferenceKeyType[]) => ipcRenderer.invoke(IpcChannel.Preference_GetMultiple, keys),
+    getMultiple: (keys: PreferenceKeyType[]): Promise<Partial<PreferenceDefaultScopeType>> =>
+      ipcRenderer.invoke(IpcChannel.Preference_GetMultiple, keys),
     setMultiple: (updates: Partial<PreferenceDefaultScopeType>) =>
       ipcRenderer.invoke(IpcChannel.Preference_SetMultiple, updates),
     getAll: (): Promise<PreferenceDefaultScopeType> => ipcRenderer.invoke(IpcChannel.Preference_GetAll),

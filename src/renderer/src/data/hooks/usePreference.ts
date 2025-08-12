@@ -70,7 +70,7 @@ export function usePreference<K extends PreferenceKeyType>(
 ): [PreferenceDefaultScopeType[K] | undefined, (value: PreferenceDefaultScopeType[K]) => Promise<void>] {
   // Subscribe to changes for this specific preference
   const value = useSyncExternalStore(
-    useCallback((callback) => preferenceService.subscribeToKey(key)(callback), [key]),
+    useCallback((callback) => preferenceService.subscribeKeyChange(key)(callback), [key]),
     useCallback(() => preferenceService.getCachedValue(key), [key]),
     () => undefined // SSR snapshot (not used in Electron context)
   )
@@ -236,7 +236,7 @@ export function useMultiplePreferences<T extends Record<string, PreferenceKeyTyp
     useCallback(
       (callback: () => void) => {
         // Subscribe to all keys and aggregate the unsubscribe functions
-        const unsubscribeFunctions = keyList.map((key) => preferenceService.subscribeToKey(key)(callback))
+        const unsubscribeFunctions = keyList.map((key) => preferenceService.subscribeKeyChange(key)(callback))
 
         return () => {
           unsubscribeFunctions.forEach((unsubscribe) => unsubscribe())
