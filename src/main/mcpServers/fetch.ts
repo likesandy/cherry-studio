@@ -4,7 +4,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
 import { JSDOM } from 'jsdom'
 import TurndownService from 'turndown'
-import { z } from 'zod'
+import { z } from 'zod/v3'
 
 export const RequestPayloadSchema = z.object({
   url: z.string().url(),
