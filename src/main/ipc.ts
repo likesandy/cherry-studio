@@ -2,14 +2,13 @@ import fs from 'node:fs'
 import { arch } from 'node:os'
 import path from 'node:path'
 
-import { preferenceService } from '@data/PreferenceService'
+import { PreferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
 import { isLinux, isMac, isPortable, isWin } from '@main/constant'
 import { getBinaryPath, isBinaryExists, runInstallScript } from '@main/utils/process'
 import { handleZoomFactor } from '@main/utils/zoom'
 import { SpanEntity, TokenUsage } from '@mcp-trace/trace-core'
 import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, UpgradeChannel } from '@shared/config/constant'
-import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data/types'
 import { IpcChannel } from '@shared/IpcChannel'
 import { FileMetadata, Provider, Shortcut, ThemeMode } from '@types'
 import { BrowserWindow, dialog, ipcMain, ProxyConfig, session, shell, systemPreferences, webContents } from 'electron'
@@ -708,35 +707,5 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   ipcMain.handle(IpcChannel.CodeTools_Run, codeToolsService.run)
 
   // Preference handlers
-  // TODO move to preferenceService
-
-  ipcMain.handle(IpcChannel.Preference_Get, (_, key: PreferenceKeyType) => {
-    return preferenceService.get(key)
-  })
-
-  ipcMain.handle(
-    IpcChannel.Preference_Set,
-    async (_, key: PreferenceKeyType, value: PreferenceDefaultScopeType[PreferenceKeyType]) => {
-      await preferenceService.set(key, value)
-    }
-  )
-
-  ipcMain.handle(IpcChannel.Preference_GetMultiple, (_, keys: PreferenceKeyType[]) => {
-    return preferenceService.getMultiple(keys)
-  })
-
-  ipcMain.handle(IpcChannel.Preference_SetMultiple, async (_, updates: Partial<PreferenceDefaultScopeType>) => {
-    await preferenceService.setMultiple(updates)
-  })
-
-  ipcMain.handle(IpcChannel.Preference_GetAll, () => {
-    return preferenceService.getAll()
-  })
-
-  ipcMain.handle(IpcChannel.Preference_Subscribe, async (event, keys: string[]) => {
-    const windowId = BrowserWindow.fromWebContents(event.sender)?.id
-    if (windowId) {
-      preferenceService.subscribe(windowId, keys)
-    }
-  })
+  PreferenceService.registerIpcHandler()
 }
