@@ -76,6 +76,8 @@ export class SelectionService {
   private filterMode = 'default'
   private filterList: string[] = []
 
+  private unsubscriberForChangeListeners: (() => void)[] = []
+
   private toolbarWindow: BrowserWindow | null = null
   private actionWindows = new Set<BrowserWindow>()
   private preloadedActionWindows: BrowserWindow[] = []
@@ -143,13 +145,15 @@ export class SelectionService {
    * Ensures UI elements scale properly with system DPI settings
    */
   private initZoomFactor(): void {
-    const zoomFactor = preferenceService.getAndSubscribeChange('app.zoom_factor', (zoomFactor: number) => {
-      this.setZoomFactor(zoomFactor)
-    })
+    const zoomFactor = preferenceService.get('app.zoom_factor')
 
     if (zoomFactor) {
       this.setZoomFactor(zoomFactor)
     }
+
+    preferenceService.subscribeChange('app.zoom_factor', (zoomFactor: number) => {
+      this.setZoomFactor(zoomFactor)
+    })
   }
 
   public setZoomFactor = (zoomFactor: number) => {
@@ -157,9 +161,17 @@ export class SelectionService {
   }
 
   private initConfig(): void {
-    this.triggerMode = preferenceService.getAndSubscribeChange(
-      'feature.selection.trigger_mode',
-      (triggerMode: string) => {
+    this.triggerMode = preferenceService.get('feature.selection.trigger_mode') as TriggerMode
+    this.isFollowToolbar = preferenceService.get('feature.selection.follow_toolbar')
+    this.isRemeberWinSize = preferenceService.get('feature.selection.remember_win_size')
+    this.filterMode = preferenceService.get('feature.selection.filter_mode')
+    this.filterList = preferenceService.get('feature.selection.filter_list')
+
+    this.setHookGlobalFilterMode(this.filterMode, this.filterList)
+    this.setHookFineTunedList()
+
+    this.unsubscriberForChangeListeners.push(
+      preferenceService.subscribeChange('feature.selection.trigger_mode', (triggerMode: string) => {
         const oldTriggerMode = this.triggerMode as TriggerMode
 
         this.triggerMode = triggerMode as TriggerMode
@@ -169,17 +181,15 @@ export class SelectionService {
         if (oldTriggerMode !== triggerMode) {
           this.setHookGlobalFilterMode(this.filterMode, this.filterList)
         }
-      }
-    ) as TriggerMode
-    this.isFollowToolbar = preferenceService.getAndSubscribeChange(
-      'feature.selection.follow_toolbar',
-      (followToolbar: boolean) => {
-        this.isFollowToolbar = followToolbar
-      }
+      })
     )
-    this.isRemeberWinSize = preferenceService.getAndSubscribeChange(
-      'feature.selection.remember_win_size',
-      (rememberWinSize: boolean) => {
+    this.unsubscriberForChangeListeners.push(
+      preferenceService.subscribeChange('feature.selection.follow_toolbar', (followToolbar: boolean) => {
+        this.isFollowToolbar = followToolbar
+      })
+    )
+    this.unsubscriberForChangeListeners.push(
+      preferenceService.subscribeChange('feature.selection.remember_win_size', (rememberWinSize: boolean) => {
         this.isRemeberWinSize = rememberWinSize
         //when off, reset the last action window size to default
         if (!this.isRemeberWinSize) {
@@ -188,22 +198,20 @@ export class SelectionService {
             height: this.ACTION_WINDOW_HEIGHT
           }
         }
-      }
+      })
     )
-    this.filterMode = preferenceService.getAndSubscribeChange('feature.selection.filter_mode', (filterMode: string) => {
-      this.filterMode = filterMode
-      this.setHookGlobalFilterMode(this.filterMode, this.filterList)
-    })
-    this.filterList = preferenceService.getAndSubscribeChange(
-      'feature.selection.filter_list',
-      (filterList: string[]) => {
+    this.unsubscriberForChangeListeners.push(
+      preferenceService.subscribeChange('feature.selection.filter_mode', (filterMode: string) => {
+        this.filterMode = filterMode
+        this.setHookGlobalFilterMode(this.filterMode, this.filterList)
+      })
+    )
+    this.unsubscriberForChangeListeners.push(
+      preferenceService.subscribeChange('feature.selection.filter_list', (filterList: string[]) => {
         this.filterList = filterList
         this.setHookGlobalFilterMode(this.filterMode, this.filterList)
-      }
+      })
     )
-
-    this.setHookGlobalFilterMode(this.filterMode, this.filterList)
-    this.setHookFineTunedList()
   }
 
   /**
@@ -342,8 +350,12 @@ export class SelectionService {
     if (!this.selectionHook) return false
 
     this.selectionHook.stop()
-
     this.selectionHook.cleanup() //already remove all listeners
+
+    for (const unsubscriber of this.unsubscriberForChangeListeners) {
+      unsubscriber()
+    }
+    this.unsubscriberForChangeListeners = []
 
     //reset the listener states
     this.isCtrlkeyListenerActive = false
@@ -1532,7 +1544,9 @@ export class SelectionService {
 export function initSelectionService(): boolean {
   if (!isSupportedOS) return false
 
-  const enabled = preferenceService.getAndSubscribeChange('feature.selection.enabled', (enabled: boolean): void => {
+  const enabled = preferenceService.get('feature.selection.enabled')
+
+  preferenceService.subscribeChange('feature.selection.enabled', (enabled: boolean): void => {
     //avoid closure
     const ss = SelectionService.getInstance()
     if (!ss) {

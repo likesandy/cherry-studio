@@ -5,11 +5,123 @@ import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data
 import { IpcChannel } from '@shared/IpcChannel'
 import { and, eq } from 'drizzle-orm'
 import { BrowserWindow, ipcMain } from 'electron'
-import { EventEmitter } from 'events'
 
 import { preferenceTable } from './db/schemas/preference'
 
 const logger = loggerService.withContext('PreferenceService')
+
+/**
+ * Custom observer pattern implementation for preference change notifications
+ * Replaces EventEmitter to avoid listener limits and improve performance
+ * Optimized for memory efficiency and this binding safety
+ */
+class PreferenceNotifier {
+  private subscriptions = new Map<string, Set<(key: string, newValue: any, oldValue?: any) => void>>()
+
+  /**
+   * Subscribe to preference changes for a specific key
+   * Uses arrow function to ensure proper this binding
+   * @param key - The preference key to watch
+   * @param callback - Function to call when the preference changes
+   * @param metadata - Optional metadata for debugging (unused but kept for API compatibility)
+   * @returns Unsubscribe function
+   */
+  subscribe = (
+    key: string,
+    callback: (key: string, newValue: any, oldValue?: any) => void,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _metadata?: string
+  ): (() => void) => {
+    if (!this.subscriptions.has(key)) {
+      this.subscriptions.set(key, new Set())
+    }
+
+    const keySubscriptions = this.subscriptions.get(key)!
+    keySubscriptions.add(callback)
+
+    logger.debug(`Added subscription for ${key}, total for this key: ${keySubscriptions.size}`)
+
+    // Return unsubscriber with proper this binding
+    return () => {
+      const currentKeySubscriptions = this.subscriptions.get(key)
+      if (currentKeySubscriptions) {
+        currentKeySubscriptions.delete(callback)
+        if (currentKeySubscriptions.size === 0) {
+          this.subscriptions.delete(key)
+          logger.debug(`Removed last subscription for ${key}, cleaned up key`)
+        } else {
+          logger.debug(`Removed subscription for ${key}, remaining: ${currentKeySubscriptions.size}`)
+        }
+      }
+    }
+  }
+
+  /**
+   * Notify all subscribers of a preference change
+   * Uses arrow function to ensure proper this binding
+   * @param key - The preference key that changed
+   * @param newValue - The new value
+   * @param oldValue - The previous value
+   */
+  notify = (key: string, newValue: any, oldValue?: any): void => {
+    const keySubscriptions = this.subscriptions.get(key)
+    if (keySubscriptions && keySubscriptions.size > 0) {
+      logger.debug(`Notifying ${keySubscriptions.size} subscribers for preference ${key}`)
+      keySubscriptions.forEach((callback) => {
+        try {
+          callback(key, newValue, oldValue)
+        } catch (error) {
+          logger.error(`Error in preference subscription callback for ${key}:`, error as Error)
+        }
+      })
+    }
+  }
+
+  /**
+   * Get the total number of subscriptions across all keys
+   */
+  getTotalSubscriptionCount = (): number => {
+    let total = 0
+    for (const keySubscriptions of this.subscriptions.values()) {
+      total += keySubscriptions.size
+    }
+    return total
+  }
+
+  /**
+   * Get the number of subscriptions for a specific key
+   */
+  getKeySubscriptionCount = (key: string): number => {
+    return this.subscriptions.get(key)?.size || 0
+  }
+
+  /**
+   * Get all subscribed keys
+   */
+  getSubscribedKeys = (): string[] => {
+    return Array.from(this.subscriptions.keys())
+  }
+
+  /**
+   * Remove all subscriptions for cleanup
+   */
+  removeAllSubscriptions = (): void => {
+    const totalCount = this.getTotalSubscriptionCount()
+    this.subscriptions.clear()
+    logger.debug(`Removed all ${totalCount} preference subscriptions`)
+  }
+
+  /**
+   * Get subscription statistics for debugging
+   */
+  getSubscriptionStats = (): Record<string, number> => {
+    const stats: Record<string, number> = {}
+    for (const [key, keySubscriptions] of this.subscriptions.entries()) {
+      stats[key] = keySubscriptions.size
+    }
+    return stats
+  }
+}
 
 type MultiPreferencesResultType<K extends PreferenceKeyType> = { [P in K]: PreferenceDefaultScopeType[P] | undefined }
 
@@ -34,8 +146,8 @@ export class PreferenceService {
 
   private static isIpcHandlerRegistered = false
 
-  // EventEmitter for main process change notifications
-  private mainEventEmitter = new EventEmitter()
+  // Custom notifier for main process change notifications
+  private notifier = new PreferenceNotifier()
 
   private constructor() {
     this.setupWindowCleanup()
@@ -94,20 +206,6 @@ export class PreferenceService {
     return this.cache[key] ?? DefaultPreferences.default[key]
   }
 
-  /**
-   * Get a single preference value from memory cache and subscribe to changes
-   * @param key - The preference key to get
-   * @param callback - The callback function to call when the preference changes
-   * @returns The current value of the preference
-   */
-  public getAndSubscribeChange<K extends PreferenceKeyType>(
-    key: K,
-    callback: (newValue: PreferenceDefaultScopeType[K], oldValue?: PreferenceDefaultScopeType[K]) => void
-  ): PreferenceDefaultScopeType[K] {
-    const value = this.get(key)
-    this.subscribeChange(key, callback)
-    return value
-  }
   /**
    * Set a single preference value
    * Updates both database and memory cache, then broadcasts changes to all listeners
@@ -283,11 +381,7 @@ export class PreferenceService {
       }
     }
 
-    this.mainEventEmitter.on('preference-changed', listener)
-
-    return () => {
-      this.mainEventEmitter.off('preference-changed', listener)
-    }
+    return this.notifier.subscribe(key, listener, `subscribeChange-${key}`)
   }
 
   /**
@@ -304,10 +398,14 @@ export class PreferenceService {
       }
     }
 
-    this.mainEventEmitter.on('preference-changed', listener)
+    // Subscribe to all keys and collect unsubscribe functions
+    const unsubscribeFunctions = keys.map((key) =>
+      this.notifier.subscribe(key, listener, `subscribeMultipleChanges-${key}`)
+    )
 
+    // Return a function that unsubscribes from all keys
     return () => {
-      this.mainEventEmitter.off('preference-changed', listener)
+      unsubscribeFunctions.forEach((unsubscribe) => unsubscribe())
     }
   }
 
@@ -315,7 +413,7 @@ export class PreferenceService {
    * Remove all main process listeners for cleanup
    */
   public removeAllChangeListeners(): void {
-    this.mainEventEmitter.removeAllListeners('preference-changed')
+    this.notifier.removeAllSubscriptions()
     logger.debug('Removed all main process preference listeners')
   }
 
@@ -323,7 +421,28 @@ export class PreferenceService {
    * Get main process listener count for debugging
    */
   public getChangeListenerCount(): number {
-    return this.mainEventEmitter.listenerCount('preference-changed')
+    return this.notifier.getTotalSubscriptionCount()
+  }
+
+  /**
+   * Get subscription count for a specific preference key
+   */
+  public getKeyListenerCount(key: PreferenceKeyType): number {
+    return this.notifier.getKeySubscriptionCount(key)
+  }
+
+  /**
+   * Get all subscribed preference keys
+   */
+  public getSubscribedKeys(): string[] {
+    return this.notifier.getSubscribedKeys()
+  }
+
+  /**
+   * Get detailed subscription statistics for debugging
+   */
+  public getSubscriptionStats(): Record<string, number> {
+    return this.notifier.getSubscriptionStats()
   }
 
   /**
@@ -332,7 +451,7 @@ export class PreferenceService {
    */
   private async notifyChange(key: string, value: any, oldValue?: any): Promise<void> {
     // 1. Notify main process listeners
-    this.mainEventEmitter.emit('preference-changed', key, value, oldValue)
+    this.notifier.notify(key, value, oldValue)
 
     // 2. Notify renderer process windows
     const affectedWindows: number[] = []
