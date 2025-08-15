@@ -1,4 +1,5 @@
 import { usePreference } from '@data/hooks/usePreference'
+import { loggerService } from '@logger'
 import { isMac, isWin } from '@renderer/config/constant'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { getSelectionDescriptionLabel } from '@renderer/i18n/label'
@@ -24,6 +25,8 @@ import {
 import MacProcessTrustHintModal from './components/MacProcessTrustHintModal'
 import SelectionActionsList from './components/SelectionActionsList'
 import SelectionFilterListModal from './components/SelectionFilterListModal'
+
+const logger = loggerService.withContext('Settings:SelectionAssistant')
 
 const SelectionAssistantSettings: FC = () => {
   const { theme } = useTheme()
@@ -64,6 +67,18 @@ const SelectionAssistantSettings: FC = () => {
   const [filterMode, setFilterMode] = usePreference('feature.selection.filter_mode')
   const [filterList, setFilterList] = usePreference('feature.selection.filter_list')
   const [actionItems, setActionItems] = usePreference('feature.selection.action_items')
+
+  logger.debug(`selectionEnabled: ${selectionEnabled}`)
+  logger.debug(`triggerMode: ${triggerMode}`)
+  logger.debug(`isCompact: ${isCompact}`)
+  logger.debug(`isAutoClose: ${isAutoClose}`)
+  logger.debug(`isAutoPin: ${isAutoPin}`)
+  logger.debug(`isFollowToolbar: ${isFollowToolbar}`)
+  logger.debug(`isRemeberWinSize: ${isRemeberWinSize}`)
+  logger.debug(`actionWindowOpacity: ${actionWindowOpacity}`)
+  logger.debug(`filterMode: ${filterMode}`)
+  logger.debug(`filterList: ${filterList}`)
+  logger.debug(`actionItems: ${actionItems}`)
 
   const isSupportedOS = isWin || isMac
 

@@ -36,7 +36,7 @@ const PreferenceHookTests: React.FC = () => {
 
   const testSubscriptions = () => {
     // Test subscription behavior
-    const unsubscribe = preferenceService.subscribeKeyChange('app.theme.mode')(() => {
+    const unsubscribe = preferenceService.subscribeChange('app.theme.mode')(() => {
       setSubscriptionCount((prev) => prev + 1)
     })
 

@@ -105,10 +105,11 @@ export class PreferenceService {
       const value = await window.api.preference.get(key)
       this.cache[key] = value
 
+      // since not cached, notify change listeners to receive the value
+      this.notifyChangeListeners(key)
+
       // Auto-subscribe to this key for future updates
-      if (!this.subscribedKeys.has(key)) {
-        await this.subscribeToKeyInternal(key)
-      }
+      await this.subscribeToKeyInternal(key)
 
       return value
     } catch (error) {
@@ -226,13 +227,10 @@ export class PreferenceService {
         // Update cache with new results
         for (const [key, value] of Object.entries(uncachedResults)) {
           this.cache[key as PreferenceKeyType] = value
-        }
 
-        // Auto-subscribe to new keys
-        for (const key of uncachedKeys) {
-          if (!this.subscribedKeys.has(key)) {
-            await this.subscribeToKeyInternal(key)
-          }
+          this.notifyChangeListeners(key)
+
+          await this.subscribeToKeyInternal(key as PreferenceKeyType)
         }
 
         return { ...cachedResults, ...uncachedResults }
@@ -346,14 +344,14 @@ export class PreferenceService {
    * Subscribe to a specific key for change notifications
    */
   private async subscribeToKeyInternal(key: PreferenceKeyType): Promise<void> {
-    if (!this.subscribedKeys.has(key)) {
-      try {
-        await window.api.preference.subscribe([key])
-        this.subscribedKeys.add(key)
-        logger.debug(`Subscribed to preference key: ${key}`)
-      } catch (error) {
-        logger.error(`Failed to subscribe to preference key ${key}:`, error as Error)
-      }
+    if (this.subscribedKeys.has(key)) return
+
+    try {
+      await window.api.preference.subscribe([key])
+      this.subscribedKeys.add(key)
+      logger.debug(`Subscribed to preference key: ${key}`)
+    } catch (error) {
+      logger.error(`Failed to subscribe to preference key ${key}:`, error as Error)
     }
   }
 
@@ -370,7 +368,7 @@ export class PreferenceService {
   /**
    * Subscribe to specific key changes (for useSyncExternalStore)
    */
-  public subscribeKeyChange =
+  public subscribeChange =
     (key: PreferenceKeyType) =>
     (callback: () => void): (() => void) => {
       if (!this.keyChangeListeners.has(key)) {
@@ -417,10 +415,11 @@ export class PreferenceService {
       for (const [key, value] of Object.entries(allPreferences)) {
         this.cache[key as PreferenceKeyType] = value
 
+        // Notify change listeners for the loaded value
+        this.notifyChangeListeners(key)
+
         // Auto-subscribe to this key if not already subscribed
-        if (!this.subscribedKeys.has(key)) {
-          await this.subscribeToKeyInternal(key as PreferenceKeyType)
-        }
+        await this.subscribeToKeyInternal(key as PreferenceKeyType)
       }
 
       this.fullCacheLoaded = true

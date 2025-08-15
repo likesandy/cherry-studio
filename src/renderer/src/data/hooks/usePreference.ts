@@ -1,5 +1,6 @@
 import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
+import { DefaultPreferences } from '@shared/data/preferences'
 import type { PreferenceDefaultScopeType, PreferenceKeyType, PreferenceUpdateOptions } from '@shared/data/types'
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 
@@ -81,22 +82,26 @@ const logger = loggerService.withContext('usePreference')
 export function usePreference<K extends PreferenceKeyType>(
   key: K,
   options: PreferenceUpdateOptions = { optimistic: true }
-): [PreferenceDefaultScopeType[K] | undefined, (value: PreferenceDefaultScopeType[K]) => Promise<void>] {
-  // Subscribe to changes for this specific preference
-  const value = useSyncExternalStore(
-    useCallback((callback) => preferenceService.subscribeKeyChange(key)(callback), [key]),
+): [PreferenceDefaultScopeType[K], (value: PreferenceDefaultScopeType[K]) => Promise<void>] {
+  // Subscribe to changes for this specific preference (raw value including undefined)
+  const rawValue = useSyncExternalStore(
+    useCallback((callback) => preferenceService.subscribeChange(key)(callback), [key]),
     useCallback(() => preferenceService.getCachedValue(key), [key]),
     () => undefined // SSR snapshot (not used in Electron context)
   )
 
   // Load initial value asynchronously if not cached
   useEffect(() => {
-    if (value === undefined && !preferenceService.isCached(key)) {
+    if (rawValue === undefined) {
       preferenceService.get(key).catch((error) => {
         logger.error(`Failed to load initial preference ${key}:`, error as Error)
       })
     }
-  }, [key, value])
+  }, [key, rawValue])
+
+  // Convert undefined to default value for external consumption
+  const exposedValue =
+    rawValue !== undefined ? rawValue : (DefaultPreferences.default[key] as PreferenceDefaultScopeType[K])
 
   // Memoized setter function
   const setValue = useCallback(
@@ -111,7 +116,7 @@ export function usePreference<K extends PreferenceKeyType>(
     [key, options]
   )
 
-  return [value, setValue]
+  return [exposedValue, setValue]
 }
 
 /**
@@ -247,7 +252,7 @@ export function useMultiplePreferences<T extends Record<string, PreferenceKeyTyp
   keys: T,
   options: PreferenceUpdateOptions = { optimistic: true }
 ): [
-  { [P in keyof T]: PreferenceDefaultScopeType[T[P]] | undefined },
+  { [P in keyof T]: PreferenceDefaultScopeType[T[P]] },
   (updates: Partial<{ [P in keyof T]: PreferenceDefaultScopeType[T[P]] }>) => Promise<void>
 ] {
   // Create stable key dependencies
@@ -256,11 +261,11 @@ export function useMultiplePreferences<T extends Record<string, PreferenceKeyTyp
   // Cache the last snapshot to avoid infinite loops
   const lastSnapshotRef = useRef<Record<string, any>>({})
 
-  const allValues = useSyncExternalStore(
+  const rawValues = useSyncExternalStore(
     useCallback(
       (callback: () => void) => {
         // Subscribe to all keys and aggregate the unsubscribe functions
-        const unsubscribeFunctions = keyList.map((key) => preferenceService.subscribeKeyChange(key)(callback))
+        const unsubscribeFunctions = keyList.map((key) => preferenceService.subscribeChange(key)(callback))
 
         return () => {
           unsubscribeFunctions.forEach((unsubscribe) => unsubscribe())
@@ -296,14 +301,31 @@ export function useMultiplePreferences<T extends Record<string, PreferenceKeyTyp
 
   // Load initial values asynchronously if not cached
   useEffect(() => {
-    const uncachedKeys = keyList.filter((key) => !preferenceService.isCached(key))
+    // Find keys that need loading (either not cached or rawValue is undefined)
+    const uncachedKeys = keyList.filter((key) => {
+      // Find the local key for this preference key
+      const localKey = Object.keys(keys).find((k) => keys[k] === key)
+      const rawValue = localKey ? rawValues[localKey] : undefined
+
+      return rawValue === undefined && !preferenceService.isCached(key)
+    })
 
     if (uncachedKeys.length > 0) {
       preferenceService.getMultiple(uncachedKeys).catch((error) => {
         logger.error('Failed to load initial preferences:', error as Error)
       })
     }
-  }, [keyList])
+  }, [keyList, rawValues, keys])
+
+  // Convert raw values (including undefined) to exposed values (with defaults)
+  const exposedValues = useMemo(() => {
+    const result: Record<string, any> = {}
+    for (const [localKey, prefKey] of Object.entries(keys)) {
+      const rawValue = rawValues[localKey]
+      result[localKey] = rawValue !== undefined ? rawValue : DefaultPreferences.default[prefKey]
+    }
+    return result
+  }, [keys, rawValues])
 
   // Memoized batch update function
   const updateValues = useCallback(
@@ -328,7 +350,7 @@ export function useMultiplePreferences<T extends Record<string, PreferenceKeyTyp
   )
 
   // Type-cast the values to the expected shape
-  const typedValues = allValues as { [P in keyof T]: PreferenceDefaultScopeType[T[P]] | undefined }
+  const typedValues = exposedValues as { [P in keyof T]: PreferenceDefaultScopeType[T[P]] }
 
   return [typedValues, updateValues]
 }
