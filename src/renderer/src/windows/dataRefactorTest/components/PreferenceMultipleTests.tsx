@@ -220,7 +220,11 @@ const PreferenceMultipleTests: React.FC = () => {
               {/* Zoom Factor Slider */}
               <div>
                 <Text strong>
-                  缩放因子: {Math.round((typeof (values as any).zoomFactor === 'number' ? (values as any).zoomFactor : 1.0) * 100)}%
+                  缩放因子:{' '}
+                  {Math.round(
+                    (typeof (values as any).zoomFactor === 'number' ? (values as any).zoomFactor : 1.0) * 100
+                  )}
+                  %
                 </Text>
                 <Slider
                   min={0.5}
@@ -240,7 +244,9 @@ const PreferenceMultipleTests: React.FC = () => {
 
               {/* Font Size Slider */}
               <div>
-                <Text strong>字体大小: {typeof (values as any).fontSize === 'number' ? (values as any).fontSize : 14}px</Text>
+                <Text strong>
+                  字体大小: {typeof (values as any).fontSize === 'number' ? (values as any).fontSize : 14}px
+                </Text>
                 <Slider
                   min={8}
                   max={72}
@@ -262,7 +268,8 @@ const PreferenceMultipleTests: React.FC = () => {
               {/* Selection Window Opacity Slider */}
               <div>
                 <Text strong>
-                  选择窗口透明度: {Math.round(typeof (values as any).opacity === 'number' ? (values as any).opacity : 100)}%
+                  选择窗口透明度:{' '}
+                  {Math.round(typeof (values as any).opacity === 'number' ? (values as any).opacity : 100)}%
                 </Text>
                 <Slider
                   min={10}

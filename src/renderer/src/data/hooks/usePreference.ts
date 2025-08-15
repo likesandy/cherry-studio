@@ -1,6 +1,6 @@
 import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
-import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data/types'
+import type { PreferenceDefaultScopeType, PreferenceKeyType, PreferenceUpdateOptions } from '@shared/data/types'
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 
 const logger = loggerService.withContext('usePreference')
@@ -8,16 +8,27 @@ const logger = loggerService.withContext('usePreference')
 /**
  * React hook for managing a single preference value with automatic synchronization
  * Uses useSyncExternalStore for optimal React 18 integration and real-time updates
+ * Supports both optimistic and pessimistic update strategies for flexible UX
  *
  * @param key - The preference key to manage (must be a valid PreferenceKeyType)
+ * @param options - Optional configuration for update behavior:
+ *   - strategy: 'optimistic' (default) for immediate UI updates, 'pessimistic' for database-first updates
  * @returns A tuple [value, setValue] where:
  *   - value: Current preference value or undefined if not loaded/cached
  *   - setValue: Async function to update the preference value
  *
  * @example
  * ```typescript
- * // Basic usage - managing theme preference
+ * // Basic usage - managing theme preference with optimistic updates (default)
  * const [theme, setTheme] = usePreference('app.theme.mode')
+ *
+ * // Pessimistic updates for critical settings
+ * const [apiKey, setApiKey] = usePreference('api.key', { strategy: 'pessimistic' })
+ *
+ * // Simple optimistic updates
+ * const [fontSize, setFontSize] = usePreference('chat.message.font_size', {
+ *   strategy: 'optimistic'
+ * })
  *
  * // Conditional rendering based on preference value
  * if (theme === undefined) {
@@ -27,9 +38,9 @@ const logger = loggerService.withContext('usePreference')
  * // Updating preference value
  * const handleThemeChange = async (newTheme: string) => {
  *   try {
- *     await setTheme(newTheme)
+ *     await setTheme(newTheme) // UI updates immediately with optimistic strategy
  *   } catch (error) {
- *     console.error('Failed to update theme:', error)
+ *     console.error('Failed to update theme:', error) // Will auto-rollback on failure
  *   }
  * }
  *
@@ -45,13 +56,15 @@ const logger = loggerService.withContext('usePreference')
  * @example
  * ```typescript
  * // Advanced usage with form handling for message font size
- * const [fontSize, setFontSize] = usePreference('chat.message.font_size')
+ * const [fontSize, setFontSize] = usePreference('chat.message.font_size', {
+ *   strategy: 'optimistic' // Immediate feedback for UI preferences
+ * })
  *
  * const handleFontSizeChange = useCallback(async (size: number) => {
  *   if (size < 8 || size > 72) {
  *     throw new Error('Font size must be between 8 and 72')
  *   }
- *   await setFontSize(size)
+ *   await setFontSize(size) // Immediate UI update, syncs to database
  * }, [setFontSize])
  *
  * return (
@@ -66,7 +79,8 @@ const logger = loggerService.withContext('usePreference')
  * ```
  */
 export function usePreference<K extends PreferenceKeyType>(
-  key: K
+  key: K,
+  options: PreferenceUpdateOptions = { optimistic: true }
 ): [PreferenceDefaultScopeType[K] | undefined, (value: PreferenceDefaultScopeType[K]) => Promise<void>] {
   // Subscribe to changes for this specific preference
   const value = useSyncExternalStore(
@@ -88,13 +102,13 @@ export function usePreference<K extends PreferenceKeyType>(
   const setValue = useCallback(
     async (newValue: PreferenceDefaultScopeType[K]) => {
       try {
-        await preferenceService.set(key, newValue)
+        await preferenceService.set(key, newValue, options)
       } catch (error) {
         logger.error(`Failed to set preference ${key}:`, error as Error)
         throw error
       }
     },
-    [key]
+    [key, options]
   )
 
   return [value, setValue]
@@ -103,21 +117,30 @@ export function usePreference<K extends PreferenceKeyType>(
 /**
  * React hook for managing multiple preference values with efficient batch operations
  * Automatically synchronizes all specified preferences and provides type-safe access
+ * Supports both optimistic and pessimistic update strategies for flexible UX
  *
  * @param keys - Object mapping local names to preference keys. Keys are your custom names,
  *               values must be valid PreferenceKeyType identifiers
+ * @param options - Optional configuration for update behavior:
+ *   - strategy: 'optimistic' (default) for immediate UI updates, 'pessimistic' for database-first updates
  * @returns A tuple [values, updateValues] where:
  *   - values: Object with your local keys mapped to current preference values (undefined if not loaded)
  *   - updateValues: Async function to batch update multiple preferences at once
  *
  * @example
  * ```typescript
- * // Basic usage - managing related UI preferences
+ * // Basic usage - managing related UI preferences with optimistic updates
  * const [uiSettings, setUISettings] = useMultiplePreferences({
  *   theme: 'app.theme.mode',
  *   fontSize: 'chat.message.font_size',
  *   showLineNumbers: 'chat.code.show_line_numbers'
  * })
+ *
+ * // Pessimistic updates for critical settings
+ * const [apiSettings, setApiSettings] = useMultiplePreferences({
+ *   apiKey: 'api.key',
+ *   endpoint: 'api.endpoint'
+ * }, { strategy: 'pessimistic' })
  *
  * // Accessing individual values with type safety
  * const currentTheme = uiSettings.theme // string | undefined
@@ -221,7 +244,8 @@ export function usePreference<K extends PreferenceKeyType>(
  * ```
  */
 export function useMultiplePreferences<T extends Record<string, PreferenceKeyType>>(
-  keys: T
+  keys: T,
+  options: PreferenceUpdateOptions = { optimistic: true }
 ): [
   { [P in keyof T]: PreferenceDefaultScopeType[T[P]] | undefined },
   (updates: Partial<{ [P in keyof T]: PreferenceDefaultScopeType[T[P]] }>) => Promise<void>
@@ -294,13 +318,13 @@ export function useMultiplePreferences<T extends Record<string, PreferenceKeyTyp
           }
         }
 
-        await preferenceService.setMultiple(prefUpdates)
+        await preferenceService.setMultiple(prefUpdates, options)
       } catch (error) {
         logger.error('Failed to update preferences:', error as Error)
         throw error
       }
     },
-    [keys]
+    [keys, options]
   )
 
   // Type-cast the values to the expected shape
