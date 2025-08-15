@@ -1,3 +1,4 @@
+import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
 import { SELECTION_FINETUNED_LIST, SELECTION_PREDEFINED_BLACKLIST } from '@main/configs/SelectionConfig'
 import { isDev, isMac, isWin } from '@main/constant'
@@ -13,8 +14,6 @@ import type {
 } from 'selection-hook'
 
 import type { ActionItem } from '../../renderer/src/types/selectionTypes'
-import { ConfigKeys, configManager } from './ConfigManager'
-import storeSyncService from './StoreSyncService'
 
 const logger = loggerService.withContext('SelectionService')
 
@@ -144,12 +143,13 @@ export class SelectionService {
    * Ensures UI elements scale properly with system DPI settings
    */
   private initZoomFactor(): void {
-    const zoomFactor = configManager.getZoomFactor()
+    const zoomFactor = preferenceService.getAndSubscribeChange('app.zoom_factor', (zoomFactor: number) => {
+      this.setZoomFactor(zoomFactor)
+    })
+
     if (zoomFactor) {
       this.setZoomFactor(zoomFactor)
     }
-
-    configManager.subscribe('ZoomFactor', this.setZoomFactor)
   }
 
   public setZoomFactor = (zoomFactor: number) => {
@@ -157,51 +157,53 @@ export class SelectionService {
   }
 
   private initConfig(): void {
-    this.triggerMode = configManager.getSelectionAssistantTriggerMode() as TriggerMode
-    this.isFollowToolbar = configManager.getSelectionAssistantFollowToolbar()
-    this.isRemeberWinSize = configManager.getSelectionAssistantRemeberWinSize()
-    this.filterMode = configManager.getSelectionAssistantFilterMode()
-    this.filterList = configManager.getSelectionAssistantFilterList()
+    this.triggerMode = preferenceService.getAndSubscribeChange(
+      'feature.selection.trigger_mode',
+      (triggerMode: string) => {
+        const oldTriggerMode = this.triggerMode as TriggerMode
 
-    this.setHookGlobalFilterMode(this.filterMode, this.filterList)
-    this.setHookFineTunedList()
+        this.triggerMode = triggerMode as TriggerMode
+        this.processTriggerMode()
 
-    configManager.subscribe(ConfigKeys.SelectionAssistantTriggerMode, (triggerMode: TriggerMode) => {
-      const oldTriggerMode = this.triggerMode
-
-      this.triggerMode = triggerMode
-      this.processTriggerMode()
-
-      //trigger mode changed, need to update the filter list
-      if (oldTriggerMode !== triggerMode) {
-        this.setHookGlobalFilterMode(this.filterMode, this.filterList)
-      }
-    })
-
-    configManager.subscribe(ConfigKeys.SelectionAssistantFollowToolbar, (isFollowToolbar: boolean) => {
-      this.isFollowToolbar = isFollowToolbar
-    })
-
-    configManager.subscribe(ConfigKeys.SelectionAssistantRemeberWinSize, (isRemeberWinSize: boolean) => {
-      this.isRemeberWinSize = isRemeberWinSize
-      //when off, reset the last action window size to default
-      if (!this.isRemeberWinSize) {
-        this.lastActionWindowSize = {
-          width: this.ACTION_WINDOW_WIDTH,
-          height: this.ACTION_WINDOW_HEIGHT
+        //trigger mode changed, need to update the filter list
+        if (oldTriggerMode !== triggerMode) {
+          this.setHookGlobalFilterMode(this.filterMode, this.filterList)
         }
       }
-    })
-
-    configManager.subscribe(ConfigKeys.SelectionAssistantFilterMode, (filterMode: string) => {
+    ) as TriggerMode
+    this.isFollowToolbar = preferenceService.getAndSubscribeChange(
+      'feature.selection.follow_toolbar',
+      (followToolbar: boolean) => {
+        this.isFollowToolbar = followToolbar
+      }
+    )
+    this.isRemeberWinSize = preferenceService.getAndSubscribeChange(
+      'feature.selection.remember_win_size',
+      (rememberWinSize: boolean) => {
+        this.isRemeberWinSize = rememberWinSize
+        //when off, reset the last action window size to default
+        if (!this.isRemeberWinSize) {
+          this.lastActionWindowSize = {
+            width: this.ACTION_WINDOW_WIDTH,
+            height: this.ACTION_WINDOW_HEIGHT
+          }
+        }
+      }
+    )
+    this.filterMode = preferenceService.getAndSubscribeChange('feature.selection.filter_mode', (filterMode: string) => {
       this.filterMode = filterMode
       this.setHookGlobalFilterMode(this.filterMode, this.filterList)
     })
+    this.filterList = preferenceService.getAndSubscribeChange(
+      'feature.selection.filter_list',
+      (filterList: string[]) => {
+        this.filterList = filterList
+        this.setHookGlobalFilterMode(this.filterMode, this.filterList)
+      }
+    )
 
-    configManager.subscribe(ConfigKeys.SelectionAssistantFilterList, (filterList: string[]) => {
-      this.filterList = filterList
-      this.setHookGlobalFilterMode(this.filterMode, this.filterList)
-    })
+    this.setHookGlobalFilterMode(this.filterMode, this.filterList)
+    this.setHookFineTunedList()
   }
 
   /**
@@ -381,12 +383,9 @@ export class SelectionService {
   public toggleEnabled(enabled: boolean | undefined = undefined): void {
     if (!this.selectionHook) return
 
-    const newEnabled = enabled === undefined ? !configManager.getSelectionAssistantEnabled() : enabled
+    const newEnabled = enabled === undefined ? !preferenceService.get('feature.selection.enabled') : enabled
 
-    configManager.setSelectionAssistantEnabled(newEnabled)
-
-    //sync the new enabled state to all renderer windows
-    storeSyncService.syncToRenderer('selectionStore/setSelectionEnabled', newEnabled)
+    preferenceService.set('feature.selection.enabled', newEnabled)
   }
 
   /**
@@ -1462,27 +1461,27 @@ export class SelectionService {
     })
 
     ipcMain.handle(IpcChannel.Selection_SetEnabled, (_, enabled: boolean) => {
-      configManager.setSelectionAssistantEnabled(enabled)
+      preferenceService.set('feature.selection.enabled', enabled)
     })
 
     ipcMain.handle(IpcChannel.Selection_SetTriggerMode, (_, triggerMode: string) => {
-      configManager.setSelectionAssistantTriggerMode(triggerMode)
+      preferenceService.set('feature.selection.trigger_mode', triggerMode)
     })
 
     ipcMain.handle(IpcChannel.Selection_SetFollowToolbar, (_, isFollowToolbar: boolean) => {
-      configManager.setSelectionAssistantFollowToolbar(isFollowToolbar)
+      preferenceService.set('feature.selection.follow_toolbar', isFollowToolbar)
     })
 
     ipcMain.handle(IpcChannel.Selection_SetRemeberWinSize, (_, isRemeberWinSize: boolean) => {
-      configManager.setSelectionAssistantRemeberWinSize(isRemeberWinSize)
+      preferenceService.set('feature.selection.remember_win_size', isRemeberWinSize)
     })
 
     ipcMain.handle(IpcChannel.Selection_SetFilterMode, (_, filterMode: string) => {
-      configManager.setSelectionAssistantFilterMode(filterMode)
+      preferenceService.set('feature.selection.filter_mode', filterMode)
     })
 
     ipcMain.handle(IpcChannel.Selection_SetFilterList, (_, filterList: string[]) => {
-      configManager.setSelectionAssistantFilterList(filterList)
+      preferenceService.set('feature.selection.filter_list', filterList)
     })
 
     // [macOS] only macOS has the available isFullscreen mode
@@ -1533,7 +1532,7 @@ export class SelectionService {
 export function initSelectionService(): boolean {
   if (!isSupportedOS) return false
 
-  configManager.subscribe(ConfigKeys.SelectionAssistantEnabled, (enabled: boolean): void => {
+  const enabled = preferenceService.getAndSubscribeChange('feature.selection.enabled', (enabled: boolean): void => {
     //avoid closure
     const ss = SelectionService.getInstance()
     if (!ss) {
@@ -1548,7 +1547,7 @@ export function initSelectionService(): boolean {
     }
   })
 
-  if (!configManager.getSelectionAssistantEnabled()) return false
+  if (!enabled) return false
 
   const ss = SelectionService.getInstance()
   if (!ss) {

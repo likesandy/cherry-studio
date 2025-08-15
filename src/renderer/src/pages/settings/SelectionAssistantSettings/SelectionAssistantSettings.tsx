@@ -1,8 +1,9 @@
+import { usePreference } from '@data/hooks/usePreference'
 import { isMac, isWin } from '@renderer/config/constant'
 import { useTheme } from '@renderer/context/ThemeProvider'
-import { useSelectionAssistant } from '@renderer/hooks/useSelectionAssistant'
 import { getSelectionDescriptionLabel } from '@renderer/i18n/label'
 import { FilterMode, TriggerMode } from '@renderer/types/selectionTypes'
+import { ActionItem } from '@renderer/types/selectionTypes'
 import SelectionToolbar from '@renderer/windows/selection/toolbar/SelectionToolbar'
 import { Button, Radio, Row, Slider, Switch, Tooltip } from 'antd'
 import { CircleHelp, Edit2 } from 'lucide-react'
@@ -27,30 +28,42 @@ import SelectionFilterListModal from './components/SelectionFilterListModal'
 const SelectionAssistantSettings: FC = () => {
   const { theme } = useTheme()
   const { t } = useTranslation()
-  const {
-    selectionEnabled,
-    triggerMode,
-    isCompact,
-    isAutoClose,
-    isAutoPin,
-    isFollowToolbar,
-    isRemeberWinSize,
-    actionItems,
-    actionWindowOpacity,
-    filterMode,
-    filterList,
-    setSelectionEnabled,
-    setTriggerMode,
-    setIsCompact,
-    setIsAutoClose,
-    setIsAutoPin,
-    setIsFollowToolbar,
-    setIsRemeberWinSize,
-    setActionWindowOpacity,
-    setActionItems,
-    setFilterMode,
-    setFilterList
-  } = useSelectionAssistant()
+  // const {
+  //   selectionEnabled,
+  //   triggerMode,
+  //   isCompact,
+  //   isAutoClose,
+  //   isAutoPin,
+  //   isFollowToolbar,
+  //   isRemeberWinSize,
+  //   actionItems,
+  //   actionWindowOpacity,
+  //   filterMode,
+  //   filterList,
+  //   setSelectionEnabled,
+  //   setTriggerMode,
+  //   setIsCompact,
+  //   setIsAutoClose,
+  //   setIsAutoPin,
+  //   setIsFollowToolbar,
+  //   setIsRemeberWinSize,
+  //   setActionWindowOpacity,
+  //   setActionItems,
+  //   setFilterMode,
+  //   setFilterList
+  // } = useSelectionAssistant()
+
+  const [selectionEnabled, setSelectionEnabled] = usePreference('feature.selection.enabled')
+  const [triggerMode, setTriggerMode] = usePreference('feature.selection.trigger_mode')
+  const [isCompact, setIsCompact] = usePreference('feature.selection.compact')
+  const [isAutoClose, setIsAutoClose] = usePreference('feature.selection.auto_close')
+  const [isAutoPin, setIsAutoPin] = usePreference('feature.selection.auto_pin')
+  const [isFollowToolbar, setIsFollowToolbar] = usePreference('feature.selection.follow_toolbar')
+  const [isRemeberWinSize, setIsRemeberWinSize] = usePreference('feature.selection.remember_win_size')
+  const [actionWindowOpacity, setActionWindowOpacity] = usePreference('feature.selection.action_window_opacity')
+  const [filterMode, setFilterMode] = usePreference('feature.selection.filter_mode')
+  const [filterList, setFilterList] = usePreference('feature.selection.filter_list')
+  const [actionItems, setActionItems] = usePreference('feature.selection.action_items')
 
   const isSupportedOS = isWin || isMac
 
@@ -229,7 +242,7 @@ const SelectionAssistantSettings: FC = () => {
             </SettingRow>
           </SettingGroup>
 
-          <SelectionActionsList actionItems={actionItems} setActionItems={setActionItems} />
+          <SelectionActionsList actionItems={actionItems as ActionItem[]} setActionItems={setActionItems} />
 
           <SettingGroup theme={theme}>
             <SettingTitle>{t('selection.settings.advanced.title')}</SettingTitle>

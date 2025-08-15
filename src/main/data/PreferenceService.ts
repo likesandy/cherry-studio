@@ -95,6 +95,20 @@ export class PreferenceService {
   }
 
   /**
+   * Get a single preference value from memory cache and subscribe to changes
+   * @param key - The preference key to get
+   * @param callback - The callback function to call when the preference changes
+   * @returns The current value of the preference
+   */
+  public getAndSubscribeChange<K extends PreferenceKeyType>(
+    key: K,
+    callback: (newValue: PreferenceDefaultScopeType[K], oldValue?: PreferenceDefaultScopeType[K]) => void
+  ): PreferenceDefaultScopeType[K] {
+    const value = this.get(key)
+    this.subscribeChange(key, callback)
+    return value
+  }
+  /**
    * Set a single preference value
    * Updates both database and memory cache, then broadcasts changes to all listeners
    * Optimized to skip database writes and notifications when value hasn't changed
@@ -261,11 +275,11 @@ export class PreferenceService {
    */
   public subscribeChange<K extends PreferenceKeyType>(
     key: K,
-    callback: (newValue: PreferenceDefaultScopeType[K], oldValue: PreferenceDefaultScopeType[K]) => void
+    callback: (newValue: PreferenceDefaultScopeType[K], oldValue?: PreferenceDefaultScopeType[K]) => void
   ): () => void {
     const listener = (changedKey: string, newValue: any, oldValue: any) => {
       if (changedKey === key) {
-        callback(newValue, oldValue)
+        callback(newValue as PreferenceDefaultScopeType[K], oldValue as PreferenceDefaultScopeType[K])
       }
     }
 
