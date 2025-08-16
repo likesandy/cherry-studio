@@ -17,7 +17,6 @@ import { PersistGate } from 'redux-persist/integration/react'
 import SelectionActionApp from './SelectionActionApp'
 
 loggerService.initWindowSource('SelectionActionWindow')
-
 /**
  * fetchChatCompletion depends on this,
  * which is not a good design, but we have to add it for now

@@ -10,10 +10,10 @@ import useTranslate from '@renderer/hooks/useTranslate'
 import MessageContent from '@renderer/pages/home/Messages/MessageContent'
 import { getDefaultTopic, getDefaultTranslateAssistant } from '@renderer/services/AssistantService'
 import { Assistant, Topic, TranslateLanguage } from '@renderer/types'
-import type { ActionItem } from '@renderer/types/selectionTypes'
 import { runAsyncFunction } from '@renderer/utils'
 import { abortCompletion } from '@renderer/utils/abortController'
 import { detectLanguage } from '@renderer/utils/translate'
+import type { SelectionActionItem } from '@shared/data/types'
 import { Tooltip } from 'antd'
 import { ArrowRightFromLine, ArrowRightToLine, ChevronDown, CircleHelp, Globe } from 'lucide-react'
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -23,11 +23,11 @@ import styled from 'styled-components'
 import { processMessages } from './ActionUtils'
 import WindowFooter from './WindowFooter'
 interface Props {
-  action: ActionItem
+  action: SelectionActionItem
   scrollToBottom: () => void
 }
 
-const logger = loggerService
+const logger = loggerService.withContext('ActionTranslate')
 
 const ActionTranslate: FC<Props> = ({ action, scrollToBottom }) => {
   const { t } = useTranslation()
