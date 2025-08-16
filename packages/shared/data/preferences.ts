@@ -1,3 +1,4 @@
+import { defaultActionItems } from './pending_default_values'
 import type { SelectionActionItem, SelectionFilterMode, SelectionTriggerMode } from './types'
 
 /**
@@ -499,7 +500,7 @@ export const DefaultPreferences: PreferencesType = {
     'feature.quick_assistant.click_tray_to_show': false,
     'feature.quick_assistant.enabled': false,
     'feature.quick_assistant.read_clipboard_at_startup': true,
-    'feature.selection.action_items': [],
+    'feature.selection.action_items': defaultActionItems,
     'feature.selection.action_window_opacity': 100,
     'feature.selection.auto_close': false,
     'feature.selection.auto_pin': false,
