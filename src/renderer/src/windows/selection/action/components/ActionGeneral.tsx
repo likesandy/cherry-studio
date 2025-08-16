@@ -11,8 +11,8 @@ import {
 } from '@renderer/services/AssistantService'
 import { pauseTrace } from '@renderer/services/SpanManagerService'
 import { Assistant, Topic } from '@renderer/types'
-import type { ActionItem } from '@renderer/types/selectionTypes'
 import { abortCompletion } from '@renderer/utils/abortController'
+import type { SelectionActionItem } from '@shared/data/types'
 import { ChevronDown } from 'lucide-react'
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -22,7 +22,7 @@ import { processMessages } from './ActionUtils'
 import WindowFooter from './WindowFooter'
 
 interface Props {
-  action: ActionItem
+  action: SelectionActionItem
   scrollToBottom?: () => void
 }
 

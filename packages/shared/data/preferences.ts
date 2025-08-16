@@ -1,3 +1,5 @@
+import type { SelectionActionItem, SelectionFilterMode, SelectionTriggerMode } from './types'
+
 /**
  * Auto-generated preferences configuration
  * Generated at: 2025-08-15T03:23:46.568Z
@@ -13,7 +15,6 @@
   "interfaces": { "order": "alphabetically" },
   "typeLiterals": { "order": "alphabetically" }
 }] */
-
 export interface PreferencesType {
   default: {
     // redux/settings/enableDeveloperMode
@@ -289,7 +290,7 @@ export interface PreferencesType {
     // redux/settings/readClipboardAtStartup
     'feature.quick_assistant.read_clipboard_at_startup': boolean
     // redux/selectionStore/actionItems
-    'feature.selection.action_items': unknown[]
+    'feature.selection.action_items': SelectionActionItem[]
     // redux/selectionStore/actionWindowOpacity
     'feature.selection.action_window_opacity': number
     // redux/selectionStore/isAutoClose
@@ -303,13 +304,13 @@ export interface PreferencesType {
     // redux/selectionStore/filterList
     'feature.selection.filter_list': string[]
     // redux/selectionStore/filterMode
-    'feature.selection.filter_mode': string
+    'feature.selection.filter_mode': SelectionFilterMode
     // redux/selectionStore/isFollowToolbar
     'feature.selection.follow_toolbar': boolean
     // redux/selectionStore/isRemeberWinSize
     'feature.selection.remember_win_size': boolean
     // redux/selectionStore/triggerMode
-    'feature.selection.trigger_mode': string
+    'feature.selection.trigger_mode': SelectionTriggerMode
     // redux/shortcuts/shortcuts.clear_topic
     'shortcut.chat.clear': Record<string, unknown>
     // redux/shortcuts/shortcuts.copy_last_message

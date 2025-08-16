@@ -109,7 +109,7 @@ export class PreferenceService {
       this.notifyChangeListeners(key)
 
       // Auto-subscribe to this key for future updates
-      await this.subscribeToKeyInternal(key)
+      await this.subscribeToKeyInternal([key])
 
       return value
     } catch (error) {
@@ -230,7 +230,7 @@ export class PreferenceService {
 
           this.notifyChangeListeners(key)
 
-          await this.subscribeToKeyInternal(key as PreferenceKeyType)
+          await this.subscribeToKeyInternal([key as PreferenceKeyType])
         }
 
         return { ...cachedResults, ...uncachedResults }
@@ -343,15 +343,16 @@ export class PreferenceService {
   /**
    * Subscribe to a specific key for change notifications
    */
-  private async subscribeToKeyInternal(key: PreferenceKeyType): Promise<void> {
-    if (this.subscribedKeys.has(key)) return
+  private async subscribeToKeyInternal(keys: PreferenceKeyType[]): Promise<void> {
+    const keysToSubscribe = keys.filter((key) => !this.subscribedKeys.has(key))
+    if (keysToSubscribe.length === 0) return
 
     try {
-      await window.api.preference.subscribe([key])
-      this.subscribedKeys.add(key)
-      logger.debug(`Subscribed to preference key: ${key}`)
+      await window.api.preference.subscribe(keysToSubscribe)
+      keysToSubscribe.forEach((key) => this.subscribedKeys.add(key))
+      logger.debug(`Subscribed to preference keys: ${keysToSubscribe.join(', ')}`)
     } catch (error) {
-      logger.error(`Failed to subscribe to preference key ${key}:`, error as Error)
+      logger.error(`Failed to subscribe to preference keys ${keysToSubscribe.join(', ')}:`, error as Error)
     }
   }
 
@@ -379,7 +380,7 @@ export class PreferenceService {
       keyListeners.add(callback)
 
       // Auto-subscribe to this key for updates
-      this.subscribeToKeyInternal(key)
+      this.subscribeToKeyInternal([key])
 
       return () => {
         keyListeners.delete(callback)
@@ -417,10 +418,9 @@ export class PreferenceService {
 
         // Notify change listeners for the loaded value
         this.notifyChangeListeners(key)
-
-        // Auto-subscribe to this key if not already subscribed
-        await this.subscribeToKeyInternal(key as PreferenceKeyType)
       }
+
+      await this.subscribeToKeyInternal(Object.keys(allPreferences) as PreferenceKeyType[])
 
       this.fullCacheLoaded = true
       logger.info(`Loaded all ${Object.keys(allPreferences).length} preferences into cache`)

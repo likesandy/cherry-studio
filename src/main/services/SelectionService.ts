@@ -2,6 +2,7 @@ import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
 import { SELECTION_FINETUNED_LIST, SELECTION_PREDEFINED_BLACKLIST } from '@main/configs/SelectionConfig'
 import { isDev, isMac, isWin } from '@main/constant'
+import type { SelectionActionItem, SelectionFilterMode, SelectionTriggerMode } from '@shared/data/types'
 import { IpcChannel } from '@shared/IpcChannel'
 import { app, BrowserWindow, ipcMain, screen, systemPreferences } from 'electron'
 import { join } from 'path'
@@ -12,8 +13,6 @@ import type {
   SelectionHookInstance,
   TextSelectionData
 } from 'selection-hook'
-
-import type { ActionItem } from '../../renderer/src/types/selectionTypes'
 
 const logger = loggerService.withContext('SelectionService')
 
@@ -1248,7 +1247,7 @@ export class SelectionService {
    * @param actionItem Action item to process
    * @param isFullScreen [macOS] only macOS has the available isFullscreen mode
    */
-  public processAction(actionItem: ActionItem, isFullScreen: boolean = false): void {
+  public processAction(actionItem: SelectionActionItem, isFullScreen: boolean = false): void {
     const actionWindow = this.popActionWindow()
 
     actionWindow.webContents.send(IpcChannel.Selection_UpdateActionData, actionItem)
@@ -1476,7 +1475,7 @@ export class SelectionService {
       preferenceService.set('feature.selection.enabled', enabled)
     })
 
-    ipcMain.handle(IpcChannel.Selection_SetTriggerMode, (_, triggerMode: string) => {
+    ipcMain.handle(IpcChannel.Selection_SetTriggerMode, (_, triggerMode: SelectionTriggerMode) => {
       preferenceService.set('feature.selection.trigger_mode', triggerMode)
     })
 
@@ -1488,7 +1487,7 @@ export class SelectionService {
       preferenceService.set('feature.selection.remember_win_size', isRemeberWinSize)
     })
 
-    ipcMain.handle(IpcChannel.Selection_SetFilterMode, (_, filterMode: string) => {
+    ipcMain.handle(IpcChannel.Selection_SetFilterMode, (_, filterMode: SelectionFilterMode) => {
       preferenceService.set('feature.selection.filter_mode', filterMode)
     })
 
@@ -1497,9 +1496,12 @@ export class SelectionService {
     })
 
     // [macOS] only macOS has the available isFullscreen mode
-    ipcMain.handle(IpcChannel.Selection_ProcessAction, (_, actionItem: ActionItem, isFullScreen: boolean = false) => {
-      selectionService?.processAction(actionItem, isFullScreen)
-    })
+    ipcMain.handle(
+      IpcChannel.Selection_ProcessAction,
+      (_, actionItem: SelectionActionItem, isFullScreen: boolean = false) => {
+        selectionService?.processAction(actionItem, isFullScreen)
+      }
+    )
 
     ipcMain.handle(IpcChannel.Selection_ActionWindowClose, (event) => {
       const actionWindow = BrowserWindow.fromWebContents(event.sender)

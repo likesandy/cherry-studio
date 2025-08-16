@@ -1,5 +1,6 @@
 import '@renderer/databases'
 
+import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
 import store, { persistor } from '@renderer/store'
 import { Provider } from 'react-redux'
@@ -14,6 +15,8 @@ import { ThemeProvider } from './context/ThemeProvider'
 import Router from './Router'
 
 const logger = loggerService.withContext('App.tsx')
+
+preferenceService.loadAll()
 
 function App(): React.ReactElement {
   logger.info('App initialized')

@@ -159,16 +159,16 @@ if (!app.requestSingleInstanceLock()) {
 
     await preferenceService.initialize()
 
-    // Create two test windows for cross-window preference sync testing
-    logger.info('Creating test windows for PreferenceService cross-window sync testing')
-    const testWindow1 = dataRefactorMigrateService.createTestWindow()
-    const testWindow2 = dataRefactorMigrateService.createTestWindow()
+    // // Create two test windows for cross-window preference sync testing
+    // logger.info('Creating test windows for PreferenceService cross-window sync testing')
+    // const testWindow1 = dataRefactorMigrateService.createTestWindow()
+    // const testWindow2 = dataRefactorMigrateService.createTestWindow()
 
-    // Position windows to avoid overlap
-    testWindow1.once('ready-to-show', () => {
-      const [x, y] = testWindow1.getPosition()
-      testWindow2.setPosition(x + 50, y + 50)
-    })
+    // // Position windows to avoid overlap
+    // testWindow1.once('ready-to-show', () => {
+    //   const [x, y] = testWindow1.getPosition()
+    //   testWindow2.setPosition(x + 50, y + 50)
+    // })
     /************FOR TESTING ONLY END****************/
 
     // Set app user model id for windows
