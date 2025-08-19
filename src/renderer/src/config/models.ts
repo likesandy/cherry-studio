@@ -300,6 +300,7 @@ export const MODEL_SUPPORTED_REASONING_EFFORT: ReasoningEffortConfig = {
   qwen: ['low', 'medium', 'high'] as const,
   qwen_thinking: ['low', 'medium', 'high'] as const,
   doubao: ['auto', 'high'] as const,
+  doubao_no_auto: ['high'] as const,
   hunyuan: ['auto'] as const,
   zhipu: ['auto'] as const,
   perplexity: ['low', 'medium', 'high'] as const
@@ -316,6 +317,7 @@ export const MODEL_SUPPORTED_OPTIONS: ThinkingOptionConfig = {
   qwen: ['off', ...MODEL_SUPPORTED_REASONING_EFFORT.qwen] as const,
   qwen_thinking: MODEL_SUPPORTED_REASONING_EFFORT.qwen_thinking,
   doubao: ['off', ...MODEL_SUPPORTED_REASONING_EFFORT.doubao] as const,
+  doubao_no_auto: ['off', ...MODEL_SUPPORTED_REASONING_EFFORT.doubao_no_auto] as const,
   hunyuan: ['off', ...MODEL_SUPPORTED_REASONING_EFFORT.hunyuan] as const,
   zhipu: ['off', ...MODEL_SUPPORTED_REASONING_EFFORT.zhipu] as const,
   perplexity: MODEL_SUPPORTED_REASONING_EFFORT.perplexity
@@ -339,8 +341,13 @@ export const getThinkModelType = (model: Model): ThinkingModelType => {
       thinkingModelType = 'qwen_thinking'
     }
     thinkingModelType = 'qwen'
-  } else if (isSupportedThinkingTokenDoubaoModel(model)) thinkingModelType = 'doubao'
-  else if (isSupportedThinkingTokenHunyuanModel(model)) thinkingModelType = 'hunyuan'
+  } else if (isSupportedThinkingTokenDoubaoModel(model)) {
+    if (isDoubaoThinkingAutoModel(model)) {
+      thinkingModelType = 'doubao'
+    } else {
+      thinkingModelType = 'doubao_no_auto'
+    }
+  } else if (isSupportedThinkingTokenHunyuanModel(model)) thinkingModelType = 'hunyuan'
   else if (isSupportedReasoningEffortPerplexityModel(model)) thinkingModelType = 'perplexity'
   else if (isSupportedThinkingTokenZhipuModel(model)) thinkingModelType = 'zhipu'
   return thinkingModelType
@@ -639,34 +646,58 @@ export const SYSTEM_MODELS: Record<SystemProviderId | 'defaultModel', Model[]> =
   ],
   aihubmix: [
     {
+      id: 'gpt-5',
+      provider: 'aihubmix',
+      name: 'gpt-5',
+      group: 'OpenAI'
+    },
+    {
+      id: 'gpt-5-mini',
+      provider: 'aihubmix',
+      name: 'gpt-5-mini',
+      group: 'OpenAI'
+    },
+    {
+      id: 'gpt-5-nano',
+      provider: 'aihubmix',
+      name: 'gpt-5-nano',
+      group: 'OpenAI'
+    },
+    {
+      id: 'gpt-5-chat-latest',
+      provider: 'aihubmix',
+      name: 'gpt-5-chat-latest',
+      group: 'OpenAI'
+    },
+    {
       id: 'o3',
       provider: 'aihubmix',
       name: 'o3',
-      group: 'gpt'
+      group: 'OpenAI'
     },
     {
       id: 'o4-mini',
       provider: 'aihubmix',
       name: 'o4-mini',
-      group: 'gpt'
+      group: 'OpenAI'
     },
     {
       id: 'gpt-4.1',
       provider: 'aihubmix',
       name: 'gpt-4.1',
-      group: 'gpt'
+      group: 'OpenAI'
     },
     {
       id: 'gpt-4o',
       provider: 'aihubmix',
       name: 'gpt-4o',
-      group: 'gpt'
+      group: 'OpenAI'
     },
     {
       id: 'gpt-image-1',
       provider: 'aihubmix',
       name: 'gpt-image-1',
-      group: 'gpt'
+      group: 'OpenAI'
     },
     {
       id: 'DeepSeek-V3',
@@ -675,28 +706,58 @@ export const SYSTEM_MODELS: Record<SystemProviderId | 'defaultModel', Model[]> =
       group: 'DeepSeek'
     },
     {
+      id: 'DeepSeek-R1',
+      provider: 'aihubmix',
+      name: 'DeepSeek-R1',
+      group: 'DeepSeek'
+    },
+    {
       id: 'claude-sonnet-4-20250514',
       provider: 'aihubmix',
       name: 'claude-sonnet-4-20250514',
-      group: 'claude'
+      group: 'Claude'
     },
     {
-      id: 'gemini-2.5-pro-preview-05-06',
+      id: 'gemini-2.5-pro',
       provider: 'aihubmix',
-      name: 'gemini-2.5-pro-preview-05-06',
-      group: 'gemini'
+      name: 'gemini-2.5-pro',
+      group: 'Gemini'
     },
     {
-      id: 'gemini-2.5-flash-preview-05-20-nothink',
+      id: 'gemini-2.5-flash-nothink',
       provider: 'aihubmix',
-      name: 'gemini-2.5-flash-preview-05-20-nothink',
-      group: 'gemini'
+      name: 'gemini-2.5-flash-nothink',
+      group: 'Gemini'
     },
     {
       id: 'gemini-2.5-flash',
       provider: 'aihubmix',
       name: 'gemini-2.5-flash',
-      group: 'gemini'
+      group: 'Gemini'
+    },
+    {
+      id: 'Qwen3-235B-A22B-Instruct-2507',
+      provider: 'aihubmix',
+      name: 'Qwen3-235B-A22B-Instruct-2507',
+      group: 'qwen'
+    },
+    {
+      id: 'kimi-k2-0711-preview',
+      provider: 'aihubmix',
+      name: 'kimi-k2-0711-preview',
+      group: 'moonshot'
+    },
+    {
+      id: 'Llama-4-Scout-17B-16E-Instruct',
+      provider: 'aihubmix',
+      name: 'Llama-4-Scout-17B-16E-Instruct',
+      group: 'llama'
+    },
+    {
+      id: 'Llama-4-Maverick-17B-128E-Instruct-FP8',
+      provider: 'aihubmix',
+      name: 'Llama-4-Maverick-17B-128E-Instruct-FP8',
+      group: 'llama'
     }
   ],
 
@@ -2896,12 +2957,16 @@ export function isWebSearchModel(model: Model): boolean {
   }
 
   if (provider.id === 'aihubmix') {
+    // modelId 不以-search结尾
+    if (!modelId.endsWith('-search') && GEMINI_SEARCH_REGEX.test(modelId)) {
+      return true
+    }
+
     if (isOpenAIWebSearchModel(model)) {
       return true
     }
 
-    const models = ['gemini-2.0-flash-search', 'gemini-2.0-flash-exp-search', 'gemini-2.0-pro-exp-02-05-search']
-    return models.includes(modelId)
+    return false
   }
 
   if (provider?.type === 'openai') {

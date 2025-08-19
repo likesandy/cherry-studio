@@ -114,13 +114,20 @@ const ActionTranslate: FC<Props> = ({ action, scrollToBottom }) => {
 
     setIsLoading(true)
 
-    const sourceLanguage = await detectLanguage(action.selectedText)
+    const sourceLanguageCode = await detectLanguage(action.selectedText)
 
     let translateLang: TranslateLanguage
-    if (sourceLanguage.langCode === targetLanguage.langCode) {
-      translateLang = alterLanguage
-    } else {
+
+    if (sourceLanguageCode === UNKNOWN.langCode) {
+      logger.debug('Unknown source language. Just use target language.')
       translateLang = targetLanguage
+    } else {
+      logger.debug('Detected Language: ', { sourceLanguage: sourceLanguageCode })
+      if (sourceLanguageCode === targetLanguage.langCode) {
+        translateLang = alterLanguage
+      } else {
+        translateLang = targetLanguage
+      }
     }
 
     assistantRef.current = getDefaultTranslateAssistant(translateLang, action.selectedText)

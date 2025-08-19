@@ -5,6 +5,7 @@ import {
   isEmbeddingModel,
   isGenerateImageModel,
   isOpenRouterBuiltInWebSearchModel,
+  isQwenMTModel,
   isReasoningModel,
   isSupportedDisableGenerationModel,
   isSupportedReasoningEffortModel,
@@ -12,6 +13,7 @@ import {
   isWebSearchModel
 } from '@renderer/config/models'
 import {
+  LANG_DETECT_PROMPT,
   SEARCH_SUMMARY_PROMPT,
   SEARCH_SUMMARY_PROMPT_KNOWLEDGE_ONLY,
   SEARCH_SUMMARY_PROMPT_WEB_ONLY
@@ -53,6 +55,7 @@ import {
   containsSupportedVariables,
   replacePromptVariables
 } from '@renderer/utils/prompt'
+import { getTranslateOptions } from '@renderer/utils/translate'
 import { findLast, isEmpty, takeRight } from 'lodash'
 
 import AiProvider from '../aiCore'
@@ -62,7 +65,8 @@ import {
   getDefaultAssistant,
   getDefaultModel,
   getProviderByModel,
-  getTopNamingModel
+  getQuickModel,
+  getTranslateModel
 } from './AssistantService'
 import { processKnowledgeSearch } from './KnowledgeService'
 import { MemoryProcessor } from './MemoryProcessor'
@@ -131,7 +135,7 @@ async function fetchExternalTool(
     }
 
     const summaryAssistant = getDefaultAssistant()
-    summaryAssistant.model = assistant.model || getDefaultModel()
+    summaryAssistant.model = getQuickModel() || assistant.model || getDefaultModel()
     summaryAssistant.prompt = prompt
 
     const callSearchSummary = async (params: { messages: Message[]; assistant: Assistant }) => {
@@ -607,9 +611,73 @@ async function processConversationMemory(messages: Message[], assistant: Assista
   }
 }
 
+interface FetchLanguageDetectionProps {
+  text: string
+  onResponse?: (text: string, isComplete: boolean) => void
+}
+
+export async function fetchLanguageDetection({ text, onResponse }: FetchLanguageDetectionProps) {
+  const translateLanguageOptions = await getTranslateOptions()
+  const listLang = translateLanguageOptions.map((item) => item.langCode)
+  const listLangText = JSON.stringify(listLang)
+
+  let model = getTranslateModel()
+  if (!model) {
+    throw new Error(i18n.t('error.model.not_exists'))
+  }
+
+  if (isQwenMTModel(model)) {
+    logger.info('QwenMT cannot be used for language detection. Fallback to default model.')
+    model = getDefaultModel()
+    if (isQwenMTModel(model)) {
+      throw new Error(i18n.t('translate.error.detect.qwen_mt'))
+    }
+  }
+
+  const provider = getProviderByModel(model)
+
+  if (!hasApiKey(provider)) {
+    throw new Error(i18n.t('error.no_api_key'))
+  }
+
+  const assistant: Assistant = getDefaultAssistant()
+
+  assistant.model = model
+  assistant.settings = {
+    temperature: 0.7
+  }
+  assistant.prompt = LANG_DETECT_PROMPT.replace('{{list_lang}}', listLangText).replace('{{input}}', text)
+
+  const isSupportedStreamOutput = () => {
+    if (!onResponse) {
+      return false
+    }
+    return true
+  }
+
+  const stream = isSupportedStreamOutput()
+
+  const params: CompletionsParams = {
+    callType: 'translate-lang-detect',
+    messages: 'follow system prompt',
+    assistant,
+    streamOutput: stream,
+    enableReasoning: false,
+    onResponse
+  }
+
+  const AI = new AiProvider(provider)
+
+  try {
+    return (await AI.completions(params)).getText() || ''
+  } catch (error: any) {
+    return ''
+  }
+}
+
 export async function fetchMessagesSummary({ messages, assistant }: { messages: Message[]; assistant: Assistant }) {
   let prompt = (getStoreSetting('topicNamingPrompt') as string) || i18n.t('prompts.title')
-  const model = getTopNamingModel() || assistant.model || getDefaultModel()
+  const model = getQuickModel() || assistant.model || getDefaultModel()
 
   if (prompt && containsSupportedVariables(prompt)) {
     prompt = await replacePromptVariables(prompt, model.name)
@@ -679,7 +747,7 @@ export async function fetchMessagesSummary({ messages, assistant }: { messages: 
 }
 
 export async function fetchSearchSummary({ messages, assistant }: { messages: Message[]; assistant: Assistant }) {
-  const model = assistant.model || getDefaultModel()
+  const model = getQuickModel() || assistant.model || getDefaultModel()
   const provider = getProviderByModel(model)
 
   if (!hasApiKey(provider)) {
