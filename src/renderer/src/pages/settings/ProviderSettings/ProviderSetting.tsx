@@ -3,7 +3,7 @@ import { LoadingIcon } from '@renderer/components/Icons'
 import { HStack } from '@renderer/components/Layout'
 import { ApiKeyListPopup } from '@renderer/components/Popups/ApiKeyListPopup'
 import { isEmbeddingModel, isRerankModel } from '@renderer/config/models'
-import { PROVIDER_URLS } from '@renderer/config/providers'
+import { PROVIDER_URLS, SYSTEM_PROVIDERS_CONFIG } from '@renderer/config/providers'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useAllProviders, useProvider, useProviders } from '@renderer/hooks/useProvider'
 import { useTimer } from '@renderer/hooks/useTimer'
@@ -11,7 +11,7 @@ import i18n from '@renderer/i18n'
 import { ModelList } from '@renderer/pages/settings/ProviderSettings/ModelList'
 import { checkApi } from '@renderer/services/ApiService'
 import { isProviderSupportAuth } from '@renderer/services/ProviderService'
-import { isSystemProvider } from '@renderer/types'
+import { isSystemProvider, Provider, SystemProviderId, SystemProviderIds } from '@renderer/types'
 import { ApiKeyConnectivity, HealthStatus } from '@renderer/types/healthCheck'
 import { formatApiHost, formatApiKeys, getFancyProviderName, isOpenAIProvider } from '@renderer/utils'
 import { formatErrorMessage } from '@renderer/utils/error'
@@ -224,6 +224,52 @@ const ProviderSetting: FC<Props> = ({ providerId }) => {
       </Tooltip>
     )
   }
+
+  // Clean up provider data on component mount - remove duplicates and add missing system providers
+  useEffect(() => {
+    const cleanupProviders = () => {
+      const currentProviders = allProviders
+      const systemProviderIds = Object.keys(SystemProviderIds) as SystemProviderId[]
+
+      // Find duplicates (same id appears multiple times)
+      const seenIds = new Set<string>()
+      const duplicateIds = new Set<string>()
+      currentProviders.forEach((p) => {
+        if (seenIds.has(p.id)) {
+          duplicateIds.add(p.id)
+        }
+        seenIds.add(p.id)
+      })
+
+      const cleanedProviders: Provider[] = []
+      const processedIds = new Set<string>()
+
+      currentProviders.forEach((p) => {
+        if (!processedIds.has(p.id)) {
+          cleanedProviders.push(p)
+          processedIds.add(p.id)
+        }
+      })
+
+      // Find missing system providers
+      const existingProviderIds = cleanedProviders.map((p) => p.id)
+      const missingSystemProviderIds = systemProviderIds.filter((id) => !existingProviderIds.includes(id))
+
+      // Add missing system providers
+      missingSystemProviderIds.forEach((id: SystemProviderId) => {
+        const systemProvider = SYSTEM_PROVIDERS_CONFIG[id]
+        cleanedProviders.push({ ...systemProvider })
+      })
+
+      // Update providers if there were changes
+      if (duplicateIds.size > 0 || missingSystemProviderIds.length > 0) {
+        updateProviders(cleanedProviders)
+      }
+    }
+
+    cleanupProviders()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Empty dependency array to run only on mount
 
   useEffect(() => {
     if (provider.id === 'copilot') {
