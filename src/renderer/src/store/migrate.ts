@@ -2188,6 +2188,122 @@ const migrateConfig = {
       logger.error('migrate 137 error', error as Error)
       return state
     }
+  },
+  '138': (state: RootState) => {
+    try {
+      // 测试用迁移：创建重复的系统providers和删除一些providers来测试UI
+      logger.info('Test migration 138: Creating duplicate providers for UI testing')
+
+      // 1. 删除一些现有的providers（模拟用户删除或系统更新）
+      const providersToRemove = ['ocoolai', 'burncloud']
+      state.llm.providers = state.llm.providers.filter((p) => !providersToRemove.includes(p.id))
+
+      // 2. 创建重复的OpenAI providers（不同配置）
+      const openaiDuplicate1: Provider = {
+        id: 'openai',
+        name: 'OpenAI Account 1',
+        type: 'openai-response',
+        apiKey: 'sk-test-key-account-1',
+        apiHost: 'https://api.openai.com',
+        models: [],
+        isSystem: true,
+        enabled: false,
+        serviceTier: 'auto'
+      }
+
+      const openaiDuplicate2: Provider = {
+        id: 'openai',
+        name: 'OpenAI Account 2',
+        type: 'openai-response',
+        apiKey: 'sk-test-key-account-2',
+        apiHost: 'https://api.openai.com',
+        models: [],
+        isSystem: true,
+        enabled: true,
+        serviceTier: 'priority'
+      }
+
+      // 3. 创建重复的Anthropic providers（不同apiHost）
+      const anthropicDuplicate1: Provider = {
+        id: 'anthropic',
+        name: 'Anthropic',
+        type: 'anthropic',
+        apiKey: 'ak-test-key',
+        apiHost: 'https://api.anthropic.com/',
+        models: [],
+        isSystem: true,
+        enabled: false
+      }
+
+      const anthropicDuplicate2: Provider = {
+        id: 'anthropic',
+        name: 'Anthropic Proxy',
+        type: 'anthropic',
+        apiKey: '',
+        apiHost: 'https://proxy.anthropic.com/',
+        models: [],
+        isSystem: true,
+        enabled: false
+      }
+
+      // 4. 创建重复的DeepSeek providers（多个enabled）
+      const deepseekDuplicate1: Provider = {
+        id: 'deepseek',
+        name: 'DeepSeek',
+        type: 'openai',
+        apiKey: '',
+        apiHost: 'https://api.deepseek.com',
+        models: [],
+        isSystem: true,
+        enabled: true
+      }
+
+      const deepseekDuplicate2: Provider = {
+        id: 'deepseek',
+        name: 'DeepSeek Custom',
+        type: 'openai',
+        apiKey: '',
+        apiHost: 'https://api.deepseek.com',
+        models: [],
+        isSystem: true,
+        enabled: true
+      }
+
+      const vertexaiConflict: Provider = {
+        id: 'vertexai',
+        name: 'VertexAI Project 2',
+        type: 'vertexai',
+        apiKey: 'vertex-project-2-key',
+        apiHost: 'https://aiplatform.googleapis.com',
+        models: [],
+        isSystem: true,
+        isVertex: true,
+        enabled: true
+      }
+
+      // 5. 添加重复providers到列表中（在现有providers之后）
+      state.llm.providers.push(
+        openaiDuplicate1,
+        openaiDuplicate2,
+        anthropicDuplicate1,
+        anthropicDuplicate2,
+        deepseekDuplicate1,
+        deepseekDuplicate2,
+        vertexaiConflict
+      )
+
+      logger.info(`Test migration 138 completed. Total providers: ${state.llm.providers.length}`)
+      logger.info('Duplicate providers created for UI testing:', {
+        openai: state.llm.providers.filter((p) => p.id === 'openai').length,
+        anthropic: state.llm.providers.filter((p) => p.id === 'anthropic').length,
+        deepseek: state.llm.providers.filter((p) => p.id === 'deepseek').length
+      })
+
+      return state
+    } catch (error) {
+      logger.error('migrate 138 error', error as Error)
+      return state
+    }
   }
 }
 

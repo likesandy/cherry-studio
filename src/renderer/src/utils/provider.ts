@@ -1,49 +1,89 @@
 import { SYSTEM_PROVIDERS_CONFIG } from '@renderer/config/providers'
 import { isSystemProvider, Provider, SystemProviderId, SystemProviderIds } from '@renderer/types'
 
+export type ConflictInfo = {
+  id: string
+  providers: (Provider & { _tempIndex?: number })[]
+}
+
+export type ConflictResolution = {
+  conflictId: string
+  selectedProviderId: string // 临时ID，用于标识用户选择的provider
+}
+
 /**
  * Clean up provider data by removing duplicates and adding missing system providers
  *
- * Priority rules for duplicate system providers:
- * 1. Provider with non-empty apiKey takes precedence
- * 2. If both have empty apiKey, enabled provider takes precedence
- * 3. Otherwise, keep the first occurrence
+ * For duplicate system providers, all duplicates are presented to the user for manual selection.
+ * No automatic priority rules are applied - the user chooses which provider to keep.
  *
  * @param providers - Array of providers to clean up
- * @returns Object containing cleaned providers and whether changes were made
+ * @param conflictResolutions - Optional user resolutions for conflicts
+ * @returns Object containing cleaned providers, whether changes were made, and conflicts that need user attention
  */
-export function cleanupProviders(providers: Provider[]): {
+export function cleanupProviders(
+  providers: Provider[],
+  conflictResolutions: ConflictResolution[] = []
+): {
   cleanedProviders: Provider[]
   hasChanges: boolean
+  conflicts: ConflictInfo[]
 } {
   const systemProviderIds = Object.keys(SystemProviderIds) as SystemProviderId[]
   const cleanedProviders: Provider[] = []
-  const processedIds = new Set<string>()
+  const conflicts: ConflictInfo[] = []
   let hasChanges = false
 
-  // Remove duplicates with priority logic
-  providers.forEach((p) => {
-    if (!processedIds.has(p.id)) {
-      cleanedProviders.push(p)
-      processedIds.add(p.id)
+  // Group providers by ID to detect duplicates
+  const providerGroups = new Map<string, Provider[]>()
+  providers.forEach((p, index) => {
+    if (!providerGroups.has(p.id)) {
+      providerGroups.set(p.id, [])
+    }
+    // Add a temporary index to help identify providers during conflict resolution
+    const providerWithIndex = { ...p, _tempIndex: index }
+    providerGroups.get(p.id)!.push(providerWithIndex as Provider & { _tempIndex: number })
+  })
+
+  // Process each group
+  providerGroups.forEach((group, id) => {
+    if (group.length === 1) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { _tempIndex: _, ...cleanProvider } = group[0] as Provider & { _tempIndex: number }
+      cleanedProviders.push(cleanProvider)
       return
     }
 
-    // Handle duplicate system providers
-    if (!isSystemProvider(p)) {
-      hasChanges = true // Found duplicate non-system provider (should not happen, but mark as change)
+    hasChanges = true
+
+    // Handle duplicates
+    if (!isSystemProvider(group[0])) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { _tempIndex: _, ...cleanProvider } = group[0] as Provider & { _tempIndex: number }
+      cleanedProviders.push(cleanProvider)
       return
     }
 
-    const existingIndex = cleanedProviders.findIndex((existing) => existing.id === p.id)
-    if (existingIndex === -1) return
+    const userResolution = conflictResolutions.find((r) => r.conflictId === id)
 
-    const existingProvider = cleanedProviders[existingIndex]
-    if (shouldReplaceProvider(p, existingProvider)) {
-      cleanedProviders[existingIndex] = p
-      hasChanges = true
+    if (userResolution) {
+      const selectedProvider = group.find((p) => (p as any)._tempIndex.toString() === userResolution.selectedProviderId)
+      if (selectedProvider) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _tempIndex: _, ...cleanProvider } = selectedProvider as Provider & { _tempIndex: number }
+        cleanedProviders.push(cleanProvider)
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _tempIndex: _, ...cleanProvider } = group[0] as Provider & { _tempIndex: number }
+        cleanedProviders.push(cleanProvider)
+      }
     } else {
-      hasChanges = true // Found duplicate but didn't replace
+      const conflictProviders = group.map((p) => p as Provider & { _tempIndex: number })
+      conflicts.push({
+        id,
+        providers: conflictProviders
+      })
+      return
     }
   })
 
@@ -53,35 +93,13 @@ export function cleanupProviders(providers: Provider[]): {
 
   missingSystemProviderIds.forEach((id: SystemProviderId) => {
     const systemProvider = SYSTEM_PROVIDERS_CONFIG[id]
-    cleanedProviders.push({ ...systemProvider })
+    cleanedProviders.push({ ...systemProvider } as Provider)
     hasChanges = true
   })
 
   return {
     cleanedProviders,
-    hasChanges
+    hasChanges,
+    conflicts
   }
-}
-
-/**
- * Determine if current provider should replace existing provider
- *
- * @param current - Current provider being evaluated
- * @param existing - Existing provider in the list
- * @returns true if current should replace existing
- */
-function shouldReplaceProvider(current: Provider, existing: Provider): boolean {
-  const currentHasApiKey = current.apiKey && current.apiKey.trim() !== ''
-  const existingHasApiKey = existing.apiKey && existing.apiKey.trim() !== ''
-
-  // Priority: 1) has apiKey, 2) is enabled
-  if (currentHasApiKey && !existingHasApiKey) {
-    return true
-  }
-
-  if (!currentHasApiKey && !existingHasApiKey && current.enabled && !existing.enabled) {
-    return true
-  }
-
-  return false
 }

@@ -2,6 +2,7 @@ import { DropResult } from '@hello-pangea/dnd'
 import { loggerService } from '@logger'
 import { DraggableVirtualList, useDraggableReorder } from '@renderer/components/DraggableList'
 import { DeleteIcon, EditIcon, PoeLogo } from '@renderer/components/Icons'
+import ConflictResolutionPopup from '@renderer/components/Popups/ConflictResolutionPopup'
 import { getProviderLogo } from '@renderer/config/providers'
 import { useAllProviders, useProviders } from '@renderer/hooks/useProvider'
 import { getProviderLabel } from '@renderer/i18n/label'
@@ -16,8 +17,9 @@ import {
   matchKeywordsInProvider,
   uuid
 } from '@renderer/utils'
-import { Avatar, Button, Card, Dropdown, Input, MenuProps, Tag } from 'antd'
-import { Eye, EyeOff, GripVertical, PlusIcon, Search, UserPen } from 'lucide-react'
+import { cleanupProviders, ConflictInfo, ConflictResolution } from '@renderer/utils/provider'
+import { Avatar, Button, Card, Dropdown, Input, MenuProps, Modal, Tag } from 'antd'
+import { Eye, EyeOff, GripVertical, PlusIcon, RefreshCcw, Search, UserPen } from 'lucide-react'
 import { FC, startTransition, useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
@@ -31,6 +33,12 @@ const logger = loggerService.withContext('ProvidersList')
 
 const BUTTON_WRAPPER_HEIGHT = 50
 
+const SearchContainer = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+`
+
 const ProvidersList: FC = () => {
   const [searchParams] = useSearchParams()
   const providers = useAllProviders()
@@ -40,6 +48,9 @@ const ProvidersList: FC = () => {
   const [searchText, setSearchText] = useState<string>('')
   const [dragging, setDragging] = useState(false)
   const [providerLogos, setProviderLogos] = useState<Record<string, string>>({})
+  const [conflictResolutionVisible, setConflictResolutionVisible] = useState(false)
+  const [pendingConflicts, setPendingConflicts] = useState<ConflictInfo[]>([])
+  const [originalProviders, setOriginalProviders] = useState<Provider[]>([]) // 存储原始providers用于冲突解决
 
   const setSelectedProvider = useCallback(
     (provider: Provider) => {
@@ -310,6 +321,60 @@ const ProvidersList: FC = () => {
     setSelectedProvider(provider)
   }
 
+  const onCleanupProviders = () => {
+    const { cleanedProviders, hasChanges, conflicts } = cleanupProviders(providers)
+
+    if (!hasChanges) {
+      window.message.info(t('settings.provider.cleanup.no_changes'))
+      return
+    }
+
+    if (conflicts.length > 0) {
+      // 存储原始providers和冲突信息，显示冲突解决弹窗
+      setOriginalProviders(providers)
+      setPendingConflicts(conflicts)
+      setConflictResolutionVisible(true)
+    } else {
+      showCleanupConfirmDialog(cleanedProviders)
+    }
+  }
+
+  const handleConflictResolution = (resolutions: ConflictResolution[]) => {
+    // 使用用户的冲突解决方案重新执行清理
+    const { cleanedProviders, hasChanges } = cleanupProviders(originalProviders, resolutions)
+
+    setConflictResolutionVisible(false)
+    setPendingConflicts([])
+    setOriginalProviders([])
+
+    if (hasChanges) {
+      updateProviders(cleanedProviders)
+      window.message.success(t('settings.provider.cleanup.success_with_user_resolution'))
+    } else {
+      window.message.info(t('settings.provider.cleanup.no_changes'))
+    }
+  }
+
+  const handleConflictCancel = () => {
+    setConflictResolutionVisible(false)
+    setPendingConflicts([])
+    setOriginalProviders([])
+  }
+
+  const showCleanupConfirmDialog = (cleanedProviders: Provider[]) => {
+    Modal.confirm({
+      title: t('settings.provider.cleanup.confirm.title'),
+      content: t('settings.provider.cleanup.confirm.content'),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      centered: true,
+      onOk() {
+        updateProviders(cleanedProviders)
+        window.message.success(t('settings.provider.cleanup.success'))
+      }
+    })
+  }
+
   const getDropdownMenus = (provider: Provider): MenuProps['items'] => {
     const noteMenu = {
       label: t('settings.provider.notes.title'),
@@ -467,22 +532,32 @@ const ProvidersList: FC = () => {
     <Container className="selectable">
       <ProviderListContainer>
         <AddButtonWrapper>
-          <Input
-            type="text"
-            placeholder={t('settings.provider.search')}
-            value={searchText}
-            style={{ borderRadius: 'var(--list-item-border-radius)', height: 35 }}
-            suffix={<Search size={14} />}
-            onChange={(e) => setSearchText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') {
-                e.stopPropagation()
-                setSearchText('')
-              }
-            }}
-            allowClear
-            disabled={dragging}
-          />
+          <SearchContainer>
+            <Input
+              type="text"
+              placeholder={t('settings.provider.search')}
+              value={searchText}
+              style={{ borderRadius: 'var(--list-item-border-radius)', height: 35, flex: 1 }}
+              suffix={<Search size={14} />}
+              onChange={(e) => setSearchText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  e.stopPropagation()
+                  setSearchText('')
+                }
+              }}
+              allowClear
+              disabled={dragging}
+            />
+            <Button
+              type="text"
+              icon={<RefreshCcw size={14} />}
+              onClick={onCleanupProviders}
+              disabled={dragging}
+              title={t('settings.provider.cleanup.button.tooltip')}
+              style={{ marginLeft: 5 }}
+            />
+          </SearchContainer>
         </AddButtonWrapper>
         <DraggableVirtualList
           list={filteredProviders}
@@ -530,6 +605,13 @@ const ProvidersList: FC = () => {
         </AddButtonWrapper>
       </ProviderListContainer>
       <ProviderSetting providerId={selectedProvider.id} key={selectedProvider.id} />
+
+      <ConflictResolutionPopup
+        conflicts={pendingConflicts}
+        onResolve={handleConflictResolution}
+        onCancel={handleConflictCancel}
+        visible={conflictResolutionVisible}
+      />
     </Container>
   )
 }

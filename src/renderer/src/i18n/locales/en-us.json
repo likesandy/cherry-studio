@@ -766,6 +766,7 @@
     "open": "Open",
     "paste": "Paste",
     "preview": "Preview",
+    "proceed": "Proceed",
     "prompt": "Prompt",
     "provider": "Provider",
     "reasoning_content": "Deep reasoning",
@@ -3342,6 +3343,36 @@
       "check": "Check",
       "check_all_keys": "Check All Keys",
       "check_multiple_keys": "Check Multiple API Keys",
+      "cleanup": {
+        "button": {
+          "tooltip": "Clean up duplicate and missing providers"
+        },
+        "confirm": {
+          "content": "This will clean up duplicate providers and add missing system providers. Do you want to continue?",
+          "title": "Confirm Provider Cleanup"
+        },
+        "conflict": {
+          "apply_resolution": "Apply Selection",
+          "both_have_apikey": "{{provider}} has multiple providers with API keys configured",
+          "both_have_apikey_desc": "Multiple providers with API keys detected, please select which configuration to keep",
+          "description": "The following conflicts were detected and need manual handling:",
+          "different_apihost": "{{provider}} has providers with different API hosts",
+          "different_apihost_desc": "Providers with different API hosts detected, please select which configuration to keep",
+          "multiple_enabled": "{{provider}} has multiple enabled providers",
+          "multiple_enabled_desc": "Multiple enabled providers detected, please select which configuration to keep",
+          "proceed_question": "One configuration has been automatically selected to keep. Do you want to continue?",
+          "provider_conflict": "{{provider}} Configuration Conflict",
+          "resolution_desc": "Please select which configuration to keep for each conflicting provider:",
+          "resolution_title": "Resolve Provider Configuration Conflicts",
+          "title": "Provider Configuration Conflicts",
+          "unknown": "{{provider}} has unknown configuration conflicts",
+          "unknown_desc": "Unknown configuration conflicts detected"
+        },
+        "no_changes": "Provider configuration does not need cleanup",
+        "success": "Provider cleanup completed",
+        "success_with_conflicts": "Provider cleanup completed (conflicts automatically handled)",
+        "success_with_user_resolution": "Provider cleanup completed (conflicts resolved)"
+      },
       "copilot": {
         "auth_failed": "Github Copilot authentication failed.",
         "auth_success": "GitHub Copilot authentication successful.",

@@ -766,6 +766,7 @@
     "open": "打开",
     "paste": "粘贴",
     "preview": "预览",
+    "proceed": "继续",
     "prompt": "提示词",
     "provider": "提供商",
     "reasoning_content": "已深度思考",
@@ -3342,6 +3343,36 @@
       "check": "检测",
       "check_all_keys": "检测所有密钥",
       "check_multiple_keys": "检测多个 API 密钥",
+      "cleanup": {
+        "button": {
+          "tooltip": "清理重复和缺失的提供商"
+        },
+        "confirm": {
+          "content": "这将清理重复的提供商并添加缺失的系统提供商，是否继续？",
+          "title": "确认清理提供商"
+        },
+        "conflict": {
+          "apply_resolution": "应用选择",
+          "both_have_apikey": "{{provider}} 存在多个配置了 API 密钥的提供商",
+          "both_have_apikey_desc": "检测到多个配置了 API 密钥的提供商，请选择要保留的配置",
+          "description": "检测到以下冲突需要手动处理：",
+          "different_apihost": "{{provider}} 存在不同 API 地址的提供商配置",
+          "different_apihost_desc": "检测到不同 API 地址的提供商配置，请选择要保留的配置",
+          "multiple_enabled": "{{provider}} 存在多个已启用的提供商",
+          "multiple_enabled_desc": "检测到多个已启用的提供商，请选择要保留的配置",
+          "proceed_question": "已自动选择一个配置保留，是否继续？",
+          "provider_conflict": "{{provider}} 配置冲突",
+          "resolution_desc": "请为每个冲突的提供商选择要保留的配置：",
+          "resolution_title": "解决提供商配置冲突",
+          "title": "提供商配置冲突",
+          "unknown": "{{provider}} 存在未知配置冲突",
+          "unknown_desc": "检测到未知配置冲突"
+        },
+        "no_changes": "提供商配置无需清理",
+        "success": "提供商清理完成",
+        "success_with_conflicts": "提供商清理完成（存在冲突已自动处理）",
+        "success_with_user_resolution": "提供商清理完成（冲突已解决）"
+      },
       "copilot": {
         "auth_failed": "Github Copilot 认证失败",
         "auth_success": "Github Copilot 认证成功",
