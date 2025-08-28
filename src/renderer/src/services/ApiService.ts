@@ -39,12 +39,7 @@ import { type Chunk, ChunkType } from '@renderer/types/chunk'
 import { Message } from '@renderer/types/newMessage'
 import { SdkModel } from '@renderer/types/sdk'
 import { removeSpecialCharactersForTopicName, uuid } from '@renderer/utils'
-import {
-  abortCompletion,
-  addAbortController,
-  createAbortPromise,
-  removeAbortController
-} from '@renderer/utils/abortController'
+import { abortCompletion } from '@renderer/utils/abortController'
 import { isAbortError } from '@renderer/utils/error'
 import { extractInfoFromXML, ExtractResults } from '@renderer/utils/extract'
 import { filterAdjacentUserMessaegs, filterLastAssistantMessage } from '@renderer/utils/messageUtils/filters'
@@ -65,8 +60,7 @@ import {
   getDefaultAssistant,
   getDefaultModel,
   getProviderByModel,
-  getQuickModel,
-  getTranslateModel
+  getQuickModel
 } from './AssistantService'
 import { processKnowledgeSearch } from './KnowledgeService'
 import { MemoryProcessor } from './MemoryProcessor'
@@ -478,8 +472,9 @@ export async function fetchChatCompletion({
       assistant.settings?.reasoning_effort !== undefined) ||
     (isReasoningModel(model) && (!isSupportedThinkingTokenModel(model) || !isSupportedReasoningEffortModel(model)))
 
+  // NOTE：assistant.enableWebSearch 的语义是是否启用模型内置搜索功能
   const enableWebSearch =
-    (assistant.enableWebSearch && isWebSearchModel(model)) ||
+    (assistant.webSearchProviderId && isWebSearchModel(model)) ||
     isOpenRouterBuiltInWebSearchModel(model) ||
     model.id.includes('sonar') ||
     false
@@ -616,19 +611,26 @@ interface FetchLanguageDetectionProps {
   onResponse?: (text: string, isComplete: boolean) => void
 }
 
+/**
+ * 检测文本语言
+ * @param params - 参数对象
+ * @param {string} params.text - 需要检测语言的文本内容
+ * @param {function} [params.onResponse] - 流式响应回调函数,用于实时获取检测结果
+ * @returns {Promise<string>} 返回检测到的语言代码,如果检测失败会抛出错误
+ * @throws {Error}
+ */
 export async function fetchLanguageDetection({ text, onResponse }: FetchLanguageDetectionProps) {
   const translateLanguageOptions = await getTranslateOptions()
   const listLang = translateLanguageOptions.map((item) => item.langCode)
   const listLangText = JSON.stringify(listLang)
 
-  let model = getTranslateModel()
+  const model = getQuickModel() || getDefaultModel()
   if (!model) {
     throw new Error(i18n.t('error.model.not_exists'))
   }
 
   if (isQwenMTModel(model)) {
-    logger.info('QwenMT cannot be used for language detection. Fallback to default model.')
-    model = getDefaultModel()
+    logger.info('QwenMT cannot be used for language detection.')
     if (isQwenMTModel(model)) {
       throw new Error(i18n.t('translate.error.detect.qwen_mt'))
     }
@@ -663,16 +665,13 @@ export async function fetchLanguageDetection({ text, onResponse }: FetchLanguage
     assistant,
     streamOutput: stream,
     enableReasoning: false,
+    shouldThrow: true,
     onResponse
   }
 
   const AI = new AiProvider(provider)
 
-  try {
-    return (await AI.completions(params)).getText() || ''
-  } catch (error: any) {
-    return ''
-  }
+  return (await AI.completions(params)).getText()
 }
 
 export async function fetchMessagesSummary({ messages, assistant }: { messages: Message[]; assistant: Assistant }) {
@@ -870,10 +869,7 @@ export function checkApiProvider(provider: Provider): void {
 export async function checkApi(provider: Provider, model: Model, timeout = 15000): Promise<void> {
   checkApiProvider(provider)
 
-  const controller = new AbortController()
-  const abortFn = () => controller.abort()
   const taskId = uuid()
-  addAbortController(taskId, abortFn)
 
   const ai = new AiProvider(provider)
 
@@ -886,7 +882,6 @@ export async function checkApi(provider: Provider, model: Model, timeout = 15000
       const timerPromise = new Promise((_, reject) => setTimeout(() => reject('Timeout'), timeout))
       await Promise.race([ai.getEmbeddingDimensions(model), timerPromise])
     } else {
-      // 通过该状态判断abort原因
       let streamError: Error | undefined = undefined
 
       // 15s超时
@@ -901,30 +896,24 @@ export async function checkApi(provider: Provider, model: Model, timeout = 15000
         assistant,
         streamOutput: true,
         enableReasoning: false,
-        onChunk: () => {
-          // 接收到任意chunk都直接abort
+        onChunk: (chunk: Chunk) => {
+          if (chunk.type === ChunkType.ERROR && !isAbortError(chunk.error)) {
+            streamError = new Error(JSON.stringify(chunk.error))
+          }
           abortCompletion(taskId)
         },
-        onError: (e) => {
-          // 捕获stream error
-          streamError = e
-          abortCompletion(taskId)
-        }
+        shouldThrow: true,
+        abortKey: taskId
       }
 
       // Try streaming check first
       try {
-        await createAbortPromise(controller.signal, ai.completions(params))
-      } catch (e: any) {
-        if (isAbortError(e)) {
-          if (streamError) {
-            throw streamError
-          }
-        } else {
-          throw e
-        }
+        await ai.completions(params)
       } finally {
         clearTimeout(timer)
+      }
+      if (streamError) {
+        throw streamError
       }
     }
   } catch (error: any) {
@@ -943,8 +932,6 @@ export async function checkApi(provider: Provider, model: Model, timeout = 15000
     } else {
       throw error
     }
-  } finally {
-    removeAbortController(taskId, abortFn)
   }
 }
 

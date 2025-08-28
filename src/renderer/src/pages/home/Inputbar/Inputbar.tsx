@@ -5,6 +5,7 @@ import TranslateButton from '@renderer/components/TranslateButton'
 import {
   isGenerateImageModel,
   isGenerateImageModels,
+  isMandatoryWebSearchModel,
   isSupportedDisableGenerationModel,
   isSupportedReasoningEffortModel,
   isSupportedThinkingTokenModel,
@@ -20,6 +21,7 @@ import { modelGenerating, useRuntime } from '@renderer/hooks/useRuntime'
 import { useSettings } from '@renderer/hooks/useSettings'
 import { useShortcut, useShortcutDisplay } from '@renderer/hooks/useShortcuts'
 import { useSidebarIconShow } from '@renderer/hooks/useSidebarIcon'
+import { useTimer } from '@renderer/hooks/useTimer'
 import useTranslate from '@renderer/hooks/useTranslate'
 import { getDefaultTopic } from '@renderer/services/AssistantService'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
@@ -36,7 +38,7 @@ import { setSearching } from '@renderer/store/runtime'
 import { sendMessage as _sendMessage } from '@renderer/store/thunk/messageThunk'
 import { Assistant, FileType, FileTypes, KnowledgeBase, KnowledgeItem, Model, Topic } from '@renderer/types'
 import type { MessageInputBaseParams } from '@renderer/types/newMessage'
-import { classNames, delay, formatFileSize } from '@renderer/utils'
+import { classNames, delay, filterSupportedFiles, formatFileSize } from '@renderer/utils'
 import { formatQuotedText } from '@renderer/utils/formats'
 import {
   getFilesFromDropEvent,
@@ -109,11 +111,11 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
   const [textareaHeight, setTextareaHeight] = useState<number>()
   const startDragY = useRef<number>(0)
   const startHeight = useRef<number>(0)
-  const currentMessageId = useRef<string>('')
   const { bases: knowledgeBases } = useKnowledgeBases()
   const isMultiSelectMode = useAppSelector((state) => state.runtime.chat.isMultiSelectMode)
   const isVisionAssistant = useMemo(() => isVisionModel(model), [model])
   const isGenerateImageAssistant = useMemo(() => isGenerateImageModel(model), [model])
+  const { setTimeoutTimer } = useTimer()
 
   const isVisionSupported = useMemo(
     () =>
@@ -239,29 +241,24 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
         baseUserMessage.mentions = mentionedModels
       }
 
-      const assistantWithTopicPrompt = topic.prompt
-        ? { ...assistant, prompt: `${assistant.prompt}\n${topic.prompt}` }
-        : assistant
-
       baseUserMessage.usage = await estimateUserPromptUsage(baseUserMessage)
 
       const { message, blocks } = getUserMessage(baseUserMessage)
       message.traceId = parent?.spanContext().traceId
 
-      currentMessageId.current = message.id
-      dispatch(_sendMessage(message, blocks, assistantWithTopicPrompt, topic.id))
+      dispatch(_sendMessage(message, blocks, assistant, topic.id))
 
       // Clear input
       setText('')
       setFiles([])
-      setTimeout(() => setText(''), 500)
-      setTimeout(() => resizeTextArea(true), 0)
+      setTimeoutTimer('sendMessage_1', () => setText(''), 500)
+      setTimeoutTimer('sendMessage_2', () => resizeTextArea(true), 0)
       setExpand(false)
     } catch (error) {
       logger.warn('Failed to send message:', error as Error)
       parent?.recordException(error as Error)
     }
-  }, [assistant, dispatch, files, inputEmpty, loading, mentionedModels, resizeTextArea, text, topic])
+  }, [assistant, dispatch, files, inputEmpty, loading, mentionedModels, resizeTextArea, setTimeoutTimer, text, topic])
 
   const translate = useCallback(async () => {
     if (isTranslating) {
@@ -272,13 +269,13 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
       setIsTranslating(true)
       const translatedText = await translateText(text, getLanguageByLangcode(targetLanguage))
       translatedText && setText(translatedText)
-      setTimeout(() => resizeTextArea(), 0)
+      setTimeoutTimer('translate', () => resizeTextArea(), 0)
     } catch (error) {
       logger.warn('Translation failed:', error as Error)
     } finally {
       setIsTranslating(false)
     }
-  }, [isTranslating, text, getLanguageByLangcode, targetLanguage, resizeTextArea])
+  }, [isTranslating, text, getLanguageByLangcode, targetLanguage, setTimeoutTimer, resizeTextArea])
 
   const openKnowledgeFileList = useCallback(
     (base: KnowledgeBase) => {
@@ -428,10 +425,14 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
             setText(newText)
 
             // set cursor position in the next render cycle
-            setTimeout(() => {
-              textArea.selectionStart = textArea.selectionEnd = start + 1
-              onInput() // trigger resizeTextArea
-            }, 0)
+            setTimeoutTimer(
+              'handleKeyDown',
+              () => {
+                textArea.selectionStart = textArea.selectionEnd = start + 1
+                onInput() // trigger resizeTextArea
+              },
+              0
+            )
           }
         }
       }
@@ -457,20 +458,20 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
     addTopic(topic)
     setActiveTopic(topic)
 
-    setTimeout(() => EventEmitter.emit(EVENT_NAMES.SHOW_TOPIC_SIDEBAR), 0)
-  }, [addTopic, assistant, setActiveTopic, setModel])
+    setTimeoutTimer('addNewTopic', () => EventEmitter.emit(EVENT_NAMES.SHOW_TOPIC_SIDEBAR), 0)
+  }, [addTopic, assistant.defaultModel, assistant.id, setActiveTopic, setModel, setTimeoutTimer])
 
   const onQuote = useCallback(
     (text: string) => {
       const quotedText = formatQuotedText(text)
       setText((prevText) => {
         const newText = prevText ? `${prevText}\n${quotedText}\n` : `${quotedText}\n`
-        setTimeout(() => resizeTextArea(), 0)
+        setTimeoutTimer('onQuote', () => resizeTextArea(), 0)
         return newText
       })
       focusTextarea()
     },
-    [resizeTextArea, focusTextarea]
+    [focusTextarea, setTimeoutTimer, resizeTextArea]
   )
 
   const onPause = async () => {
@@ -505,30 +506,42 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
       const cursorPosition = textArea?.selectionStart ?? 0
       const lastSymbol = newText[cursorPosition - 1]
 
-      if (enableQuickPanelTriggers && !quickPanel.isVisible && lastSymbol === '/') {
-        const quickPanelMenu =
-          inputbarToolsRef.current?.getQuickPanelMenu({
-            t,
-            files,
-            couldAddImageFile,
-            text: newText,
-            openSelectFileMenu,
-            translate
-          }) || []
+      // 触发符号为 '/'：若当前未打开或符号不同，则切换/打开
+      if (enableQuickPanelTriggers && lastSymbol === '/') {
+        if (quickPanel.isVisible && quickPanel.symbol !== '/') {
+          quickPanel.close('switch-symbol')
+        }
+        if (!quickPanel.isVisible || quickPanel.symbol !== '/') {
+          const quickPanelMenu =
+            inputbarToolsRef.current?.getQuickPanelMenu({
+              t,
+              files,
+              couldAddImageFile,
+              text: newText,
+              openSelectFileMenu,
+              translate
+            }) || []
 
-        quickPanel.open({
-          title: t('settings.quickPanel.title'),
-          list: quickPanelMenu,
-          symbol: '/'
-        })
+          quickPanel.open({
+            title: t('settings.quickPanel.title'),
+            list: quickPanelMenu,
+            symbol: '/'
+          })
+        }
       }
 
-      if (enableQuickPanelTriggers && !quickPanel.isVisible && lastSymbol === '@') {
-        inputbarToolsRef.current?.openMentionModelsPanel({
-          type: 'input',
-          position: cursorPosition - 1,
-          originalText: newText
-        })
+      // 触发符号为 '@'：若当前未打开或符号不同，则切换/打开
+      if (enableQuickPanelTriggers && lastSymbol === '@') {
+        if (quickPanel.isVisible && quickPanel.symbol !== '@') {
+          quickPanel.close('switch-symbol')
+        }
+        if (!quickPanel.isVisible || quickPanel.symbol !== '@') {
+          inputbarToolsRef.current?.openMentionModelsPanel({
+            type: 'input',
+            position: cursorPosition - 1,
+            originalText: newText
+          })
+        }
       }
     },
     [enableQuickPanelTriggers, quickPanel, t, files, couldAddImageFile, openSelectFileMenu, translate]
@@ -579,26 +592,20 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
 
       setText(text + data)
 
-      const files = await getFilesFromDropEvent(e).catch((err) => {
+      const droppedFiles = await getFilesFromDropEvent(e).catch((err) => {
         logger.error('handleDrop:', err)
         return null
       })
 
-      if (files) {
-        let supportedFiles = 0
-
-        files.forEach((file) => {
-          if (supportedExts.includes(file.ext)) {
-            setFiles((prevFiles) => [...prevFiles, file])
-            supportedFiles++
-          }
-        })
-
-        // 如果有文件，但都不支持
-        if (files.length > 0 && supportedFiles === 0) {
+      if (droppedFiles) {
+        const supportedFiles = await filterSupportedFiles(droppedFiles, supportedExts)
+        supportedFiles.length > 0 && setFiles((prevFiles) => [...prevFiles, ...supportedFiles])
+        if (droppedFiles.length > 0 && supportedFiles.length !== droppedFiles.length) {
           window.message.info({
             key: 'file_not_supported',
-            content: t('chat.input.file_not_supported')
+            content: t('chat.input.file_not_supported_count', {
+              count: droppedFiles.length - supportedFiles.length
+            })
           })
         }
       }
@@ -608,7 +615,7 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
 
   const onTranslated = (translatedText: string) => {
     setText(translatedText)
-    setTimeout(() => resizeTextArea(), 0)
+    setTimeoutTimer('onTranslated', () => resizeTextArea(), 0)
   }
 
   const handleDragStart = (e: React.MouseEvent) => {
@@ -767,7 +774,10 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
     if (!isWebSearchModel(model) && assistant.enableWebSearch) {
       updateAssistant({ ...assistant, enableWebSearch: false })
     }
-    if (assistant.webSearchProviderId && !WebSearchService.isWebSearchEnabled(assistant.webSearchProviderId)) {
+    if (
+      assistant.webSearchProviderId &&
+      (!WebSearchService.isWebSearchEnabled(assistant.webSearchProviderId) || isMandatoryWebSearchModel(model))
+    ) {
       updateAssistant({ ...assistant, webSearchProviderId: undefined })
     }
     if (!isGenerateImageModel(model) && assistant.enableGenerateImage) {

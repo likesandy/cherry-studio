@@ -7,6 +7,7 @@ import { isWin } from '@main/constant'
 import { removeEnvProxy } from '@main/utils'
 import { isUserInChina } from '@main/utils/ipService'
 import { getBinaryName } from '@main/utils/process'
+import { codeTools } from '@shared/config/constant'
 import { spawn } from 'child_process'
 import { promisify } from 'util'
 
@@ -41,23 +42,33 @@ class CodeToolsService {
   }
 
   public async getPackageName(cliTool: string) {
-    if (cliTool === 'claude-code') {
-      return '@anthropic-ai/claude-code'
+    switch (cliTool) {
+      case codeTools.claudeCode:
+        return '@anthropic-ai/claude-code'
+      case codeTools.geminiCli:
+        return '@google/gemini-cli'
+      case codeTools.openaiCodex:
+        return '@openai/codex'
+      case codeTools.qwenCode:
+        return '@qwen-code/qwen-code'
+      default:
+        throw new Error(`Unsupported CLI tool: ${cliTool}`)
     }
-    if (cliTool === 'gemini-cli') {
-      return '@google/gemini-cli'
-    }
-    return '@qwen-code/qwen-code'
   }
 
   public async getCliExecutableName(cliTool: string) {
-    if (cliTool === 'claude-code') {
-      return 'claude'
+    switch (cliTool) {
+      case codeTools.claudeCode:
+        return 'claude'
+      case codeTools.geminiCli:
+        return 'gemini'
+      case codeTools.openaiCodex:
+        return 'codex'
+      case codeTools.qwenCode:
+        return 'qwen'
+      default:
+        throw new Error(`Unsupported CLI tool: ${cliTool}`)
     }
-    if (cliTool === 'gemini-cli') {
-      return 'gemini'
-    }
-    return 'qwen'
   }
 
   private async isPackageInstalled(cliTool: string): Promise<boolean> {
@@ -192,7 +203,7 @@ class CodeToolsService {
           ? `set "BUN_INSTALL=${bunInstallPath}" && set "NPM_CONFIG_REGISTRY=${registryUrl}" &&`
           : `export BUN_INSTALL="${bunInstallPath}" && export NPM_CONFIG_REGISTRY="${registryUrl}" &&`
 
-      const updateCommand = `${installEnvPrefix} ${bunPath} install -g ${packageName}`
+      const updateCommand = `${installEnvPrefix} "${bunPath}" install -g ${packageName}`
       logger.info(`Executing update command: ${updateCommand}`)
 
       await execAsync(updateCommand, { timeout: 60000 })
@@ -296,7 +307,7 @@ class CodeToolsService {
     }
 
     // Build command to execute
-    let baseCommand = isWin ? `${executablePath}` : `${bunPath} ${executablePath}`
+    let baseCommand = isWin ? `"${executablePath}"` : `"${bunPath}" "${executablePath}"`
     const bunInstallPath = path.join(os.homedir(), '.cherrystudio')
 
     if (isInstalled) {
@@ -326,8 +337,9 @@ class CodeToolsService {
         terminalArgs = [
           '-e',
           `tell application "Terminal"
+  set newTab to do script "cd '${directory.replace(/'/g, "\\'")}' && clear"
   activate
-  do script "cd '${directory.replace(/'/g, "\\'")}' && clear && ${command.replace(/"/g, '\\"')}"
+  do script "${command.replace(/"/g, '\\"')}" in newTab
 end tell`
         ]
         break
