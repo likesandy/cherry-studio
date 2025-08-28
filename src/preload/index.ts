@@ -5,6 +5,7 @@ import { SpanContext } from '@opentelemetry/api'
 import { UpgradeChannel } from '@shared/config/constant'
 import type { LogLevel, LogSourceWithContext } from '@shared/config/logger'
 import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data/types'
+import type { SelectionActionItem } from '@shared/data/types'
 import { IpcChannel } from '@shared/IpcChannel'
 import {
   AddMemoryOptions,
@@ -30,8 +31,6 @@ import {
 import { contextBridge, ipcRenderer, OpenDialogOptions, shell, webUtils } from 'electron'
 import { Notification } from 'src/renderer/src/types/notification'
 import { CreateDirectoryOptions } from 'webdav'
-
-import type { ActionItem } from '../renderer/src/types/selectionTypes'
 
 export function tracedInvoke(channel: string, spanContext: SpanContext | undefined, ...args: any[]) {
   if (spanContext) {
@@ -374,7 +373,7 @@ const api = {
       ipcRenderer.invoke(IpcChannel.Selection_SetRemeberWinSize, isRemeberWinSize),
     setFilterMode: (filterMode: string) => ipcRenderer.invoke(IpcChannel.Selection_SetFilterMode, filterMode),
     setFilterList: (filterList: string[]) => ipcRenderer.invoke(IpcChannel.Selection_SetFilterList, filterList),
-    processAction: (actionItem: ActionItem, isFullScreen: boolean = false) =>
+    processAction: (actionItem: SelectionActionItem, isFullScreen: boolean = false) =>
       ipcRenderer.invoke(IpcChannel.Selection_ProcessAction, actionItem, isFullScreen),
     closeActionWindow: () => ipcRenderer.invoke(IpcChannel.Selection_ActionWindowClose),
     minimizeActionWindow: () => ipcRenderer.invoke(IpcChannel.Selection_ActionWindowMinimize),
