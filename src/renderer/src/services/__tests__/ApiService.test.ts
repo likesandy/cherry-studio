@@ -42,7 +42,7 @@ import OpenAI from 'openai'
 import { ChatCompletionChunk } from 'openai/resources'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 // Mock the ApiClientFactory
-vi.mock('@renderer/aiCore/clients/ApiClientFactory', () => ({
+vi.mock('@renderer/aiCore/legacy/clients/ApiClientFactory', () => ({
   ApiClientFactory: {
     create: vi.fn()
   }
