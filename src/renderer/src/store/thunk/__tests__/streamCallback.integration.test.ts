@@ -241,7 +241,13 @@ vi.mock('i18next', () => {
 
 vi.mock('@renderer/utils/error', () => ({
   formatErrorMessage: vi.fn((error) => error.message || 'Unknown error'),
-  isAbortError: vi.fn((error) => error.name === 'AbortError')
+  isAbortError: vi.fn((error) => error.name === 'AbortError'),
+  serializeError: vi.fn((error) => ({
+    name: error.name,
+    message: error.message,
+    stack: error.stack,
+    cause: error.cause ? String(error.cause) : undefined
+  }))
 }))
 
 vi.mock('@renderer/utils', () => ({
