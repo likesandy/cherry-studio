@@ -10,6 +10,14 @@ vi.mock('@renderer/services/ApiService', () => ({
   fetchChatCompletion: vi.fn()
 }))
 
+vi.mock('@renderer/services/ConversationService', () => ({
+  ConversationService: class {
+    static async prepareMessagesForModel() {
+      // do nothing
+    }
+  }
+}))
+
 vi.mock('@renderer/services/MessagesService', () => ({
   getUserMessage: vi.fn(),
   getAssistantMessage: vi.fn()
@@ -48,6 +56,20 @@ vi.mock('@renderer/utils/messageUtils/create', () => ({
   createMainTextBlock: vi.fn(),
   createThinkingBlock: vi.fn(),
   createErrorBlock: vi.fn()
+}))
+
+vi.mock('@renderer/config/models', () => ({
+  SYSTEM_MODELS: {
+    defaultModel: [
+      { id: 'gpt-4', name: 'GPT-4' },
+      { id: 'gpt-4', name: 'GPT-4' },
+      { id: 'gpt-4', name: 'GPT-4' }
+    ],
+    silicon: [],
+    openai: [],
+    anthropic: [],
+    gemini: []
+  }
 }))
 
 // Import mocked modules
