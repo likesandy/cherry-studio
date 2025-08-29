@@ -1,6 +1,6 @@
 import { GoogleGenAI } from '@google/genai'
 import { loggerService } from '@logger'
-import { createVertexProvider, isVertexProvider } from '@renderer/hooks/useVertexAI'
+import { createVertexProvider, isVertexAIConfigured, isVertexProvider } from '@renderer/hooks/useVertexAI'
 import { Model, Provider, VertexProvider } from '@renderer/types'
 import { isEmpty } from 'lodash'
 
@@ -16,6 +16,10 @@ export class VertexAPIClient extends GeminiAPIClient {
 
   constructor(provider: Provider) {
     super(provider)
+    // 检查 VertexAI 配置
+    if (!isVertexAIConfigured()) {
+      throw new Error('VertexAI is not configured. Please configure project, location and service account credentials.')
+    }
     this.anthropicVertexClient = new AnthropicVertexClient(provider)
     // 如果传入的是普通 Provider，转换为 VertexProvider
     if (isVertexProvider(provider)) {

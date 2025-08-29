@@ -1,5 +1,4 @@
 import { loggerService } from '@logger'
-import { isVertexAIConfigured } from '@renderer/hooks/useVertexAI'
 import { Provider } from '@renderer/types'
 
 import { AihubmixAPIClient } from './AihubmixAPIClient'
@@ -63,12 +62,6 @@ export class ApiClientFactory {
         break
       case 'vertexai':
         logger.debug(`Creating VertexAPIClient for provider: ${provider.id}`)
-        // 检查 VertexAI 配置
-        if (!isVertexAIConfigured()) {
-          throw new Error(
-            'VertexAI is not configured. Please configure project, location and service account credentials.'
-          )
-        }
         instance = new VertexAPIClient(provider) as BaseApiClient
         break
       case 'anthropic':
