@@ -21,6 +21,7 @@ export function useVertexAISettings() {
   }
 }
 
+// FIXME: 这些redux设置状态被服务层使用，这是不应该的。
 export function getVertexAISettings() {
   return store.getState().llm.settings.vertexai
 }
