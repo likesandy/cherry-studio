@@ -131,9 +131,13 @@ const ThinkingTimeSeconds = memo(
 
     const thinkingTimeSeconds = useMemo(() => (blockThinkingTime / 1000).toFixed(1), [blockThinkingTime])
 
-    return t(isThinking ? 'chat.thinking' : 'chat.deeply_thought', {
-      seconds: thinkingTimeSeconds
-    })
+    return isThinking
+      ? t('chat.thinking', {
+          seconds: thinkingTimeSeconds
+        })
+      : t('chat.deeply_thought', {
+          seconds: thinkingTimeSeconds
+        })
   }
 )
 
