@@ -21,6 +21,7 @@ vi.mock('@renderer/config/models', () => ({
     anthropic: [],
     gemini: []
   },
+  isOpenAIModel: vi.fn().mockReturnValue(true),
   isOpenAILLMModel: vi.fn().mockReturnValue(true),
   isOpenAIChatCompletionOnlyModel: vi.fn().mockReturnValue(false),
   isAnthropicLLMModel: vi.fn().mockReturnValue(false),
@@ -73,6 +74,7 @@ vi.mock('@logger', () => ({
   }
 }))
 
+// 到底是谁想出来的在服务层调用 React Hook ?????????
 // Mock additional services and hooks that might be imported
 vi.mock('@renderer/hooks/useVertexAI', () => ({
   getVertexAILocation: vi.fn().mockReturnValue('us-central1'),
@@ -80,7 +82,9 @@ vi.mock('@renderer/hooks/useVertexAI', () => ({
   getVertexAIServiceAccount: vi.fn().mockReturnValue({
     privateKey: 'test-key',
     clientEmail: 'test@example.com'
-  })
+  }),
+  isVertexAIConfigured: vi.fn().mockReturnValue(true),
+  isVertexProvider: vi.fn().mockReturnValue(true)
 }))
 
 vi.mock('@renderer/hooks/useSettings', () => ({
@@ -124,7 +128,7 @@ vi.mock('@google-cloud/vertexai', () => ({
 }))
 
 // Mock the circular dependency between VertexAPIClient and AnthropicVertexClient
-vi.mock('@renderer/aiCore/clients/anthropic/AnthropicVertexClient', () => {
+vi.mock('@renderer/aiCore/legacy/clients/anthropic/AnthropicVertexClient', () => {
   const MockAnthropicVertexClient = vi.fn()
   MockAnthropicVertexClient.prototype.getClientCompatibilityType = vi.fn().mockReturnValue(['AnthropicVertexAPIClient'])
   return {
