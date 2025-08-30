@@ -5,6 +5,11 @@ import {
   type ProviderSettingsMap
 } from '@cherrystudio/ai-core/provider'
 import { isOpenAIChatCompletionOnlyModel } from '@renderer/config/models'
+import {
+  getAwsBedrockAccessKeyId,
+  getAwsBedrockRegion,
+  getAwsBedrockSecretAccessKey
+} from '@renderer/hooks/useAwsBedrock'
 import { createVertexProvider, isVertexAIConfigured, isVertexProvider } from '@renderer/hooks/useVertexAI'
 import { getProviderByModel } from '@renderer/services/AssistantService'
 import { loggerService } from '@renderer/services/LoggerService'
@@ -116,6 +121,13 @@ export function providerToAiSdkConfig(
       extraOptions.mode = 'chat'
       extraOptions.useDeploymentBasedUrls = true
     }
+  }
+
+  // bedrock
+  if (aiSdkProviderId === 'bedrock') {
+    extraOptions.region = getAwsBedrockRegion()
+    extraOptions.accessKeyId = getAwsBedrockAccessKeyId()
+    extraOptions.secretAccessKey = getAwsBedrockSecretAccessKey()
   }
 
   // 如果AI SDK支持该provider，使用原生配置
