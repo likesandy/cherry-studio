@@ -19,10 +19,10 @@ export const NEW_PROVIDER_CONFIGS: ProviderConfig[] = [
   {
     id: 'google-vertex',
     name: 'Google Vertex AI',
-    import: () => import('@ai-sdk/google-vertex'),
-    creatorFunctionName: 'createGoogleVertex',
+    import: () => import('@ai-sdk/google-vertex/edge'),
+    creatorFunctionName: 'createVertex',
     supportsImageGeneration: true,
-    aliases: ['google-vertex', 'vertexai']
+    aliases: ['vertexai']
   },
   {
     id: 'bedrock',
