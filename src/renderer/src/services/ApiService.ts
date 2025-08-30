@@ -6,12 +6,13 @@ import AiProvider from '@renderer/aiCore'
 import { CompletionsParams } from '@renderer/aiCore/legacy/middleware/schemas'
 import { AiSdkMiddlewareConfig } from '@renderer/aiCore/middleware/AiSdkMiddlewareBuilder'
 import { buildStreamTextParams } from '@renderer/aiCore/transformParameters'
-import type { StreamTextParams } from '@renderer/aiCore/types'
 import { isDedicatedImageGenerationModel, isEmbeddingModel } from '@renderer/config/models'
 import { getStoreSetting } from '@renderer/hooks/useSettings'
 import i18n from '@renderer/i18n'
 import store from '@renderer/store'
+import type { FetchChatCompletionParams } from '@renderer/types'
 import { Assistant, MCPServer, MCPTool, Model, Provider } from '@renderer/types'
+import type { StreamTextParams } from '@renderer/types/aiCoreTypes'
 import { type Chunk, ChunkType } from '@renderer/types/chunk'
 import { Message } from '@renderer/types/newMessage'
 import { SdkModel } from '@renderer/types/sdk'
@@ -54,7 +55,7 @@ export async function fetchMcpTools(assistant: Assistant) {
 
   if (enabledMCPs && enabledMCPs.length > 0) {
     try {
-      const toolPromises = enabledMCPs.map<Promise<MCPTool[]>>(async (mcpServer: MCPServer) => {
+      const toolPromises = enabledMCPs.map(async (mcpServer: MCPServer) => {
         try {
           const tools = await window.api.mcp.listTools(mcpServer)
           return tools.filter((tool: any) => !mcpServer.disabledTools?.includes(tool.name))
@@ -74,33 +75,6 @@ export async function fetchMcpTools(assistant: Assistant) {
   }
   return mcpTools
 }
-
-export type FetchChatCompletionOptions = {
-  signal?: AbortSignal
-  timeout?: number
-  headers?: Record<string, string>
-}
-
-type BaseParams = {
-  assistant: Assistant
-  options?: FetchChatCompletionOptions
-  onChunkReceived: (chunk: Chunk) => void
-  topicId?: string // 添加 topicId 参数
-}
-
-type MessagesParams = BaseParams & {
-  messages: StreamTextParams['messages']
-  prompt?: never
-}
-
-type PromptParams = BaseParams & {
-  messages?: never
-  // prompt: StreamTextParams['prompt']
-  // see https://github.com/vercel/ai/issues/8363
-  prompt: string
-}
-
-export type FetchChatCompletionParams = MessagesParams | PromptParams
 
 export async function fetchChatCompletion({
   messages,

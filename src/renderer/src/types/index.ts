@@ -6,6 +6,8 @@ import * as z from 'zod/v4'
 
 export * from './file'
 
+import type { StreamTextParams } from './aiCoreTypes'
+import type { Chunk } from './chunk'
 import type { FileMetadata } from './file'
 import type { Message } from './newMessage'
 import type { BaseTool, MCPTool } from './tool'
@@ -1254,3 +1256,30 @@ export type HexColor = string
 export const isHexColor = (value: string): value is HexColor => {
   return /^#([0-9A-F]{3}){1,2}$/i.test(value)
 }
+
+export type FetchChatCompletionOptions = {
+  signal?: AbortSignal
+  timeout?: number
+  headers?: Record<string, string>
+}
+
+type BaseParams = {
+  assistant: Assistant
+  options?: FetchChatCompletionOptions
+  onChunkReceived: (chunk: Chunk) => void
+  topicId?: string // 添加 topicId 参数
+}
+
+type MessagesParams = BaseParams & {
+  messages: StreamTextParams['messages']
+  prompt?: never
+}
+
+type PromptParams = BaseParams & {
+  messages?: never
+  // prompt: StreamTextParams['prompt']
+  // see https://github.com/vercel/ai/issues/8363
+  prompt: string
+}
+
+export type FetchChatCompletionParams = MessagesParams | PromptParams

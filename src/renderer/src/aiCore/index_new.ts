@@ -15,6 +15,7 @@ import { getEnableDeveloperMode } from '@renderer/hooks/useSettings'
 import { addSpan, endSpan } from '@renderer/services/SpanManagerService'
 import { StartSpanParams } from '@renderer/trace/types/ModelSpanEntity'
 import type { Assistant, GenerateImageParams, Model, Provider } from '@renderer/types'
+import type { StreamTextParams } from '@renderer/types/aiCoreTypes'
 import { ChunkType } from '@renderer/types/chunk'
 
 import AiSdkToChunkAdapter from './chunk/AiSdkToChunkAdapter'
@@ -28,7 +29,6 @@ import {
   prepareSpecialProviderConfig,
   providerToAiSdkConfig
 } from './provider/providerConfig'
-import type { StreamTextParams } from './types'
 
 const logger = loggerService.withContext('ModernAiProvider')
 

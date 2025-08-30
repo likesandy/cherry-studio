@@ -20,6 +20,7 @@ import {
 import { getAssistantSettings, getDefaultModel, getProviderByModel } from '@renderer/services/AssistantService'
 import type { Assistant, MCPTool, Message, Model, Provider } from '@renderer/types'
 import { FileTypes } from '@renderer/types'
+import type { StreamTextParams } from '@renderer/types/aiCoreTypes'
 import { FileMessageBlock, ImageMessageBlock, ThinkingMessageBlock } from '@renderer/types/newMessage'
 // import { getWebSearchTools } from './utils/websearch'
 import {
@@ -33,7 +34,6 @@ import type { AssistantModelMessage, FilePart, ImagePart, ModelMessage, TextPart
 import { stepCountIs } from 'ai'
 
 import { getAiSdkProviderId } from './provider/factory'
-import type { StreamTextParams } from './types'
 // import { webSearchTool } from './tools/WebSearchTool'
 // import { jsonSchemaToZod } from 'json-schema-to-zod'
 import { setupToolsConfig } from './utils/mcp'
