@@ -93,7 +93,7 @@ initializeBuiltInConfigs()
 export function registerProviderConfig(config: ProviderConfig): boolean {
   try {
     // 验证配置
-    if (!config.id || !config.name) {
+    if (!config || !config.id || !config.name) {
       return false
     }
 

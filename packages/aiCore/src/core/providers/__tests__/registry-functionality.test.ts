@@ -99,8 +99,8 @@ describe('Provider Registry 功能测试', () => {
     })
 
     it('能够获取语言模型', () => {
-      // 在没有注册 provider 的情况下，这个函数可能会抛出错误或返回 undefined
-      expect(() => getLanguageModel('non-existent')).not.toThrow()
+      // 在没有注册 provider 的情况下，这个函数应该会抛出错误
+      expect(() => getLanguageModel('non-existent')).toThrow('No providers registered')
     })
   })
 

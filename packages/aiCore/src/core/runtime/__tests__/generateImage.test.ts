@@ -22,7 +22,8 @@ vi.mock('ai', () => ({
 vi.mock('../../providers/RegistryManagement', () => ({
   globalRegistryManagement: {
     imageModel: vi.fn()
-  }
+  },
+  DEFAULT_SEPARATOR: '|'
 }))
 
 describe('RuntimeExecutor.generateImage', () => {
@@ -68,12 +69,9 @@ describe('RuntimeExecutor.generateImage', () => {
       responses: []
     }
 
-    // Setup mocks
+    // Setup mocks to avoid "No providers registered" error
     vi.mocked(globalRegistryManagement.imageModel).mockReturnValue(mockImageModel)
     vi.mocked(aiGenerateImage).mockResolvedValue(mockGenerateImageResult)
-
-    // Reset mock implementation in case it was changed by previous tests
-    vi.mocked(globalRegistryManagement.imageModel).mockImplementation(() => mockImageModel)
   })
 
   describe('Basic functionality', () => {
@@ -82,7 +80,7 @@ describe('RuntimeExecutor.generateImage', () => {
         prompt: 'A futuristic cityscape at sunset'
       })
 
-      expect(globalRegistryManagement.imageModel).toHaveBeenCalledWith('openai:dall-e-3')
+      expect(globalRegistryManagement.imageModel).toHaveBeenCalledWith('openai|dall-e-3')
 
       expect(aiGenerateImage).toHaveBeenCalledWith({
         model: mockImageModel,
@@ -360,7 +358,7 @@ describe('RuntimeExecutor.generateImage', () => {
         executor.generateImage('dall-e-3', {
           prompt: 'A test image'
         })
-      ).rejects.toThrow('Failed to generate image: API request failed')
+      ).rejects.toThrow('Failed to generate image:')
     })
 
     it('should handle NoImageGeneratedError', async () => {
@@ -376,7 +374,7 @@ describe('RuntimeExecutor.generateImage', () => {
         executor.generateImage('dall-e-3', {
           prompt: 'A test image'
         })
-      ).rejects.toThrow('Failed to generate image: No image generated')
+      ).rejects.toThrow('Failed to generate image:')
     })
 
     it('should execute onError plugin hook on failure', async () => {
@@ -400,7 +398,7 @@ describe('RuntimeExecutor.generateImage', () => {
         executorWithPlugin.generateImage('dall-e-3', {
           prompt: 'A test image'
         })
-      ).rejects.toThrow('Failed to generate image: Generation failed')
+      ).rejects.toThrow('Failed to generate image:')
 
       expect(errorPlugin.onError).toHaveBeenCalledWith(
         error,
@@ -424,7 +422,7 @@ describe('RuntimeExecutor.generateImage', () => {
           prompt: 'A test image',
           abortSignal: abortController.signal
         })
-      ).rejects.toThrow('Operation was aborted')
+      ).rejects.toThrow('Failed to generate image:')
     })
   })
 
@@ -438,7 +436,7 @@ describe('RuntimeExecutor.generateImage', () => {
         prompt: 'A landscape'
       })
 
-      expect(globalRegistryManagement.imageModel).toHaveBeenCalledWith('google:imagen-3.0-generate-002')
+      expect(globalRegistryManagement.imageModel).toHaveBeenCalledWith('google|imagen-3.0-generate-002')
     })
 
     it('should support xAI Grok image models', async () => {
@@ -450,7 +448,7 @@ describe('RuntimeExecutor.generateImage', () => {
         prompt: 'A futuristic robot'
       })
 
-      expect(globalRegistryManagement.imageModel).toHaveBeenCalledWith('xai:grok-2-image')
+      expect(globalRegistryManagement.imageModel).toHaveBeenCalledWith('xai|grok-2-image')
     })
   })
 

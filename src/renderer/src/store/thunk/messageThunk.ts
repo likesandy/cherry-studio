@@ -970,10 +970,10 @@ export const appendAssistantResponseThunk =
       const existingMessageIndex = currentTopicMessageIds.findIndex((id) => id === existingAssistantMessageId)
       const insertAtIndex = existingMessageIndex !== -1 ? existingMessageIndex + 1 : currentTopicMessageIds.length
 
-      dispatch(newMessagesActions.insertMessageAtIndex({ topicId, message: newAssistantStub, index: insertAtIndex }))
-
       // 4. Update Database (Save the stub to the topic's message list)
       await saveMessageAndBlocksToDB(newAssistantStub, [], insertAtIndex)
+
+      dispatch(newMessagesActions.insertMessageAtIndex({ topicId, message: newAssistantStub, index: insertAtIndex }))
 
       // 5. Prepare and queue the processing task
       const assistantConfigForThisCall = {
