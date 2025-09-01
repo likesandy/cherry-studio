@@ -18,7 +18,7 @@ import {
   isWebSearchModel
 } from '@renderer/config/models'
 import { getAssistantSettings, getDefaultModel, getProviderByModel } from '@renderer/services/AssistantService'
-import type { Assistant, MCPTool, Message, Model, Provider } from '@renderer/types'
+import type { Assistant, FileMetadata, MCPTool, Message, Model, Provider } from '@renderer/types'
 import { FileTypes } from '@renderer/types'
 import type { StreamTextParams } from '@renderer/types/aiCoreTypes'
 import { FileMessageBlock, ImageMessageBlock, ThinkingMessageBlock } from '@renderer/types/newMessage'
@@ -161,22 +161,30 @@ async function convertMessageToUserModelMessage(
       }
     }
   }
-
   // 处理文件
   for (const fileBlock of fileBlocks) {
-    // 优先尝试原生文件支持（PDF等）
+    const file = fileBlock.file
+    let processed = false
+
+    // 优先尝试原生文件支持（PDF、图片等）
     if (model) {
       const filePart = await convertFileBlockToFilePart(fileBlock, model)
       if (filePart) {
         parts.push(filePart)
-        continue
+        logger.debug(`File ${file.origin_name} processed as native file format`)
+        processed = true
       }
     }
 
-    // 回退到文本处理
-    const textPart = await convertFileBlockToTextPart(fileBlock)
-    if (textPart) {
-      parts.push(textPart)
+    // 如果原生处理失败，回退到文本提取
+    if (!processed) {
+      const textPart = await convertFileBlockToTextPart(fileBlock)
+      if (textPart) {
+        parts.push(textPart)
+        logger.debug(`File ${file.origin_name} processed as text content`)
+      } else {
+        logger.warn(`File ${file.origin_name} could not be processed in any format`)
+      }
     }
   }
 
@@ -227,6 +235,7 @@ async function convertMessageToAssistantModelMessage(
 async function convertFileBlockToTextPart(fileBlock: FileMessageBlock): Promise<TextPart | null> {
   const file = fileBlock.file
 
+  // 处理文本文件
   if (file.type === FileTypes.TEXT) {
     try {
       const fileContent = await window.api.file.read(file.id + file.ext)
@@ -235,7 +244,20 @@ async function convertFileBlockToTextPart(fileBlock: FileMessageBlock): Promise<
         text: `${file.origin_name}\n${fileContent.trim()}`
       }
     } catch (error) {
-      logger.warn('Failed to read file:', error as Error)
+      logger.warn('Failed to read text file:', error as Error)
+    }
+  }
+
+  // 处理文档文件（PDF、Word、Excel等）- 提取为文本内容
+  if (file.type === FileTypes.DOCUMENT) {
+    try {
+      const fileContent = await window.api.file.read(file.id + file.ext, true) // true表示强制文本提取
+      return {
+        type: 'text',
+        text: `${file.origin_name}\n${fileContent.trim()}`
+      }
+    } catch (error) {
+      logger.warn(`Failed to extract text from document ${file.origin_name}:`, error as Error)
     }
   }
 
@@ -265,13 +287,106 @@ function supportsPdfInput(model: Model): boolean {
 }
 
 /**
+ * 检查模型是否支持原生图片输入
+ */
+function supportsImageInput(model: Model): boolean {
+  return isVisionModel(model)
+}
+
+/**
+ * 检查提供商是否支持大文件上传（如Gemini File API）
+ */
+function supportsLargeFileUpload(model: Model): boolean {
+  const provider = getProviderByModel(model)
+  const aiSdkId = getAiSdkProviderId(provider)
+
+  // 目前主要是Gemini系列支持大文件上传
+  return ['google', 'google-generative-ai', 'google-vertex'].includes(aiSdkId)
+}
+
+/**
+ * 获取提供商特定的文件大小限制
+ */
+function getFileSizeLimit(model: Model, fileType: FileTypes): number {
+  const provider = getProviderByModel(model)
+  const aiSdkId = getAiSdkProviderId(provider)
+
+  // Anthropic PDF限制32MB
+  if (aiSdkId === 'anthropic' && fileType === FileTypes.DOCUMENT) {
+    return 32 * 1024 * 1024 // 32MB
+  }
+
+  // Gemini小文件限制20MB（超过此限制会使用File API上传）
+  if (['google', 'google-generative-ai', 'google-vertex'].includes(aiSdkId)) {
+    return 20 * 1024 * 1024 // 20MB
+  }
+
+  // 其他提供商没有明确限制，使用较大的默认值
+  // 这与Legacy架构中的实现一致，让提供商自行处理文件大小
+  return 100 * 1024 * 1024 // 100MB
+}
+
+/**
+ * 处理Gemini大文件上传
+ */
+async function handleGeminiFileUpload(file: FileMetadata, model: Model): Promise<FilePart | null> {
+  try {
+    const provider = getProviderByModel(model)
+
+    // 检查文件是否已经上传过
+    const fileMetadata = await window.api.fileService.retrieve(provider, file.id)
+
+    if (fileMetadata.status === 'success' && fileMetadata.originalFile?.file) {
+      const remoteFile = fileMetadata.originalFile.file as any // 临时类型断言，因为File类型定义可能不完整
+      // 注意：AI SDK的FilePart格式和Gemini原生格式不同，这里需要适配
+      // 暂时返回null让它回退到文本处理，或者需要扩展FilePart支持uri
+      logger.info(`File ${file.origin_name} already uploaded to Gemini with URI: ${remoteFile.uri || 'unknown'}`)
+      return null
+    }
+
+    // 如果文件未上传，执行上传
+    const uploadResult = await window.api.fileService.upload(provider, file)
+    if (uploadResult.originalFile?.file) {
+      const remoteFile = uploadResult.originalFile.file as any // 临时类型断言
+      logger.info(`File ${file.origin_name} uploaded to Gemini with URI: ${remoteFile.uri || 'unknown'}`)
+      // 同样，这里需要处理URI格式的文件引用
+      return null
+    }
+  } catch (error) {
+    logger.error(`Failed to upload file ${file.origin_name} to Gemini:`, error as Error)
+  }
+
+  return null
+}
+
+/**
  * 将文件块转换为FilePart（用于原生文件支持）
  */
 async function convertFileBlockToFilePart(fileBlock: FileMessageBlock, model: Model): Promise<FilePart | null> {
   const file = fileBlock.file
+  const fileSizeLimit = getFileSizeLimit(model, file.type)
 
-  if (file.type === FileTypes.DOCUMENT && file.ext === '.pdf' && supportsPdfInput(model)) {
-    try {
+  try {
+    // 处理PDF文档
+    if (file.type === FileTypes.DOCUMENT && file.ext === '.pdf' && supportsPdfInput(model)) {
+      // 检查文件大小限制
+      if (file.size > fileSizeLimit) {
+        // 如果支持大文件上传（如Gemini File API），尝试上传
+        if (supportsLargeFileUpload(model)) {
+          logger.info(`Large PDF file ${file.origin_name} (${file.size} bytes) attempting File API upload`)
+          const uploadResult = await handleGeminiFileUpload(file, model)
+          if (uploadResult) {
+            return uploadResult
+          }
+          // 如果上传失败，回退到文本处理
+          logger.warn(`Failed to upload large PDF ${file.origin_name}, falling back to text extraction`)
+          return null
+        } else {
+          logger.warn(`PDF file ${file.origin_name} exceeds size limit (${file.size} > ${fileSizeLimit})`)
+          return null // 文件过大，回退到文本处理
+        }
+      }
+
       const base64Data = await window.api.file.base64File(file.id + file.ext)
       return {
         type: 'file',
@@ -279,9 +394,45 @@ async function convertFileBlockToFilePart(fileBlock: FileMessageBlock, model: Mo
         mediaType: base64Data.mime,
         filename: file.origin_name
       }
-    } catch (error) {
-      logger.warn('Failed to read PDF file:', error as Error)
     }
+
+    // 处理图片文件
+    if (file.type === FileTypes.IMAGE && supportsImageInput(model)) {
+      // 检查文件大小
+      if (file.size > fileSizeLimit) {
+        logger.warn(`Image file ${file.origin_name} exceeds size limit (${file.size} > ${fileSizeLimit})`)
+        return null
+      }
+
+      const base64Data = await window.api.file.base64Image(file.id + file.ext)
+
+      // 处理MIME类型，特别是jpg->jpeg的转换（Anthropic要求）
+      let mediaType = base64Data.mime
+      const provider = getProviderByModel(model)
+      const aiSdkId = getAiSdkProviderId(provider)
+
+      if (aiSdkId === 'anthropic' && mediaType === 'image/jpg') {
+        mediaType = 'image/jpeg'
+      }
+
+      return {
+        type: 'file',
+        data: base64Data.base64,
+        mediaType: mediaType,
+        filename: file.origin_name
+      }
+    }
+
+    // 处理其他文档类型（Word、Excel等）
+    if (file.type === FileTypes.DOCUMENT && file.ext !== '.pdf') {
+      // 目前大多数提供商不支持Word等格式的原生处理
+      // 返回null会触发上层调用convertFileBlockToTextPart进行文本提取
+      // 这与Legacy架构中的处理方式一致
+      logger.debug(`Document file ${file.origin_name} with extension ${file.ext} will use text extraction fallback`)
+      return null
+    }
+  } catch (error) {
+    logger.warn(`Failed to process file ${file.origin_name}:`, error as Error)
   }
 
   return null
