@@ -1,13 +1,19 @@
 import { loggerService } from '@logger'
 import { db } from '@renderer/databases'
-import { CustomTranslateLanguage, TranslateHistory, TranslateLanguage, TranslateLanguageCode } from '@renderer/types'
+import {
+  CustomTranslateLanguage,
+  FetchChatCompletionOptions,
+  TranslateHistory,
+  TranslateLanguage,
+  TranslateLanguageCode
+} from '@renderer/types'
 import { Chunk, ChunkType } from '@renderer/types/chunk'
 import { uuid } from '@renderer/utils'
 import { readyToAbort } from '@renderer/utils/abortController'
 import { formatErrorMessage, isAbortError } from '@renderer/utils/error'
 import { t } from 'i18next'
 
-import { fetchChatCompletion, FetchChatCompletionOptions } from './ApiService'
+import { fetchChatCompletion } from './ApiService'
 import { getDefaultTranslateAssistant } from './AssistantService'
 
 const logger = loggerService.withContext('TranslateService')
