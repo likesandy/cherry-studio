@@ -275,8 +275,8 @@ async function convertFileBlockToFilePart(fileBlock: FileMessageBlock, model: Mo
       const base64Data = await window.api.file.base64File(file.id + file.ext)
       return {
         type: 'file',
-        data: base64Data,
-        mediaType: 'application/pdf',
+        data: base64Data.data,
+        mediaType: base64Data.mime,
         filename: file.origin_name
       }
     } catch (error) {
