@@ -1,4 +1,5 @@
 import {
+  formatPrivateKey,
   hasProviderConfig,
   ProviderConfigFactory,
   type ProviderId,
@@ -10,13 +11,13 @@ import {
   getAwsBedrockRegion,
   getAwsBedrockSecretAccessKey
 } from '@renderer/hooks/useAwsBedrock'
-import { createVertexProvider, isVertexAIConfigured, isVertexProvider } from '@renderer/hooks/useVertexAI'
+import { createVertexProvider, isVertexAIConfigured } from '@renderer/hooks/useVertexAI'
 import { getProviderByModel } from '@renderer/services/AssistantService'
 import { loggerService } from '@renderer/services/LoggerService'
 import store from '@renderer/store'
 import type { Model, Provider } from '@renderer/types'
 import { formatApiHost } from '@renderer/utils/api'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, isEmpty } from 'lodash'
 
 import { aihubmixProviderCreator, newApiResolverCreator } from './config'
 import { getAiSdkProviderId } from './factory'
@@ -53,12 +54,12 @@ function getRotatedApiKey(provider: Provider): string {
  * 处理特殊provider的转换逻辑
  */
 function handleSpecialProviders(model: Model, provider: Provider): Provider {
-  if (provider.type === 'vertexai' && !isVertexProvider(provider)) {
-    if (!isVertexAIConfigured()) {
-      throw new Error('VertexAI is not configured. Please configure project, location and service account credentials.')
-    }
-    return createVertexProvider(provider)
-  }
+  // if (provider.type === 'vertexai' && !isVertexProvider(provider)) {
+  //   if (!isVertexAIConfigured()) {
+  //     throw new Error('VertexAI is not configured. Please configure project, location and service account credentials.')
+  //   }
+  //   return createVertexProvider(provider)
+  // }
 
   if (provider.id === 'aihubmix') {
     return aihubmixProviderCreator(model, provider)
@@ -154,6 +155,33 @@ export function providerToAiSdkConfig(
     extraOptions.region = getAwsBedrockRegion()
     extraOptions.accessKeyId = getAwsBedrockAccessKeyId()
     extraOptions.secretAccessKey = getAwsBedrockSecretAccessKey()
+  }
+  // google-vertex
+  if (aiSdkProviderId === 'google-vertex') {
+    if (!isVertexAIConfigured()) {
+      throw new Error('VertexAI is not configured. Please configure project, location and service account credentials.')
+    }
+    const { project, location, googleCredentials } = createVertexProvider(actualProvider)
+    extraOptions.project = project
+    extraOptions.location = location
+    extraOptions.googleCredentials = {
+      ...googleCredentials,
+      privateKey: formatPrivateKey(googleCredentials.privateKey)
+    }
+    // extraOptions.headers = window.api.vertexAI.getAuthHeaders({
+    //   projectId: project,
+    //   serviceAccount: {
+    //     privateKey: googleCredentials.privateKey,
+    //     clientEmail: googleCredentials.clientEmail
+    //   }
+    // })
+    if (baseConfig.baseURL.endsWith('/v1/')) {
+      baseConfig.baseURL = baseConfig.baseURL.slice(0, -4)
+    } else if (baseConfig.baseURL.endsWith('/v1')) {
+      baseConfig.baseURL = baseConfig.baseURL.slice(0, -3)
+    }
+
+    baseConfig.baseURL = isEmpty(baseConfig.baseURL) ? '' : baseConfig.baseURL
   }
 
   // 如果AI SDK支持该provider，使用原生配置
