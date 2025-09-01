@@ -11,7 +11,7 @@ import { handleZoomFactor } from '@main/utils/zoom'
 import { SpanEntity, TokenUsage } from '@mcp-trace/trace-core'
 import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, UpgradeChannel } from '@shared/config/constant'
 import { IpcChannel } from '@shared/IpcChannel'
-import { FileMetadata, Provider, Shortcut, ThemeMode } from '@types'
+import { FileMetadata, Provider, Shortcut } from '@types'
 import { BrowserWindow, dialog, ipcMain, ProxyConfig, session, shell, systemPreferences, webContents } from 'electron'
 import { Notification } from 'src/renderer/src/types/notification'
 
@@ -53,7 +53,6 @@ import {
   tokenUsage
 } from './services/SpanCacheService'
 import storeSyncService from './services/StoreSyncService'
-import { themeService } from './services/ThemeService'
 import VertexAIService from './services/VertexAIService'
 import { setOpenLinkExternal } from './services/WebviewService'
 import { windowService } from './services/WindowService'
@@ -225,10 +224,10 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
     return configManager.get(key)
   })
 
-  // theme
-  ipcMain.handle(IpcChannel.App_SetTheme, (_, theme: ThemeMode) => {
-    themeService.setTheme(theme)
-  })
+  // // theme
+  // ipcMain.handle(IpcChannel.App_SetTheme, (_, theme: ThemeMode) => {
+  //   themeService.setTheme(theme)
+  // })
 
   ipcMain.handle(IpcChannel.App_HandleZoomFactor, (_, delta: number, reset: boolean = false) => {
     const windows = BrowserWindow.getAllWindows()

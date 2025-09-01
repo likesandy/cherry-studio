@@ -13,7 +13,7 @@ import { Assistant, Topic, TranslateLanguage, TranslateLanguageCode } from '@ren
 import { runAsyncFunction } from '@renderer/utils'
 import { abortCompletion } from '@renderer/utils/abortController'
 import { detectLanguage } from '@renderer/utils/translate'
-import type { SelectionActionItem } from '@shared/data/types'
+import type { SelectionActionItem } from '@shared/data/preferenceTypes'
 import { Tooltip } from 'antd'
 import { ArrowRightFromLine, ArrowRightToLine, ChevronDown, CircleHelp, Globe } from 'lucide-react'
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'

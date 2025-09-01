@@ -1,7 +1,11 @@
 import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
 import { DefaultPreferences } from '@shared/data/preferences'
-import type { PreferenceDefaultScopeType, PreferenceKeyType, PreferenceUpdateOptions } from '@shared/data/types'
+import type {
+  PreferenceDefaultScopeType,
+  PreferenceKeyType,
+  PreferenceUpdateOptions
+} from '@shared/data/preferenceTypes'
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 
 const logger = loggerService.withContext('usePreference')

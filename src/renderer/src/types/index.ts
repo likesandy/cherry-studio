@@ -532,12 +532,6 @@ export type MinAppType = {
   type?: 'Custom' | 'Default' // Added the 'type' property
 }
 
-export enum ThemeMode {
-  light = 'light',
-  dark = 'dark',
-  system = 'system'
-}
-
 /** 有限的UI语言 */
 export type LanguageVarious = 'zh-CN' | 'zh-TW' | 'el-GR' | 'en-US' | 'es-ES' | 'fr-FR' | 'ja-JP' | 'pt-PT' | 'ru-RU'
 

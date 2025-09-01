@@ -41,7 +41,7 @@ import { DEFAULT_TOOL_ORDER } from './inputTools'
 import { initialState as llmInitialState, moveProvider } from './llm'
 import { mcpSlice } from './mcp'
 import { initialState as notesInitialState } from './note'
-import { defaultActionItems } from './selectionStore'
+// import { defaultActionItems } from './selectionStore'
 import { initialState as settingsInitialState } from './settings'
 import { initialState as shortcutsInitialState } from './shortcuts'
 import { defaultWebSearchProviders } from './websearch'
@@ -127,14 +127,15 @@ function updateWebSearchProvider(state: RootState, provider: Partial<WebSearchPr
 }
 
 function addSelectionAction(state: RootState, id: string) {
-  if (state.selectionStore && state.selectionStore.actionItems) {
-    if (!state.selectionStore.actionItems.some((item) => item.id === id)) {
-      const action = defaultActionItems.find((item) => item.id === id)
-      if (action) {
-        state.selectionStore.actionItems.push(action)
-      }
-    }
-  }
+  // if (state.selectionStore && state.selectionStore.actionItems) {
+  //   if (!state.selectionStore.actionItems.some((item) => item.id === id)) {
+  //     const action = defaultActionItems.find((item) => item.id === id)
+  //     if (action) {
+  //       state.selectionStore.actionItems.push(action)
+  //     }
+  //   }
+  // }
+  return [state, id]
 }
 
 /**

@@ -1,6 +1,6 @@
 /**
  * Auto-generated preference mappings from classification.json
- * Generated at: 2025-08-10T12:47:40.247Z
+ * Generated at: 2025-09-01T14:38:08.063Z
  *
  * This file contains pure mapping relationships without default values.
  * Default values are managed in packages/shared/data/preferences.ts
@@ -131,8 +131,8 @@ export const REDUX_STORE_MAPPINGS = {
       targetKey: 'app.launch_on_boot'
     },
     {
-      originalKey: 'userTheme',
-      targetKey: 'app.theme.user_defined'
+      originalKey: 'userTheme.colorPrimary',
+      targetKey: 'app.theme.user.color_primary'
     },
     {
       originalKey: 'windowStyle',
@@ -447,10 +447,6 @@ export const REDUX_STORE_MAPPINGS = {
       targetKey: 'chat.input.quick_panel.triggers_enabled'
     },
     {
-      originalKey: 'enableBackspaceDeleteModel',
-      targetKey: 'chat.input.backspace_delete_model'
-    },
-    {
       originalKey: 'exportMenuOptions.image',
       targetKey: 'data.export.menus.image'
     },
@@ -654,6 +650,72 @@ export const REDUX_STORE_MAPPINGS = {
       originalKey: 'nutstoreSkipBackupFile',
       targetKey: 'data.backup.nutstore.skip_backup_file'
     }
+  ],
+  shortcuts: [
+    {
+      originalKey: 'shortcuts.zoom_in',
+      targetKey: 'shortcut.app.zoom_in'
+    },
+    {
+      originalKey: 'shortcuts.zoom_out',
+      targetKey: 'shortcut.app.zoom_out'
+    },
+    {
+      originalKey: 'shortcuts.zoom_reset',
+      targetKey: 'shortcut.app.zoom_reset'
+    },
+    {
+      originalKey: 'shortcuts.show_settings',
+      targetKey: 'shortcut.app.show_settings'
+    },
+    {
+      originalKey: 'shortcuts.show_app',
+      targetKey: 'shortcut.app.show_main_window'
+    },
+    {
+      originalKey: 'shortcuts.mini_window',
+      targetKey: 'shortcut.app.show_mini_window'
+    },
+    {
+      originalKey: 'shortcuts.selection_assistant_toggle',
+      targetKey: 'shortcut.selection.toggle_enabled'
+    },
+    {
+      originalKey: 'shortcuts.selection_assistant_select_text',
+      targetKey: 'shortcut.selection.get_text'
+    },
+    {
+      originalKey: 'shortcuts.new_topic',
+      targetKey: 'shortcut.topic.new'
+    },
+    {
+      originalKey: 'shortcuts.toggle_show_assistants',
+      targetKey: 'shortcut.app.toggle_show_assistants'
+    },
+    {
+      originalKey: 'shortcuts.copy_last_message',
+      targetKey: 'shortcut.chat.copy_last_message'
+    },
+    {
+      originalKey: 'shortcuts.search_message_in_chat',
+      targetKey: 'shortcut.chat.search_message'
+    },
+    {
+      originalKey: 'shortcuts.search_message',
+      targetKey: 'shortcut.app.search_message'
+    },
+    {
+      originalKey: 'shortcuts.clear_topic',
+      targetKey: 'shortcut.chat.clear'
+    },
+    {
+      originalKey: 'shortcuts.toggle_new_context',
+      targetKey: 'shortcut.chat.toggle_new_context'
+    },
+    {
+      originalKey: 'shortcuts.exit_fullscreen',
+      targetKey: 'shortcut.app.exit_fullscreen'
+    }
   ]
 } as const
 
@@ -662,9 +724,9 @@ export const REDUX_STORE_MAPPINGS = {
 /**
  * 映射统计:
  * - ElectronStore项: 2
- * - Redux Store项: 154
- * - Redux分类: settings, selectionStore, nutstore
- * - 总配置项: 156
+ * - Redux Store项: 169
+ * - Redux分类: settings, selectionStore, nutstore, shortcuts
+ * - 总配置项: 171
  *
  * 使用说明:
  * 1. ElectronStore读取: configManager.get(mapping.originalKey)

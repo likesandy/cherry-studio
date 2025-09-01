@@ -1,7 +1,7 @@
 import { usePreference } from '@renderer/data/hooks/usePreference'
 import { preferenceService } from '@renderer/data/PreferenceService'
 import { loggerService } from '@renderer/services/LoggerService'
-import type { PreferenceKeyType } from '@shared/data/types'
+import { type PreferenceKeyType, ThemeMode } from '@shared/data/preferenceTypes'
 import { Button, Card, message, Space, Typography } from 'antd'
 import React, { useState } from 'react'
 import styled from 'styled-components'
@@ -77,7 +77,7 @@ const PreferenceHookTests: React.FC = () => {
 
       // Test batch set
       await preferenceService.setMultiple({
-        'app.theme.mode': theme1 === 'ThemeMode.dark' ? 'ThemeMode.light' : 'ThemeMode.dark',
+        'app.theme.mode': theme1 === ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
         'app.language': language === 'zh-CN' ? 'en-US' : 'zh-CN'
       })
 
@@ -102,7 +102,10 @@ const PreferenceHookTests: React.FC = () => {
       // Test rapid writes
       const writeStart = performance.now()
       for (let i = 0; i < 10; i++) {
-        await preferenceService.set('app.theme.mode', `ThemeMode.test_${i}`)
+        await preferenceService.set(
+          'app.theme.mode',
+          i % 3 === 0 ? ThemeMode.light : i % 3 === 1 ? ThemeMode.dark : ThemeMode.system
+        )
       }
       const writeTime = performance.now() - writeStart
 

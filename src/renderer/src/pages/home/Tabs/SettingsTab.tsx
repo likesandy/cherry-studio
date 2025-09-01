@@ -43,9 +43,10 @@ import {
   setShowTranslateConfirm,
   setThoughtAutoCollapse
 } from '@renderer/store/settings'
-import { Assistant, AssistantSettings, CodeStyleVarious, MathEngine, ThemeMode } from '@renderer/types'
+import { Assistant, AssistantSettings, CodeStyleVarious, MathEngine } from '@renderer/types'
 import { modalConfirm } from '@renderer/utils'
 import { getSendMessageShortcutLabel } from '@renderer/utils/input'
+import { ThemeMode } from '@shared/data/preferenceTypes'
 import { Button, Col, InputNumber, Row, Slider, Switch, Tooltip } from 'antd'
 import { CircleHelp, Settings2 } from 'lucide-react'
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'

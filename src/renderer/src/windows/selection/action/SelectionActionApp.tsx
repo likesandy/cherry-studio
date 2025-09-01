@@ -1,9 +1,8 @@
 import { usePreference } from '@data/hooks/usePreference'
 import { isMac } from '@renderer/config/constant'
-import { useSettings } from '@renderer/hooks/useSettings'
 import i18n from '@renderer/i18n'
 import { defaultLanguage } from '@shared/config/constant'
-import type { SelectionActionItem } from '@shared/data/types'
+import type { SelectionActionItem } from '@shared/data/preferenceTypes'
 import { IpcChannel } from '@shared/IpcChannel'
 import { Button, Slider, Tooltip } from 'antd'
 import { Droplet, Minus, Pin, X } from 'lucide-react'
@@ -16,8 +15,8 @@ import ActionGeneral from './components/ActionGeneral'
 import ActionTranslate from './components/ActionTranslate'
 
 const SelectionActionApp: FC = () => {
-  const { language, customCss } = useSettings()
-
+  const [language] = usePreference('app.language')
+  const [customCss] = usePreference('ui.custom_css')
   const { t } = useTranslation()
 
   const [action, setAction] = useState<SelectionActionItem | null>(null)

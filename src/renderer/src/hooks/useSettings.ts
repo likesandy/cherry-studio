@@ -8,7 +8,6 @@ import {
   setEnableDeveloperMode,
   setLaunchOnBoot,
   setLaunchToTray,
-  setNavbarPosition,
   setPinTopicsToTop,
   setSendMessageShortcut as _setSendMessageShortcut,
   setShowTokens,
@@ -23,8 +22,9 @@ import {
   setTrayOnClose,
   setWindowStyle
 } from '@renderer/store/settings'
-import { SidebarIcon, ThemeMode, TranslateLanguageCode } from '@renderer/types'
+import { SidebarIcon, TranslateLanguageCode } from '@renderer/types'
 import { UpgradeChannel } from '@shared/config/constant'
+import { ThemeMode } from '@shared/data/preferenceTypes'
 
 export function useSettings() {
   const settings = useAppSelector((state) => state.settings)
@@ -139,16 +139,4 @@ export const useEnableDeveloperMode = () => {
 
 export const getEnableDeveloperMode = () => {
   return store.getState().settings.enableDeveloperMode
-}
-
-export const useNavbarPosition = () => {
-  const navbarPosition = useAppSelector((state) => state.settings.navbarPosition)
-  const dispatch = useAppDispatch()
-
-  return {
-    navbarPosition,
-    isLeftNavbar: navbarPosition === 'left',
-    isTopNavbar: navbarPosition === 'top',
-    setNavbarPosition: (position: 'left' | 'top') => dispatch(setNavbarPosition(position))
-  }
 }

@@ -1,6 +1,10 @@
 import { loggerService } from '@logger'
 import { DefaultPreferences } from '@shared/data/preferences'
-import type { PreferenceDefaultScopeType, PreferenceKeyType, PreferenceUpdateOptions } from '@shared/data/types'
+import type {
+  PreferenceDefaultScopeType,
+  PreferenceKeyType,
+  PreferenceUpdateOptions
+} from '@shared/data/preferenceTypes'
 
 const logger = loggerService.withContext('PreferenceService')
 /**
@@ -99,6 +103,8 @@ export class PreferenceService {
     if (key in this.cache && this.cache[key] !== undefined) {
       return this.cache[key] as PreferenceDefaultScopeType[K]
     }
+
+    logger.verbose(`get: ${key} not found in cache`)
 
     try {
       // Fetch from main process if not cached
@@ -215,6 +221,7 @@ export class PreferenceService {
       if (key in this.cache && this.cache[key] !== undefined) {
         cachedResults[key] = this.cache[key]
       } else {
+        logger.verbose(`getMultiple: ${key} not found in cache`)
         uncachedKeys.push(key)
       }
     }
@@ -408,7 +415,7 @@ export class PreferenceService {
    * Load all preferences from main process at once
    * Provides optimal performance by loading complete preference set into memory
    */
-  public async loadAll(): Promise<PreferenceDefaultScopeType> {
+  public async preloadAll(): Promise<PreferenceDefaultScopeType> {
     try {
       const allPreferences = await window.api.preference.getAll()
 
@@ -442,7 +449,7 @@ export class PreferenceService {
   /**
    * Preload specific preferences into cache
    */
-  async preload(keys: PreferenceKeyType[]): Promise<void> {
+  public async preload(keys: PreferenceKeyType[]): Promise<void> {
     const uncachedKeys = keys.filter((key) => !this.isCached(key))
 
     if (uncachedKeys.length > 0) {

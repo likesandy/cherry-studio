@@ -13,11 +13,11 @@ import {
   PaintingProvider,
   S3Config,
   SidebarIcon,
-  ThemeMode,
   TranslateLanguageCode
 } from '@renderer/types'
 import { uuid } from '@renderer/utils'
 import { UpgradeChannel } from '@shared/config/constant'
+import { ThemeMode } from '@shared/data/preferenceTypes'
 import { OpenAIVerbosity } from '@types'
 
 import { RemoteSyncState } from './backup'
@@ -57,7 +57,9 @@ export interface SettingsState {
   trayOnClose: boolean
   tray: boolean
   theme: ThemeMode
-  userTheme: UserTheme
+  userTheme: {
+    colorPrimary: string
+  }
   windowStyle: 'transparent' | 'opaque'
   fontSize: number
   topicPosition: 'left' | 'right'

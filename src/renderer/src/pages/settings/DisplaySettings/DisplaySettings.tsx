@@ -5,7 +5,8 @@ import TextBadge from '@renderer/components/TextBadge'
 import { isMac, THEME_COLOR_PRESETS } from '@renderer/config/constant'
 import { DEFAULT_SIDEBAR_ICONS } from '@renderer/config/sidebar'
 import { useTheme } from '@renderer/context/ThemeProvider'
-import { useNavbarPosition, useSettings } from '@renderer/hooks/useSettings'
+import { useNavbarPosition } from '@renderer/hooks/useNavbar'
+import { useSettings } from '@renderer/hooks/useSettings'
 import useUserTheme from '@renderer/hooks/useUserTheme'
 import { useAppDispatch } from '@renderer/store'
 import {
@@ -17,7 +18,7 @@ import {
   setShowTopicTime,
   setSidebarIcons
 } from '@renderer/store/settings'
-import { ThemeMode } from '@renderer/types'
+import { ThemeMode } from '@shared/data/preferenceTypes'
 import { Button, ColorPicker, Segmented, Switch } from 'antd'
 import { Minus, Monitor, Moon, Plus, Sun } from 'lucide-react'
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
@@ -65,16 +66,14 @@ const DisplaySettings: FC = () => {
     pinTopicsToTop,
     customCss,
     sidebarIcons,
-    setTheme,
-    assistantIconType,
-    userTheme
+    assistantIconType
   } = useSettings()
   const { navbarPosition, setNavbarPosition } = useNavbarPosition()
-  const { theme, settedTheme } = useTheme()
+  const { theme, settedTheme, setTheme } = useTheme()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [currentZoom, setCurrentZoom] = useState(1.0)
-  const { setUserTheme } = useUserTheme()
+  const { userTheme, setUserTheme } = useUserTheme()
 
   const [visibleIcons, setVisibleIcons] = useState(sidebarIcons?.visible || DEFAULT_SIDEBAR_ICONS)
   const [disabledIcons, setDisabledIcons] = useState(sidebarIcons?.disabled || [])

@@ -2,7 +2,7 @@ import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
 import { SELECTION_FINETUNED_LIST, SELECTION_PREDEFINED_BLACKLIST } from '@main/configs/SelectionConfig'
 import { isDev, isMac, isWin } from '@main/constant'
-import type { SelectionActionItem, SelectionFilterMode, SelectionTriggerMode } from '@shared/data/types'
+import type { SelectionActionItem, SelectionFilterMode, SelectionTriggerMode } from '@shared/data/preferenceTypes'
 import { IpcChannel } from '@shared/IpcChannel'
 import { app, BrowserWindow, ipcMain, screen, systemPreferences } from 'electron'
 import { join } from 'path'
@@ -470,11 +470,11 @@ export class SelectionService {
     })
 
     /** uncomment to open dev tools in dev mode */
-    // if (isDev) {
-    //   this.toolbarWindow.once('ready-to-show', () => {
-    //     this.toolbarWindow!.webContents.openDevTools({ mode: 'detach' })
-    //   })
-    // }
+    if (isDev) {
+      this.toolbarWindow.once('ready-to-show', () => {
+        this.toolbarWindow!.webContents.openDevTools({ mode: 'detach' })
+      })
+    }
 
     if (readyCallback) {
       this.toolbarWindow.once('ready-to-show', readyCallback)

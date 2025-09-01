@@ -1,5 +1,5 @@
 import { defaultLanguage, UpgradeChannel, ZOOM_SHORTCUTS } from '@shared/config/constant'
-import { LanguageVarious, Shortcut, ThemeMode } from '@types'
+import { LanguageVarious, Shortcut } from '@types'
 import { app } from 'electron'
 import Store from 'electron-store'
 
@@ -47,13 +47,13 @@ export class ConfigManager {
     this.setAndNotify(ConfigKeys.Language, lang)
   }
 
-  getTheme(): ThemeMode {
-    return this.get(ConfigKeys.Theme, ThemeMode.system)
-  }
+  // getTheme(): ThemeMode {
+  //   return this.get(ConfigKeys.Theme, ThemeMode.system)
+  // }
 
-  setTheme(theme: ThemeMode) {
-    this.set(ConfigKeys.Theme, theme)
-  }
+  // setTheme(theme: ThemeMode) {
+  //   this.set(ConfigKeys.Theme, theme)
+  // }
 
   getLaunchToTray(): boolean {
     return !!this.get(ConfigKeys.LaunchToTray, false)

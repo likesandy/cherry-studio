@@ -3,7 +3,7 @@ import { PreferencesType } from './preferences'
 export type PreferenceDefaultScopeType = PreferencesType['default']
 export type PreferenceKeyType = keyof PreferenceDefaultScopeType
 
-export interface PreferenceUpdateOptions {
+export type PreferenceUpdateOptions = {
   optimistic: boolean
 }
 
@@ -16,7 +16,7 @@ export type PreferenceShortcutType = {
 
 export type SelectionTriggerMode = 'selected' | 'ctrlkey' | 'shortcut'
 export type SelectionFilterMode = 'default' | 'whitelist' | 'blacklist'
-export interface SelectionActionItem {
+export type SelectionActionItem = {
   id: string
   name: string
   enabled: boolean
@@ -26,4 +26,10 @@ export interface SelectionActionItem {
   assistantId?: string
   selectedText?: string
   searchEngine?: string
+}
+
+export enum ThemeMode {
+  light = 'light',
+  dark = 'dark',
+  system = 'system'
 }

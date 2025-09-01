@@ -3,11 +3,10 @@ import '@renderer/assets/styles/selection-toolbar.scss'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import { AppLogo } from '@renderer/config/env'
-import { useSettings } from '@renderer/hooks/useSettings'
 import { useTimer } from '@renderer/hooks/useTimer'
 import i18n from '@renderer/i18n'
 import { defaultLanguage } from '@shared/config/constant'
-import type { SelectionActionItem } from '@shared/data/types'
+import type { SelectionActionItem } from '@shared/data/preferenceTypes'
 import { IpcChannel } from '@shared/IpcChannel'
 import { Avatar } from 'antd'
 import { ClipboardCheck, ClipboardCopy, ClipboardX, MessageSquareHeart } from 'lucide-react'
@@ -99,7 +98,8 @@ const ActionIcons: FC<{
  * demo is used in the settings page
  */
 const SelectionToolbar: FC<{ demo?: boolean }> = ({ demo = false }) => {
-  const { language, customCss } = useSettings()
+  const [language] = usePreference('app.language')
+  const [customCss] = usePreference('ui.custom_css')
   const [isCompact] = usePreference('feature.selection.compact')
   const [actionItems] = usePreference('feature.selection.action_items')
   const [animateKey, setAnimateKey] = useState(0)

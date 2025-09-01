@@ -1,8 +1,8 @@
 import { LoadingOutlined } from '@ant-design/icons'
+import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import CopyButton from '@renderer/components/CopyButton'
 import { useTopicMessages } from '@renderer/hooks/useMessageOperations'
-import { useSettings } from '@renderer/hooks/useSettings'
 import MessageContent from '@renderer/pages/home/Messages/MessageContent'
 import {
   getAssistantById,
@@ -13,7 +13,7 @@ import {
 import { pauseTrace } from '@renderer/services/SpanManagerService'
 import { Assistant, Topic } from '@renderer/types'
 import { abortCompletion } from '@renderer/utils/abortController'
-import type { SelectionActionItem } from '@shared/data/types'
+import type { SelectionActionItem } from '@shared/data/preferenceTypes'
 import { ChevronDown } from 'lucide-react'
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -30,7 +30,7 @@ interface Props {
 
 const ActionGeneral: FC<Props> = React.memo(({ action, scrollToBottom }) => {
   const { t } = useTranslation()
-  const { language } = useSettings()
+  const [language] = usePreference('app.language')
   const [error, setError] = useState<string | null>(null)
   const [showOriginal, setShowOriginal] = useState(false)
   const [isContented, setIsContented] = useState(false)

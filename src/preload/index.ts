@@ -4,8 +4,8 @@ import { SpanEntity, TokenUsage } from '@mcp-trace/trace-core'
 import { SpanContext } from '@opentelemetry/api'
 import { UpgradeChannel } from '@shared/config/constant'
 import type { LogLevel, LogSourceWithContext } from '@shared/config/logger'
-import type { PreferenceDefaultScopeType, PreferenceKeyType, SelectionActionItem } from '@shared/data/types'
 import type { FileChangeEvent } from '@shared/config/types'
+import type { PreferenceDefaultScopeType, PreferenceKeyType, SelectionActionItem } from '@shared/data/preferenceTypes'
 import { IpcChannel } from '@shared/IpcChannel'
 import {
   AddMemoryOptions,
@@ -25,7 +25,6 @@ import {
   S3Config,
   Shortcut,
   SupportedOcrFile,
-  ThemeMode,
   WebDavConfig
 } from '@types'
 import { contextBridge, ipcRenderer, OpenDialogOptions, shell, webUtils } from 'electron'
@@ -57,7 +56,7 @@ const api = {
   setTrayOnClose: (isActive: boolean) => ipcRenderer.invoke(IpcChannel.App_SetTrayOnClose, isActive),
   setTestPlan: (isActive: boolean) => ipcRenderer.invoke(IpcChannel.App_SetTestPlan, isActive),
   setTestChannel: (channel: UpgradeChannel) => ipcRenderer.invoke(IpcChannel.App_SetTestChannel, channel),
-  setTheme: (theme: ThemeMode) => ipcRenderer.invoke(IpcChannel.App_SetTheme, theme),
+  // setTheme: (theme: ThemeMode) => ipcRenderer.invoke(IpcChannel.App_SetTheme, theme),
   handleZoomFactor: (delta: number, reset: boolean = false) =>
     ipcRenderer.invoke(IpcChannel.App_HandleZoomFactor, delta, reset),
   setAutoUpdate: (isActive: boolean) => ipcRenderer.invoke(IpcChannel.App_SetAutoUpdate, isActive),

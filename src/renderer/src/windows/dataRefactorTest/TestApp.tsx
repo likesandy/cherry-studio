@@ -1,6 +1,7 @@
 import { AppLogo } from '@renderer/config/env'
 import { usePreference } from '@renderer/data/hooks/usePreference'
 import { loggerService } from '@renderer/services/LoggerService'
+import { ThemeMode } from '@shared/data/preferenceTypes'
 import { Button, Card, Col, Divider, Layout, Row, Space, Typography } from 'antd'
 import { Database, FlaskConical, Settings, TestTube } from 'lucide-react'
 import React from 'react'
@@ -53,7 +54,7 @@ const TestApp: React.FC = () => {
   const [zoomFactor] = usePreference('app.zoom_factor')
 
   // Apply theme-based styling
-  const isDarkTheme = theme === 'ThemeMode.dark'
+  const isDarkTheme = theme === ThemeMode.dark
   const headerBg = isDarkTheme ? '#141414' : '#fff'
   const borderColor = isDarkTheme ? '#303030' : '#f0f0f0'
   const textColor = isDarkTheme ? '#fff' : '#000'
@@ -176,7 +177,7 @@ const TestApp: React.FC = () => {
               <Button
                 icon={isDarkTheme ? '☀️' : '🌙'}
                 onClick={async () => {
-                  await setTheme(isDarkTheme ? 'ThemeMode.light' : 'ThemeMode.dark')
+                  await setTheme(isDarkTheme ? ThemeMode.light : ThemeMode.dark)
                 }}
                 style={{
                   backgroundColor: isDarkTheme ? '#434343' : '#f0f0f0',

@@ -1,6 +1,6 @@
 import { usePreference } from '@renderer/data/hooks/usePreference'
 import { preferenceService } from '@renderer/data/PreferenceService'
-import type { PreferenceKeyType } from '@shared/data/types'
+import { type PreferenceKeyType, ThemeMode } from '@shared/data/preferenceTypes'
 import { Button, Input, message, Space, Typography } from 'antd'
 import React, { useState } from 'react'
 import styled from 'styled-components'
@@ -13,13 +13,13 @@ const { Text } = Typography
  */
 const PreferenceServiceTests: React.FC = () => {
   const [testKey, setTestKey] = useState<string>('app.theme.mode')
-  const [testValue, setTestValue] = useState<string>('ThemeMode.dark')
+  const [testValue, setTestValue] = useState<string>(ThemeMode.dark)
   const [getResult, setGetResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
   // Theme monitoring for visual changes
   const [currentTheme] = usePreference('app.theme.mode')
-  const isDarkTheme = currentTheme === 'ThemeMode.dark'
+  const isDarkTheme = currentTheme === ThemeMode.dark
 
   const handleGet = async () => {
     try {
@@ -104,7 +104,7 @@ const PreferenceServiceTests: React.FC = () => {
     try {
       setLoading(true)
       // Use loadAll to get all preferences at once
-      const result = await preferenceService.loadAll()
+      const result = await preferenceService.preloadAll()
       setGetResult(`All preferences (${Object.keys(result).length} keys):\n${JSON.stringify(result, null, 2)}`)
       message.success('获取所有偏好设置成功')
     } catch (error) {
@@ -174,7 +174,7 @@ const PreferenceServiceTests: React.FC = () => {
             size="small"
             onClick={() => {
               setTestKey('app.theme.mode')
-              setTestValue('ThemeMode.dark')
+              setTestValue(ThemeMode.dark)
             }}>
             Test: app.theme.mode
           </Button>

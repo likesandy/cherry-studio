@@ -1,6 +1,7 @@
 import AddAssistantPopup from '@renderer/components/Popups/AddAssistantPopup'
 import { useAssistants, useDefaultAssistant } from '@renderer/hooks/useAssistant'
-import { useNavbarPosition, useSettings } from '@renderer/hooks/useSettings'
+import { useNavbarPosition } from '@renderer/hooks/useNavbar'
+import { useSettings } from '@renderer/hooks/useSettings'
 import { useShowTopics } from '@renderer/hooks/useStore'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
 import { Assistant, Topic } from '@renderer/types'

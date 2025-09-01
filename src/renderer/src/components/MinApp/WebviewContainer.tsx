@@ -1,4 +1,5 @@
-import { useNavbarPosition, useSettings } from '@renderer/hooks/useSettings'
+import { useNavbarPosition } from '@renderer/hooks/useNavbar'
+import { useSettings } from '@renderer/hooks/useSettings'
 import { WebviewTag } from 'electron'
 import { memo, useEffect, useRef } from 'react'
 

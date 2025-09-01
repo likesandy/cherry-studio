@@ -12682,18 +12682,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dts-resolver@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "dts-resolver@npm:2.1.1"
-  peerDependencies:
-    oxc-resolver: ">=11.0.0"
-  peerDependenciesMeta:
-    oxc-resolver:
-      optional: true
-  checksum: 10c0/bc36d71822d39f23cfe274b6781fae4b1729bd8b0a07e4a011fe243a73c5dbbb30ea067fb0d6248fdfedc29cf4dfc0ff19f0dd38950158444409d109c1c55b7e
-  languageName: node
-  linkType: hard
-
 "drizzle-kit@npm:^0.31.4":
   version: 0.31.4
   resolution: "drizzle-kit@npm:0.31.4"
@@ -12800,6 +12788,18 @@ __metadata:
     sqlite3:
       optional: true
   checksum: 10c0/1bd0005aa4dfcba0e8ffabd5baf0e4d696a9168869c6f519d1a829991dad3d6fdffe8714ede4032564f7bb2e6508dd517d05c205918cee0cda6fec5f844fd882
+  languageName: node
+  linkType: hard
+
+"dts-resolver@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "dts-resolver@npm:2.1.1"
+  peerDependencies:
+    oxc-resolver: ">=11.0.0"
+  peerDependenciesMeta:
+    oxc-resolver:
+      optional: true
+  checksum: 10c0/bc36d71822d39f23cfe274b6781fae4b1729bd8b0a07e4a011fe243a73c5dbbb30ea067fb0d6248fdfedc29cf4dfc0ff19f0dd38950158444409d109c1c55b7e
   languageName: node
   linkType: hard
 
@@ -14732,7 +14732,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-tsconfig@npm:^4.10.1, get-tsconfig@npm:^4.7.5":
+"get-tsconfig@npm:^4.10.1, get-tsconfig@npm:^4.7.0, get-tsconfig@npm:^4.7.5":
   version: 4.10.1
   resolution: "get-tsconfig@npm:4.10.1"
   dependencies:

@@ -1,8 +1,8 @@
 /**
- * 数据重构，临时存放的默认值，需在全部完成后重新整理
+ * 数据重构，临时存放的默认值，需在全部完成后重新整理，并整理到preferences.ts中
  */
 
-import type { SelectionActionItem } from './types'
+import type { SelectionActionItem } from './preferenceTypes'
 
 export const defaultActionItems: SelectionActionItem[] = [
   { id: 'translate', name: 'selection.action.builtin.translate', enabled: true, isBuiltIn: true, icon: 'languages' },

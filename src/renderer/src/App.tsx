@@ -17,7 +17,7 @@ import Router from './Router'
 
 const logger = loggerService.withContext('App.tsx')
 
-preferenceService.loadAll()
+preferenceService.preloadAll()
 
 // 创建 React Query 客户端
 const queryClient = new QueryClient({

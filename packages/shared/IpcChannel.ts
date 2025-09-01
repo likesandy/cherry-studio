@@ -13,7 +13,7 @@ export enum IpcChannel {
   App_SetLaunchToTray = 'app:set-launch-to-tray',
   App_SetTray = 'app:set-tray',
   App_SetTrayOnClose = 'app:set-tray-on-close',
-  App_SetTheme = 'app:set-theme',
+  // App_SetTheme = 'app:set-theme',
   App_SetAutoUpdate = 'app:set-auto-update',
   App_SetTestPlan = 'app:set-test-plan',
   App_SetTestChannel = 'app:set-test-channel',
@@ -234,7 +234,7 @@ export enum IpcChannel {
   // events
   BackupProgress = 'backup-progress',
   DataMigrateProgress = 'data-migrate-progress',
-  ThemeUpdated = 'theme:updated',
+  NativeThemeUpdated = 'native-theme:updated',
   UpdateDownloadedCancelled = 'update-downloaded-cancelled',
   RestoreProgress = 'restore-progress',
   UpdateError = 'update-error',

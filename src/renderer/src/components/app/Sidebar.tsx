@@ -10,8 +10,8 @@ import useNavBackgroundColor from '@renderer/hooks/useNavBackgroundColor'
 import { modelGenerating, useRuntime } from '@renderer/hooks/useRuntime'
 import { useSettings } from '@renderer/hooks/useSettings'
 import { getSidebarIconLabel, getThemeModeLabel } from '@renderer/i18n/label'
-import { ThemeMode } from '@renderer/types'
 import { isEmoji } from '@renderer/utils'
+import { ThemeMode } from '@shared/data/preferenceTypes'
 import { Avatar, Tooltip } from 'antd'
 import {
   Code,

@@ -1,6 +1,7 @@
 import { ErrorBoundary } from '@renderer/components/ErrorBoundary'
 import { useAssistants } from '@renderer/hooks/useAssistant'
-import { useNavbarPosition, useSettings } from '@renderer/hooks/useSettings'
+import { useNavbarPosition } from '@renderer/hooks/useNavbar'
+import { useSettings } from '@renderer/hooks/useSettings'
 import { useActiveTopic } from '@renderer/hooks/useTopic'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
 import NavigationService from '@renderer/services/NavigationService'

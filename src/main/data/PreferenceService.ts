@@ -1,7 +1,7 @@
 import { dbService } from '@data/db/DbService'
 import { loggerService } from '@logger'
 import { DefaultPreferences } from '@shared/data/preferences'
-import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data/types'
+import type { PreferenceDefaultScopeType, PreferenceKeyType } from '@shared/data/preferenceTypes'
 import { IpcChannel } from '@shared/IpcChannel'
 import { and, eq } from 'drizzle-orm'
 import { BrowserWindow, ipcMain } from 'electron'
