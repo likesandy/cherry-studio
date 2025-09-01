@@ -1,6 +1,6 @@
 import { RedoOutlined } from '@ant-design/icons'
 import { HStack } from '@renderer/components/Layout'
-import { TRANSLATE_PROMPT } from '@renderer/config/prompts'
+import { TRANSLATE_PROMPT } from '@shared/config/prompts'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useSettings } from '@renderer/hooks/useSettings'
 import { useAppDispatch } from '@renderer/store'

@@ -1,5 +1,5 @@
 import { useSettings } from '@renderer/hooks/useSettings'
-import { LanguageVarious } from '@renderer/types'
+import { LanguageVarious } from '@shared/data/preferenceTypes'
 import { ConfigProvider, theme } from 'antd'
 import elGR from 'antd/locale/el_GR'
 import enUS from 'antd/locale/en_US'

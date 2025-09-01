@@ -15,7 +15,6 @@ import {
   setTargetLanguage,
   setTestChannel as _setTestChannel,
   setTestPlan as _setTestPlan,
-  setTheme,
   SettingsState,
   setTopicPosition,
   setTray as _setTray,
@@ -24,7 +23,6 @@ import {
 } from '@renderer/store/settings'
 import { SidebarIcon, TranslateLanguageCode } from '@renderer/types'
 import { UpgradeChannel } from '@shared/config/constant'
-import { ThemeMode } from '@shared/data/preferenceTypes'
 
 export function useSettings() {
   const settings = useAppSelector((state) => state.settings)
@@ -74,9 +72,9 @@ export function useSettings() {
       window.api.setTestChannel(channel)
     },
 
-    setTheme(theme: ThemeMode) {
-      dispatch(setTheme(theme))
-    },
+    // setTheme(theme: ThemeMode) {
+    //   dispatch(setTheme(theme))
+    // },
     setWindowStyle(windowStyle: 'transparent' | 'opaque') {
       dispatch(setWindowStyle(windowStyle))
     },

@@ -1,4 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
+import { usePreference } from '@data/hooks/usePreference'
 import InfoTooltip from '@renderer/components/InfoTooltip'
 import { HStack } from '@renderer/components/Layout'
 import Selector from '@renderer/components/Selector'
@@ -10,17 +11,16 @@ import { RootState, useAppDispatch } from '@renderer/store'
 import {
   setEnableDataCollection,
   setEnableSpellCheck,
-  setLanguage,
   setNotificationSettings,
   setProxyBypassRules as _setProxyBypassRules,
   setProxyMode,
   setProxyUrl as _setProxyUrl,
   setSpellCheckLanguages
 } from '@renderer/store/settings'
-import { LanguageVarious } from '@renderer/types'
 import { NotificationSource } from '@renderer/types/notification'
 import { isValidProxyUrl } from '@renderer/utils'
 import { defaultByPassRules, defaultLanguage } from '@shared/config/constant'
+import { LanguageVarious } from '@shared/data/preferenceTypes'
 import { Flex, Input, Switch, Tooltip } from 'antd'
 import { FC, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -30,7 +30,6 @@ import { SettingContainer, SettingDivider, SettingGroup, SettingRow, SettingRowT
 
 const GeneralSettings: FC = () => {
   const {
-    language,
     proxyUrl: storeProxyUrl,
     proxyBypassRules: storeProxyBypassRules,
     setLaunch,
@@ -50,6 +49,8 @@ const GeneralSettings: FC = () => {
   const { theme } = useTheme()
   const { enableDeveloperMode, setEnableDeveloperMode } = useEnableDeveloperMode()
   const { setTimeoutTimer } = useTimer()
+
+  const [language, setLanguage] = usePreference('app.language')
 
   const updateTray = (isShowTray: boolean) => {
     setTray(isShowTray)
@@ -83,10 +84,11 @@ const GeneralSettings: FC = () => {
   const { t } = useTranslation()
 
   const onSelectLanguage = (value: LanguageVarious) => {
-    dispatch(setLanguage(value))
-    localStorage.setItem('language', value)
-    window.api.setLanguage(value)
+    // dispatch(setLanguage(value))
+    // localStorage.setItem('language', value)
+    // window.api.setLanguage(value)
     i18n.changeLanguage(value)
+    setLanguage(value)
   }
 
   const handleSpellCheckChange = (checked: boolean) => {

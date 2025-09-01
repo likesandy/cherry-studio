@@ -161,9 +161,9 @@ import {
   ThinkingOptionConfig
 } from '@renderer/types'
 import { getLowerBaseModelName, isUserSelectedModelType } from '@renderer/utils'
+import { WEB_SEARCH_PROMPT_FOR_OPENROUTER } from '@shared/config/prompts'
 import OpenAI from 'openai'
 
-import { WEB_SEARCH_PROMPT_FOR_OPENROUTER } from './prompts'
 import { getWebSearchTools } from './tools'
 
 // Vision models

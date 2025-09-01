@@ -1,9 +1,6 @@
-import { defaultLanguage, UpgradeChannel, ZOOM_SHORTCUTS } from '@shared/config/constant'
-import { LanguageVarious, Shortcut } from '@types'
-import { app } from 'electron'
+import { UpgradeChannel, ZOOM_SHORTCUTS } from '@shared/config/constant'
+import { Shortcut } from '@types'
 import Store from 'electron-store'
-
-import { locales } from '../utils/locales'
 
 export enum ConfigKeys {
   Language = 'language',
@@ -38,14 +35,14 @@ export class ConfigManager {
     this.store = new Store()
   }
 
-  getLanguage(): LanguageVarious {
-    const locale = Object.keys(locales).includes(app.getLocale()) ? app.getLocale() : defaultLanguage
-    return this.get(ConfigKeys.Language, locale) as LanguageVarious
-  }
+  // getLanguage(): LanguageVarious {
+  //   const locale = Object.keys(locales).includes(app.getLocale()) ? app.getLocale() : defaultLanguage
+  //   return this.get(ConfigKeys.Language, locale) as LanguageVarious
+  // }
 
-  setLanguage(lang: LanguageVarious) {
-    this.setAndNotify(ConfigKeys.Language, lang)
-  }
+  // setLanguage(lang: LanguageVarious) {
+  //   this.setAndNotify(ConfigKeys.Language, lang)
+  // }
 
   // getTheme(): ThemeMode {
   //   return this.get(ConfigKeys.Theme, ThemeMode.system)

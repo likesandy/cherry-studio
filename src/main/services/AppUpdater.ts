@@ -1,7 +1,7 @@
 import { loggerService } from '@logger'
 import { isWin } from '@main/constant'
 import { getIpCountry } from '@main/utils/ipService'
-import { locales } from '@main/utils/locales'
+import { getI18n } from '@main/utils/language'
 import { generateUserAgent } from '@main/utils/systemInfo'
 import { FeedUrl, UpgradeChannel } from '@shared/config/constant'
 import { IpcChannel } from '@shared/IpcChannel'
@@ -237,12 +237,12 @@ export default class AppUpdater {
     }
   }
 
-  public async showUpdateDialog(mainWindow: BrowserWindow) {
+  public showUpdateDialog(mainWindow: BrowserWindow) {
     if (!this.releaseInfo) {
       return
     }
-    const locale = locales[configManager.getLanguage()]
-    const { update: updateLocale } = locale.translation
+    const i18n = getI18n()
+    const { update: updateLocale } = i18n.translation
 
     let detail = this.formatReleaseNotes(this.releaseInfo.releaseNotes)
     if (detail === '') {

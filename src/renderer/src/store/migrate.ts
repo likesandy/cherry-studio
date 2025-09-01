@@ -9,7 +9,7 @@ import {
   SYSTEM_MODELS
 } from '@renderer/config/models'
 import { BUILTIN_OCR_PROVIDERS, BUILTIN_OCR_PROVIDERS_MAP, DEFAULT_OCR_PROVIDER } from '@renderer/config/ocr'
-import { TRANSLATE_PROMPT } from '@renderer/config/prompts'
+import { TRANSLATE_PROMPT } from '@shared/config/prompts'
 import {
   isSupportArrayContentProvider,
   isSupportDeveloperRoleProvider,

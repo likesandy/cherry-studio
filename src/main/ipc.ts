@@ -129,9 +129,9 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   ipcMain.handle(IpcChannel.App_ShowUpdateDialog, () => appUpdater.showUpdateDialog(mainWindow))
 
   // language
-  ipcMain.handle(IpcChannel.App_SetLanguage, (_, language) => {
-    configManager.setLanguage(language)
-  })
+  // ipcMain.handle(IpcChannel.App_SetLanguage, (_, language) => {
+  //   configManager.setLanguage(language)
+  // })
 
   // spell check
   ipcMain.handle(IpcChannel.App_SetEnableSpellCheck, (_, isEnable: boolean) => {

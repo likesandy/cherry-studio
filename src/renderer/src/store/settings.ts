@@ -1,12 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { isMac } from '@renderer/config/constant'
-import { TRANSLATE_PROMPT } from '@renderer/config/prompts'
 import { DEFAULT_SIDEBAR_ICONS } from '@renderer/config/sidebar'
 import {
   ApiServerConfig,
   AssistantsSortType,
   CodeStyleVarious,
-  LanguageVarious,
   MathEngine,
   OpenAIServiceTier,
   OpenAISummaryText,
@@ -17,7 +15,8 @@ import {
 } from '@renderer/types'
 import { uuid } from '@renderer/utils'
 import { UpgradeChannel } from '@shared/config/constant'
-import { ThemeMode } from '@shared/data/preferenceTypes'
+import { TRANSLATE_PROMPT } from '@shared/config/prompts'
+import { LanguageVarious, ThemeMode } from '@shared/data/preferenceTypes'
 import { OpenAIVerbosity } from '@types'
 
 import { RemoteSyncState } from './backup'
