@@ -8,7 +8,6 @@ import {
   isGenerateImageModel,
   isOpenRouterBuiltInWebSearchModel,
   isReasoningModel,
-  isSupportedDisableGenerationModel,
   isSupportedReasoningEffortModel,
   isSupportedThinkingTokenModel,
   isWebSearchModel
@@ -74,9 +73,7 @@ export async function buildStreamTextParams(
 
   const enableUrlContext = assistant.enableUrlContext || false
 
-  const enableGenerateImage =
-    isGenerateImageModel(model) &&
-    (isSupportedDisableGenerationModel(model) ? assistant.enableGenerateImage || false : true)
+  const enableGenerateImage = !!(isGenerateImageModel(model) && assistant.enableGenerateImage)
 
   const tools = setupToolsConfig(mcpTools)
 

@@ -14,9 +14,10 @@ interface CodeViewerProps {
   language: string
   children: string
   expanded?: boolean
-  unwrapped?: boolean
+  wrapped?: boolean
   onHeightChange?: (scrollHeight: number) => void
   className?: string
+  height?: string | number
 }
 
 /**
@@ -25,7 +26,7 @@ interface CodeViewerProps {
  * - 使用虚拟滚动和按需高亮，改善页面内有大量长代码块时的响应
  * - 并发安全
  */
-const CodeViewer = ({ children, language, expanded, unwrapped, onHeightChange, className }: CodeViewerProps) => {
+const CodeViewer = ({ children, language, expanded, wrapped, onHeightChange, className, height }: CodeViewerProps) => {
   const { codeShowLineNumbers, fontSize } = useSettings()
   const { getShikiPreProperties, isShikiThemeDark } = useCodeStyle()
   const shikiThemeRef = useRef<HTMLDivElement>(null)
@@ -104,18 +105,20 @@ const CodeViewer = ({ children, language, expanded, unwrapped, onHeightChange, c
   }, [rawLines.length, onHeightChange])
 
   return (
-    <div ref={shikiThemeRef}>
+    <div ref={shikiThemeRef} style={height ? { height } : undefined}>
       <ScrollContainer
         ref={scrollerRef}
         className="shiki-scroller"
-        $wrap={!unwrapped}
+        $wrap={wrapped}
         $expanded={expanded}
         $lineHeight={estimateSize()}
+        $height={height}
         style={
           {
             '--gutter-width': `${gutterDigits}ch`,
             fontSize: `${fontSize - 1}px`,
-            maxHeight: expanded ? undefined : MAX_COLLAPSED_CODE_HEIGHT,
+            maxHeight: expanded ? undefined : height ? undefined : MAX_COLLAPSED_CODE_HEIGHT,
+            height: height,
             overflowY: expanded ? 'hidden' : 'auto'
           } as React.CSSProperties
         }>
@@ -225,6 +228,7 @@ const ScrollContainer = styled.div<{
   $wrap?: boolean
   $expanded?: boolean
   $lineHeight?: number
+  $height?: string | number
 }>`
   display: block;
   overflow-x: auto;
@@ -257,6 +261,7 @@ const ScrollContainer = styled.div<{
     .line-content {
       flex: 1;
       padding-right: 1em;
+      white-space: pre;
       * {
         white-space: ${(props) => (props.$wrap ? 'pre-wrap' : 'pre')};
         overflow-wrap: ${(props) => (props.$wrap ? 'break-word' : 'normal')};

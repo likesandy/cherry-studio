@@ -60,7 +60,6 @@ const MessageItem: FC<Props> = ({
   index,
   hideMenuBar = false,
   isGrouped,
-  isStreaming = false,
   onUpdateUseful,
   isGroupContextMessage
 }) => {
@@ -116,7 +115,7 @@ const MessageItem: FC<Props> = ({
 
   const isLastMessage = index === 0 || !!isGrouped
   const isAssistantMessage = message.role === 'assistant'
-  const showMenubar = !hideMenuBar && !isStreaming && !message.status.includes('ing') && !isEditing
+  const showMenubar = !hideMenuBar && !isEditing
 
   const messageHighlightHandler = useCallback(
     (highlight: boolean = true) => {
@@ -264,7 +263,7 @@ const MessageContainer = styled.div`
 const MessageContentContainer = styled(Scrollbar)`
   max-width: 100%;
   padding-left: 46px;
-  margin-top: 5px;
+  margin-top: 0;
   overflow-y: auto;
 `
 

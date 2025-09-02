@@ -1,13 +1,17 @@
 import CodeViewer from '@renderer/components/CodeViewer'
 import { useTimer } from '@renderer/hooks/useTimer'
-import { getHttpMessageLabel } from '@renderer/i18n/label'
+import { getHttpMessageLabel, getProviderLabel } from '@renderer/i18n/label'
+import { getProviderById } from '@renderer/services/ProviderService'
 import { useAppDispatch } from '@renderer/store'
 import { removeBlocksThunk } from '@renderer/store/thunk/messageThunk'
 import type { ErrorMessageBlock, Message } from '@renderer/types/newMessage'
 import { Alert as AntdAlert, Button, Modal } from 'antd'
 import React, { useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import styled from 'styled-components'
+
+const HTTP_ERROR_CODES = [400, 401, 403, 404, 429, 500, 502, 503, 504]
 
 interface Props {
   block: ErrorMessageBlock
@@ -18,13 +22,54 @@ const ErrorBlock: React.FC<Props> = ({ block, message }) => {
   return <MessageErrorInfo block={block} message={message} />
 }
 
-const MessageErrorInfo: React.FC<{ block: ErrorMessageBlock; message: Message }> = ({ block, message }) => {
+const ErrorMessage: React.FC<{ block: ErrorMessageBlock }> = ({ block }) => {
   const { t, i18n } = useTranslation()
+
+  const i18nKey = `error.${block.error?.i18nKey}`
+  const errorKey = `error.${block.error?.message}`
+  const errorStatus = block.error?.status
+
+  if (i18n.exists(i18nKey)) {
+    const providerId = block.error?.providerId
+    if (providerId) {
+      return (
+        <Trans
+          i18nKey={i18nKey}
+          values={{ provider: getProviderLabel(providerId) }}
+          components={{
+            provider: (
+              <Link
+                style={{ color: 'var(--color-link)' }}
+                to={`/settings/provider`}
+                state={{ provider: getProviderById(providerId) }}
+              />
+            )
+          }}
+        />
+      )
+    }
+  }
+
+  if (i18n.exists(errorKey)) {
+    return t(errorKey)
+  }
+
+  if (HTTP_ERROR_CODES.includes(errorStatus)) {
+    return (
+      <h5>
+        {getHttpMessageLabel(errorStatus)} {block.error?.message}
+      </h5>
+    )
+  }
+
+  return block.error?.message || ''
+}
+
+const MessageErrorInfo: React.FC<{ block: ErrorMessageBlock; message: Message }> = ({ block, message }) => {
   const dispatch = useAppDispatch()
   const { setTimeoutTimer } = useTimer()
   const [showDetailModal, setShowDetailModal] = useState(false)
-
-  const HTTP_ERROR_CODES = [400, 401, 403, 404, 429, 500, 502, 503, 504]
+  const { t } = useTranslation()
 
   const onRemoveBlock = () => {
     setTimeoutTimer('onRemoveBlock', () => dispatch(removeBlocksThunk(message.topicId, message.id, [block.id])), 350)
@@ -34,67 +79,25 @@ const MessageErrorInfo: React.FC<{ block: ErrorMessageBlock; message: Message }>
     setShowDetailModal(true)
   }
 
-  if (block.error && HTTP_ERROR_CODES.includes(block.error?.status)) {
-    return (
-      <>
-        <Alert
-          description={getHttpMessageLabel(block.error.status)}
-          message={block.error.message}
-          type="error"
-          closable
-          onClose={onRemoveBlock}
-          onClick={showErrorDetail}
-          style={{ cursor: 'pointer' }}
-          action={
-            <Button
-              size="small"
-              type="text"
-              onClick={(e) => {
-                e.stopPropagation()
-                showErrorDetail()
-              }}>
-              {t('common.detail')}
-            </Button>
-          }
-        />
-        <ErrorDetailModal open={showDetailModal} onClose={() => setShowDetailModal(false)} error={block.error} />
-      </>
-    )
+  const getAlertMessage = () => {
+    if (block.error && HTTP_ERROR_CODES.includes(block.error?.status)) {
+      return block.error.message
+    }
+    return null
   }
 
-  if (block?.error?.message) {
-    const errorKey = `error.${block.error.message}`
-    const pauseErrorLanguagePlaceholder = i18n.exists(errorKey) ? t(errorKey) : block.error.message
-    return (
-      <>
-        <Alert
-          description={pauseErrorLanguagePlaceholder}
-          type="error"
-          closable
-          onClose={onRemoveBlock}
-          onClick={showErrorDetail}
-          style={{ cursor: 'pointer' }}
-          action={
-            <Button
-              size="small"
-              type="text"
-              onClick={(e) => {
-                e.stopPropagation()
-                showErrorDetail()
-              }}>
-              {t('common.detail')}
-            </Button>
-          }
-        />
-        <ErrorDetailModal open={showDetailModal} onClose={() => setShowDetailModal(false)} error={block.error} />
-      </>
-    )
+  const getAlertDescription = () => {
+    if (block.error && HTTP_ERROR_CODES.includes(block.error?.status)) {
+      return getHttpMessageLabel(block.error.status)
+    }
+    return <ErrorMessage block={block} />
   }
 
   return (
     <>
       <Alert
-        description={t('error.chat.response')}
+        message={getAlertMessage()}
+        description={getAlertDescription()}
         type="error"
         closable
         onClose={onRemoveBlock}
@@ -161,7 +164,12 @@ ${t('error.stack')}: ${error.stack || 'N/A'}
         {error.requestBody && (
           <ErrorDetailItem>
             <ErrorDetailLabel>{t('error.requestBody')}:</ErrorDetailLabel>
-            <CodeViewer className="source-view" language="json" expanded={true} unwrapped={true}>
+            <CodeViewer
+              className="source-view"
+              language="json"
+              expanded={true}
+              // unwrapped={true}
+            >
               {JSON.stringify(error.requestBody, null, 2)}
             </CodeViewer>
           </ErrorDetailItem>

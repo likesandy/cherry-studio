@@ -5,13 +5,16 @@ import type { CSSProperties } from 'react'
 import * as z from 'zod/v4'
 
 export * from './file'
+export * from './note'
 
 import type { StreamTextParams } from './aiCoreTypes'
 import type { Chunk } from './chunk'
 import type { FileMetadata } from './file'
+import { MCPConfigSample, McpServerType } from './mcp'
 import type { Message } from './newMessage'
 import type { BaseTool, MCPTool } from './tool'
 
+export * from './mcp'
 export * from './ocr'
 
 export type Assistant = {
@@ -262,6 +265,7 @@ export type Provider = {
 }
 
 export const SystemProviderIds = {
+  cherryin: 'cherryin',
   silicon: 'silicon',
   aihubmix: 'aihubmix',
   ocoolai: 'ocoolai',
@@ -407,7 +411,7 @@ export type PaintingParams = {
   files: FileMetadata[]
 }
 
-export type PaintingProvider = 'aihubmix' | 'silicon' | 'dmxapi' | 'new-api'
+export type PaintingProvider = 'zhipu' | 'aihubmix' | 'silicon' | 'dmxapi' | 'new-api'
 
 export interface Painting extends PaintingParams {
   model?: string
@@ -513,13 +517,20 @@ export type PaintingAction = Partial<
   PaintingParams
 
 export interface PaintingsState {
-  paintings: Painting[]
-  generate: Partial<GeneratePainting> & PaintingParams[]
-  remix: Partial<RemixPainting> & PaintingParams[]
-  edit: Partial<EditPainting> & PaintingParams[]
-  upscale: Partial<ScalePainting> & PaintingParams[]
-  DMXAPIPaintings: DmxapiPainting[]
-  tokenFluxPaintings: TokenFluxPainting[]
+  // SiliconFlow
+  siliconflow_paintings: Painting[]
+  // DMXAPI
+  dmxapi_paintings: DmxapiPainting[]
+  // TokenFlux
+  tokenflux_paintings: TokenFluxPainting[]
+  // Zhipu
+  zhipu_paintings: Painting[]
+  // Aihubmix
+  aihubmix_image_generate: Partial<GeneratePainting> & PaintingParams[]
+  aihubmix_image_remix: Partial<RemixPainting> & PaintingParams[]
+  aihubmix_image_edit: Partial<EditPainting> & PaintingParams[]
+  aihubmix_image_upscale: Partial<ScalePainting> & PaintingParams[]
+  // OpenAI
   openai_image_generate: Partial<GeneratePainting> & PaintingParams[]
   openai_image_edit: Partial<EditPainting> & PaintingParams[]
 }
@@ -680,6 +691,7 @@ export type GenerateImageParams = {
   signal?: AbortSignal
   promptEnhancement?: boolean
   personGeneration?: PersonGeneration
+  quality?: string
 }
 
 export type GenerateImageResponse = {
@@ -738,6 +750,7 @@ export type SidebarIcon =
   | 'knowledge'
   | 'files'
   | 'code_tools'
+  | 'notes'
 
 export type ExternalToolResult = {
   mcpTools?: MCPTool[]
@@ -748,6 +761,7 @@ export type ExternalToolResult = {
 }
 
 export const WebSearchProviderIds = {
+  zhipu: 'zhipu',
   tavily: 'tavily',
   searxng: 'searxng',
   exa: 'exa',
@@ -833,6 +847,7 @@ export type KnowledgeReference = {
   file?: FileMetadata
 }
 
+// TODO: 把 mcp 相关类型定义迁移到独立文件中
 export type MCPArgType = 'string' | 'list' | 'number'
 export type MCPEnvType = 'string' | 'number'
 export type MCPArgParameter = { [key: string]: MCPArgType }
@@ -844,29 +859,17 @@ export interface MCPServerParameter {
   description: string
 }
 
-export interface MCPConfigSample {
-  command: string
-  args: string[]
-  env?: Record<string, string> | undefined
-}
-
 export interface MCPServer {
-  id: string
-  name: string
-  type?: 'stdio' | 'sse' | 'inMemory' | 'streamableHttp'
+  id: string // internal id
+  name: string // mcp name, generally as unique key
+  type?: McpServerType | 'inMemory'
   description?: string
   baseUrl?: string
   command?: string
   registryUrl?: string
   args?: string[]
   env?: Record<string, string>
-  shouldConfig?: boolean
-  isActive: boolean
-  disabledTools?: string[] // List of tool names that are disabled for this server
-  disabledAutoApproveTools?: string[] // Whether to auto-approve tools for this server
-  configSample?: MCPConfigSample
   headers?: Record<string, string> // Custom headers to be sent with requests to this server
-  searchKey?: string
   provider?: string // Provider name for this server like ModelScope, Higress, etc.
   providerUrl?: string // URL of the MCP server in provider's website or documentation
   logoUrl?: string // URL of the MCP server's logo
@@ -876,6 +879,17 @@ export interface MCPServer {
   dxtVersion?: string // Version of the DXT package
   dxtPath?: string // Path where the DXT package was extracted
   reference?: string // Reference link for the server, e.g., documentation or homepage
+  searchKey?: string
+  configSample?: MCPConfigSample
+  /** List of tool names that are disabled for this server */
+  disabledTools?: string[]
+  /** Whether to auto-approve tools for this server */
+  disabledAutoApproveTools?: string[]
+
+  /** 用于标记内置 MCP 是否需要配置 */
+  shouldConfig?: boolean
+  /** 用于标记服务器是否运行中 */
+  isActive: boolean
 }
 
 export type BuiltinMCPServer = MCPServer & {
@@ -1187,6 +1201,8 @@ export interface MemoryListOptions extends MemoryEntity {
 }
 
 export interface MemoryDeleteAllOptions extends MemoryEntity {}
+
+export type EditorView = 'preview' | 'source' | 'read' // 实时,源码,预览
 // ========================================================================
 
 /**
@@ -1246,6 +1262,28 @@ export type AtLeast<T extends string, U> = {
   [K in T]: U
 } & {
   [key: string]: U
+}
+
+/**
+ * 从对象中移除指定的属性键，返回新对象
+ * @template T - 源对象类型
+ * @template K - 要移除的属性键类型，必须是T的键
+ * @param obj - 源对象
+ * @param keys - 要移除的属性键列表
+ * @returns 移除指定属性后的新对象
+ * @example
+ * ```ts
+ * const obj = { a: 1, b: 2, c: 3 };
+ * const result = strip(obj, ['a', 'b']);
+ * // result = { c: 3 }
+ * ```
+ */
+export function strip<T, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> {
+  const result = { ...obj }
+  for (const key of keys) {
+    delete (result as any)[key] // 类型上 Omit 已保证安全
+  }
+  return result
 }
 
 export type HexColor = string

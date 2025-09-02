@@ -26,7 +26,20 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
-        external: ['@libsql/client', 'bufferutil', 'utf-8-validate'],
+        external: [
+          '@libsql/client',
+          'bufferutil',
+          'utf-8-validate',
+          'jsdom',
+          'electron',
+          'graceful-fs',
+          'selection-hook',
+          '@napi-rs/system-ocr',
+          '@strongtz/win32-arm64-msvc',
+          'os-proxy-config',
+          'sharp',
+          'turndown'
+        ],
         output: {
           manualChunks: undefined, // 彻底禁用代码分割 - 返回 null 强制单文件打包
           inlineDynamicImports: true // 内联所有动态导入，这是关键配置
@@ -84,7 +97,8 @@ export default defineConfig({
         '@mcp-trace/trace-web': resolve('packages/mcp-trace/trace-web'),
         '@cherrystudio/ai-core/provider': resolve('packages/aiCore/src/core/providers'),
         '@cherrystudio/ai-core/built-in/plugins': resolve('packages/aiCore/src/core/plugins/built-in'),
-        '@cherrystudio/ai-core': resolve('packages/aiCore/src')
+        '@cherrystudio/ai-core': resolve('packages/aiCore/src'),
+        '@cherrystudio/extension-table-plus': resolve('packages/extension-table-plus/src')
       }
     },
     optimizeDeps: {

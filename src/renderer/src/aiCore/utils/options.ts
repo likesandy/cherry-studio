@@ -102,7 +102,6 @@ export function buildProviderOptions(
         break
       case 'deepseek':
       case 'openai-compatible':
-      case 'openai-responses':
         // 对于其他 provider，使用通用的构建逻辑
         providerSpecificOptions = {
           ...buildGenericProviderOptions(assistant, model, capabilities),

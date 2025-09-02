@@ -13,7 +13,7 @@ import { isNotSupportedImageSizeModel } from '@renderer/config/models'
 import { getEnableDeveloperMode } from '@renderer/hooks/useSettings'
 import { addSpan, endSpan } from '@renderer/services/SpanManagerService'
 import { StartSpanParams } from '@renderer/trace/types/ModelSpanEntity'
-import type { Assistant, Model, Provider } from '@renderer/types'
+import type { Assistant, GenerateImageParams, Model, Provider } from '@renderer/types'
 import type { AiSdkModel, StreamTextParams } from '@renderer/types/aiCoreTypes'
 import { ChunkType } from '@renderer/types/chunk'
 import { type ImageModel, type LanguageModel, type Provider as AiSdkProvider, wrapLanguageModel } from 'ai'
@@ -389,64 +389,63 @@ export default class ModernAiProvider {
     return this.legacyProvider.getEmbeddingDimensions(model)
   }
 
-  // public async generateImage(params: GenerateImageParams): Promise<string[]> {
-  //   // 如果支持新的 AI SDK，使用现代化实现
-  //   if (isModernSdkSupported(this.actualProvider)) {
-  //     try {
-  //       // 确保本地provider已创建
-  //       if (!this.localProvider) {
-  //         await prepareSpecialProviderConfig(this.actualProvider, this.config)
-  //         this.localProvider = await createProvider(this.config.providerId, this.config.options)
-  //         logger.debug('Local provider created for standalone image generation', {
-  //           providerId: this.config.providerId
-  //         })
-  //       }
+  public async generateImage(params: GenerateImageParams): Promise<string[]> {
+    // 如果支持新的 AI SDK，使用现代化实现
+    if (isModernSdkSupported(this.actualProvider)) {
+      try {
+        // 确保本地provider已创建
+        if (!this.localProvider) {
+          this.localProvider = await createAiSdkProvider(this.config)
+          if (!this.localProvider) {
+            throw new Error('Local provider not created')
+          }
+        }
 
-  //       const result = await this.modernGenerateImage(params)
-  //       return result
-  //     } catch (error) {
-  //       logger.warn('Modern AI SDK generateImage failed, falling back to legacy:', error as Error)
-  //       // fallback 到传统实现
-  //       return this.legacyProvider.generateImage(params)
-  //     }
-  //   }
+        const result = await this.modernGenerateImage(params)
+        return result
+      } catch (error) {
+        logger.warn('Modern AI SDK generateImage failed, falling back to legacy:', error as Error)
+        // fallback 到传统实现
+        return this.legacyProvider.generateImage(params)
+      }
+    }
 
-  //   // 直接使用传统实现
-  //   return this.legacyProvider.generateImage(params)
-  // }
+    // 直接使用传统实现
+    return this.legacyProvider.generateImage(params)
+  }
 
-  // /**
-  //  * 使用现代化 AI SDK 的图像生成实现
-  //  */
-  // private async modernGenerateImage(params: GenerateImageParams): Promise<string[]> {
-  //   const { model, prompt, imageSize, batchSize, signal } = params
+  /**
+   * 使用现代化 AI SDK 的图像生成实现
+   */
+  private async modernGenerateImage(params: GenerateImageParams): Promise<string[]> {
+    const { model, prompt, imageSize, batchSize, signal } = params
 
-  //   // 转换参数格式
-  //   const aiSdkParams = {
-  //     prompt,
-  //     size: (imageSize || '1024x1024') as `${number}x${number}`,
-  //     n: batchSize || 1,
-  //     ...(signal && { abortSignal: signal })
-  //   }
+    // 转换参数格式
+    const aiSdkParams = {
+      prompt,
+      size: (imageSize || '1024x1024') as `${number}x${number}`,
+      n: batchSize || 1,
+      ...(signal && { abortSignal: signal })
+    }
 
-  //   const executor = createExecutor(this.config.providerId, this.config.options, [])
-  //   const result = await executor.generateImage({
-  //     model: this.localProvider?.imageModel(model) as ImageModel,
-  //     ...aiSdkParams
-  //   })
+    const executor = createExecutor(this.config.providerId, this.config.options, [])
+    const result = await executor.generateImage({
+      model: this.localProvider?.imageModel(model) as ImageModel,
+      ...aiSdkParams
+    })
 
-  //   // 转换结果格式
-  //   const images: string[] = []
-  //   if (result.images) {
-  //     for (const image of result.images) {
-  //       if ('base64' in image && image.base64) {
-  //         images.push(`data:image/png;base64,${image.base64}`)
-  //       }
-  //     }
-  //   }
+    // 转换结果格式
+    const images: string[] = []
+    if (result.images) {
+      for (const image of result.images) {
+        if ('base64' in image && image.base64) {
+          images.push(`data:image/png;base64,${image.base64}`)
+        }
+      }
+    }
 
-  //   return images
-  // }
+    return images
+  }
 
   public getBaseURL(): string {
     return this.legacyProvider.getBaseURL()

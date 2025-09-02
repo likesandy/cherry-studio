@@ -1,9 +1,9 @@
-import { AihubmixAPIClient } from '@renderer/aiCore/legacy/clients/AihubmixAPIClient'
+import { AihubmixAPIClient } from '@renderer/aiCore/legacy/clients/aihubmix/AihubmixAPIClient'
 import { AnthropicAPIClient } from '@renderer/aiCore/legacy/clients/anthropic/AnthropicAPIClient'
 import { ApiClientFactory } from '@renderer/aiCore/legacy/clients/ApiClientFactory'
 import { GeminiAPIClient } from '@renderer/aiCore/legacy/clients/gemini/GeminiAPIClient'
 import { VertexAPIClient } from '@renderer/aiCore/legacy/clients/gemini/VertexAPIClient'
-import { NewAPIClient } from '@renderer/aiCore/legacy/clients/NewAPIClient'
+import { NewAPIClient } from '@renderer/aiCore/legacy/clients/newapi/NewAPIClient'
 import { OpenAIAPIClient } from '@renderer/aiCore/legacy/clients/openai/OpenAIApiClient'
 import { OpenAIResponseAPIClient } from '@renderer/aiCore/legacy/clients/openai/OpenAIResponseAPIClient'
 import { EndpointType, Model, Provider } from '@renderer/types'
@@ -16,6 +16,7 @@ vi.mock('@renderer/config/models', () => ({
       { id: 'gpt-4', name: 'GPT-4' },
       { id: 'gpt-4', name: 'GPT-4' }
     ],
+    zhipu: [],
     silicon: [],
     openai: [],
     anthropic: [],
@@ -33,7 +34,13 @@ vi.mock('@renderer/config/models', () => ({
   isWebSearchModel: vi.fn().mockReturnValue(false),
   findTokenLimit: vi.fn().mockReturnValue(4096),
   isFunctionCallingModel: vi.fn().mockReturnValue(false),
-  DEFAULT_MAX_TOKENS: 4096
+  DEFAULT_MAX_TOKENS: 4096,
+  glm45FlashModel: {
+    id: 'glm-4.5-flash',
+    name: 'GLM-4.5-Flash',
+    provider: 'cherryin',
+    group: 'GLM-4.5'
+  }
 }))
 
 vi.mock('@renderer/services/AssistantService', () => ({

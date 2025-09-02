@@ -62,6 +62,7 @@ files:
 asarUnpack:
   - resources/**
   - '**/*.{metal,exp,lib}'
+  - 'node_modules/@img/sharp-libvips-*/**'
 win:
   executableName: Cherry Studio
   artifactName: ${productName}-${version}-${arch}-setup.${ext}
@@ -114,31 +115,30 @@ publish:
   url: https://releases.cherry-ai.com
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
+beforePack: scripts/before-pack.js
 afterPack: scripts/after-pack.js
 afterSign: scripts/notarize.js
 artifactBuildCompleted: scripts/artifact-build-completed.js
 releaseInfo:
   releaseNotes: |
-    🎉 新增功能：
-    - 新增 API 密钥轮换功能，支持提供商的智能密钥管理
-    - 新增 AWS Bedrock 提供商支持，扩展云端AI服务生态
-    - 增强文件处理能力，支持图像文件和更多文档类型的智能识别
-    - 新增文件大小限制检查和回退机制，提升文件处理稳定性
+    ✨ 重要更新：
+    - 新增笔记模块，支持富文本编辑和管理
+    - 内置 GLM-4.5-Flash 免费模型（由智谱开放平台提供）
+    - 内置 Qwen3-8B 免费模型（由硅基流动提供）
+    - 新增 Nano Banana（Gemini 2.5 Flash Image）模型支持
+    - 新增系统 OCR 功能 (macOS & Windows)
+    - 新增图片 OCR 识别和翻译功能
+    - 模型切换支持通过标签筛选
+    - 翻译功能增强：历史搜索和收藏
 
-    🔧 优化改进：
-    - 重构 AI Core 类型系统，整合流文本参数定义，增强类型安全性
-    - 优化思考块渲染逻辑，提升界面响应速度和用户体验
-    - 重构 VertexAI 配置架构，将配置检查逻辑移至合适位置
-    - 改进代码注释和文档说明，提升代码可维护性
-    - 增强提供商配置验证机制，添加完整性检查
+    🔧 性能优化：
+    - 优化历史页面搜索性能
+    - 优化拖拽列表组件交互
+    - 升级 Electron 到 37.4.0
 
-    🐛 问题修复：
-    - 修复文件数据和媒体类型提取逻辑，确保正确处理 base64 数据和 MIME 类型
-    - 修复 Google Vertex AI 导入路径和函数命名一致性问题
-    - 修复提供商配置空值检查，增强错误处理机制
-    - 修复模型标识符在图像生成测试中的问题
-
-    ⚡ 性能提升：
-    - 优化文件处理流程，添加模型支持检查，避免不必要的处理
-    - 提升类型定义复用性，减少重复代码和内存占用
-    - 改进日志记录机制，提供更详细的文件处理状态信息
+    🐛 修复问题：
+    - 修复知识库加密 PDF 文档处理
+    - 修复导航栏在左侧时笔记侧边栏按钮缺失
+    - 修复多个模型兼容性问题
+    - 修复 MCP 相关问题
+    - 其他稳定性改进
