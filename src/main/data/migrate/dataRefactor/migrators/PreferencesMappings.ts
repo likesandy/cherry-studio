@@ -1,6 +1,6 @@
 /**
  * Auto-generated preference mappings from classification.json
- * Generated at: 2025-09-01T14:38:08.063Z
+ * Generated at: 2025-09-02T05:21:08.374Z
  *
  * This file contains pure mapping relationships without default values.
  * Default values are managed in packages/shared/data/preferences.ts
@@ -14,10 +14,6 @@
  * ElectronStore没有嵌套，originalKey直接对应configManager.get(key)
  */
 export const ELECTRON_STORE_MAPPINGS = [
-  {
-    originalKey: 'Language',
-    targetKey: 'app.language'
-  },
   {
     originalKey: 'ZoomFactor',
     targetKey: 'app.zoom_factor'
@@ -59,6 +55,10 @@ export const REDUX_STORE_MAPPINGS = {
       targetKey: 'feature.quick_assistant.enabled'
     },
     {
+      originalKey: 'language',
+      targetKey: 'app.language'
+    },
+    {
       originalKey: 'launchToTray',
       targetKey: 'app.tray.on_launch'
     },
@@ -87,6 +87,10 @@ export const REDUX_STORE_MAPPINGS = {
       targetKey: 'chat.input.send_message_shortcut'
     },
     {
+      originalKey: 'targetLanguage',
+      targetKey: 'feature.translate.target_language'
+    },
+    {
       originalKey: 'proxyMode',
       targetKey: 'app.proxy.mode'
     },
@@ -109,10 +113,6 @@ export const REDUX_STORE_MAPPINGS = {
     {
       originalKey: 'showPrompt',
       targetKey: 'chat.message.show_prompt'
-    },
-    {
-      originalKey: 'showTokens',
-      targetKey: 'chat.message.show_tokens'
     },
     {
       originalKey: 'showMessageDivider',
@@ -180,7 +180,7 @@ export const REDUX_STORE_MAPPINGS = {
     },
     {
       originalKey: 'codeEditor.enabled',
-      targetKey: 'chat.code.editor.highlight_active_line'
+      targetKey: 'chat.code.editor.enabled'
     },
     {
       originalKey: 'codeEditor.themeLight',
@@ -189,6 +189,10 @@ export const REDUX_STORE_MAPPINGS = {
     {
       originalKey: 'codeEditor.themeDark',
       targetKey: 'chat.code.editor.theme_dark'
+    },
+    {
+      originalKey: 'codeEditor.highlightActiveLine',
+      targetKey: 'chat.code.editor.highlight_active_line'
     },
     {
       originalKey: 'codeEditor.foldGutter',
@@ -297,6 +301,10 @@ export const REDUX_STORE_MAPPINGS = {
     {
       originalKey: 'webdavDisableStream',
       targetKey: 'data.backup.webdav.disable_stream'
+    },
+    {
+      originalKey: 'translateModelPrompt',
+      targetKey: 'feature.translate.model_prompt'
     },
     {
       originalKey: 'autoTranslateWithSpace',
@@ -723,10 +731,10 @@ export const REDUX_STORE_MAPPINGS = {
 
 /**
  * 映射统计:
- * - ElectronStore项: 2
- * - Redux Store项: 169
+ * - ElectronStore项: 1
+ * - Redux Store项: 172
  * - Redux分类: settings, selectionStore, nutstore, shortcuts
- * - 总配置项: 171
+ * - 总配置项: 173
  *
  * 使用说明:
  * 1. ElectronStore读取: configManager.get(mapping.originalKey)

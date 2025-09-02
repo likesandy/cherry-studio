@@ -16,12 +16,13 @@ import {
 import { uuid } from '@renderer/utils'
 import { UpgradeChannel } from '@shared/config/constant'
 import { TRANSLATE_PROMPT } from '@shared/config/prompts'
+import type { SendMessageShortcut } from '@shared/data/preferenceTypes'
 import { LanguageVarious, ThemeMode } from '@shared/data/preferenceTypes'
 import { OpenAIVerbosity } from '@types'
 
 import { RemoteSyncState } from './backup'
 
-export type SendMessageShortcut = 'Enter' | 'Shift+Enter' | 'Ctrl+Enter' | 'Command+Enter' | 'Alt+Enter'
+// export type SendMessageShortcut = 'Enter' | 'Shift+Enter' | 'Ctrl+Enter' | 'Command+Enter' | 'Alt+Enter'
 
 // Re-export for backward compatibility
 export { DEFAULT_SIDEBAR_ICONS }

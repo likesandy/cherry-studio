@@ -1,7 +1,7 @@
+import { usePreference } from '@data/hooks/usePreference'
 import { MAX_COLLAPSED_CODE_HEIGHT } from '@renderer/config/constant'
 import { useCodeStyle } from '@renderer/context/CodeStyleProvider'
 import { useCodeHighlight } from '@renderer/hooks/useCodeHighlight'
-import { useSettings } from '@renderer/hooks/useSettings'
 import { uuid } from '@renderer/utils'
 import { getReactStyleFromToken } from '@renderer/utils/shiki'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -27,7 +27,8 @@ interface CodeViewerProps {
  * - 并发安全
  */
 const CodeViewer = ({ children, language, expanded, wrapped, onHeightChange, className, height }: CodeViewerProps) => {
-  const { codeShowLineNumbers, fontSize } = useSettings()
+  const [codeShowLineNumbers] = usePreference('chat.code.show_line_numbers')
+  const [fontSize] = usePreference('chat.message.font_size')
   const { getShikiPreProperties, isShikiThemeDark } = useCodeStyle()
   const shikiThemeRef = useRef<HTMLDivElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)

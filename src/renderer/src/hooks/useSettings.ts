@@ -1,7 +1,6 @@
 import store, { useAppDispatch, useAppSelector } from '@renderer/store'
 import {
   AssistantIconType,
-  SendMessageShortcut,
   setAssistantIconType,
   setAutoCheckUpdate as _setAutoCheckUpdate,
   // setDisableHardwareAcceleration,
@@ -22,6 +21,7 @@ import {
 } from '@renderer/store/settings'
 import { SidebarIcon, TranslateLanguageCode } from '@renderer/types'
 import { UpgradeChannel } from '@shared/config/constant'
+import type { SendMessageShortcut } from '@shared/data/preferenceTypes'
 
 export function useSettings() {
   const settings = useAppSelector((state) => state.settings)

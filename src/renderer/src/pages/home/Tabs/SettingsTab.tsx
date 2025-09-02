@@ -17,7 +17,6 @@ import { CollapsibleSettingGroup } from '@renderer/pages/settings/SettingGroup'
 import { getDefaultModel } from '@renderer/services/AssistantService'
 import { useAppDispatch } from '@renderer/store'
 import {
-  SendMessageShortcut,
   setAutoTranslateWithSpace,
   setCodeCollapsible,
   setCodeEditor,
@@ -48,6 +47,7 @@ import {
 import { Assistant, AssistantSettings, CodeStyleVarious, MathEngine } from '@renderer/types'
 import { modalConfirm } from '@renderer/utils'
 import { getSendMessageShortcutLabel } from '@renderer/utils/input'
+import type { SendMessageShortcut } from '@shared/data/preferenceTypes'
 import { ThemeMode } from '@shared/data/preferenceTypes'
 import { Button, Col, InputNumber, Row, Slider, Switch, Tooltip } from 'antd'
 import { CircleHelp, Settings2 } from 'lucide-react'

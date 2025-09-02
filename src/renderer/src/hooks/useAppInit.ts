@@ -30,13 +30,14 @@ export function useAppInit() {
   const {
     proxyUrl,
     proxyBypassRules,
-    language,
+    // language,
     // windowStyle,
     autoCheckUpdate,
     proxyMode,
     // customCss,
     enableDataCollection
   } = useSettings()
+  const [language] = usePreference('app.language')
   const [windowStyle] = usePreference('app.theme.window_style')
   const [customCss] = usePreference('ui.custom_css')
 
