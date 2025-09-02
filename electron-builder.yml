@@ -122,23 +122,25 @@ artifactBuildCompleted: scripts/artifact-build-completed.js
 releaseInfo:
   releaseNotes: |
     ✨ 重要更新：
-    - 新增笔记模块，支持富文本编辑和管理
-    - 内置 GLM-4.5-Flash 免费模型（由智谱开放平台提供）
-    - 内置 Qwen3-8B 免费模型（由硅基流动提供）
-    - 新增 Nano Banana（Gemini 2.5 Flash Image）模型支持
-    - 新增系统 OCR 功能 (macOS & Windows)
-    - 新增图片 OCR 识别和翻译功能
-    - 模型切换支持通过标签筛选
-    - 翻译功能增强：历史搜索和收藏
+    - 增强Web搜索功能：重构搜索结果处理和展示逻辑
+    - 优化知识库设置：默认关闭知识识别以提升性能
+    - 新增Gemini 2.5 Flash Image模型的自动图像生成功能
+    - 支持链接OG数据解析和预览展示
+    - 增强OCR服务的Linux兼容性
 
     🔧 性能优化：
-    - 优化历史页面搜索性能
-    - 优化拖拽列表组件交互
-    - 升级 Electron 到 37.4.0
+    - 重构AI核心架构，采用现代化的AI SDK 5.0
+    - 优化消息重试机制，新增"重试失败消息"按钮
+    - 改进侧边栏动画效果和用户交互体验
+    - 优化Vite构建系统，使用Rolldown引擎提升构建性能
+    - 重构参数处理和文件处理模块
+    - 优化API key轮转机制
 
     🐛 修复问题：
-    - 修复知识库加密 PDF 文档处理
-    - 修复导航栏在左侧时笔记侧边栏按钮缺失
-    - 修复多个模型兼容性问题
-    - 修复 MCP 相关问题
-    - 其他稳定性改进
+    - 修复tabs组件高度不足导致边框样式问题
+    - 修复Gemini 2.5 Flash Image模型的图像生成按钮状态
+    - 修复ModelScope DeepSeek v3.1思考模式问题
+    - 修复PoeLogo在provider UI组件中的渲染问题
+    - 修复ASAR集成相关问题
+    - 移除加载状态阻塞输入的问题
+    - 修复多个UI组件和样式问题
