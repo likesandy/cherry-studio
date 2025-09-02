@@ -55,3 +55,7 @@ export type SidebarIcon =
   | 'notes'
 
 export type AssistantIconType = 'model' | 'emoji' | 'none'
+
+export type ProxyMode = 'system' | 'custom' | 'none'
+
+export type MultiModelFoldDisplayMode = 'expanded' | 'compact'

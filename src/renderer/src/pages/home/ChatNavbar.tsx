@@ -7,8 +7,6 @@ import { modelGenerating } from '@renderer/hooks/useRuntime'
 import { useShortcut } from '@renderer/hooks/useShortcuts'
 import { useShowAssistants, useShowTopics } from '@renderer/hooks/useStore'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
-import { useAppDispatch } from '@renderer/store'
-import { setNarrowMode } from '@renderer/store/settings'
 import { Assistant, Topic } from '@renderer/types'
 import { Tooltip } from 'antd'
 import { t } from 'i18next'
@@ -30,14 +28,13 @@ interface Props {
 }
 
 const HeaderNavbar: FC<Props> = ({ activeAssistant, setActiveAssistant, activeTopic, setActiveTopic }) => {
+  const [topicPosition] = usePreference('topic.position')
+  const [narrowMode, setNarrowMode] = usePreference('chat.narrow_mode')
+
   const { assistant } = useAssistant(activeAssistant.id)
   const { showAssistants, toggleShowAssistants } = useShowAssistants()
 
-  const [topicPosition] = usePreference('topic.position')
-  const [narrowMode] = usePreference('chat.narrow_mode')
-
   const { showTopics, toggleShowTopics } = useShowTopics()
-  const dispatch = useAppDispatch()
 
   useShortcut('toggle_show_assistants', toggleShowAssistants)
 
@@ -55,7 +52,7 @@ const HeaderNavbar: FC<Props> = ({ activeAssistant, setActiveAssistant, activeTo
 
   const handleNarrowModeToggle = async () => {
     await modelGenerating()
-    dispatch(setNarrowMode(!narrowMode))
+    setNarrowMode(!narrowMode)
   }
 
   const onShowAssistantsDrawer = () => {

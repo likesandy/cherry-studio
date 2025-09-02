@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import type { SelectionActionItem, SelectionFilterMode, SelectionTriggerMode } from '@shared/data/preferenceTypes'
 
-interface SelectionState {
+export interface SelectionState {
   selectionEnabled: boolean
   triggerMode: SelectionTriggerMode
   isCompact: boolean

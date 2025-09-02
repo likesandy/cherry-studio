@@ -1,68 +1,56 @@
-import store, { useAppDispatch, useAppSelector } from '@renderer/store'
+import store, { useAppSelector } from '@renderer/store'
 import {
-  setAutoCheckUpdate as _setAutoCheckUpdate,
-  setLaunchOnBoot,
-  setLaunchToTray,
-  setSendMessageShortcut as _setSendMessageShortcut,
-  setTargetLanguage,
-  setTestChannel as _setTestChannel,
-  setTestPlan as _setTestPlan,
-  SettingsState,
-  setTray as _setTray,
-  setTrayOnClose
+  SettingsState
   // setWindowStyle
 } from '@renderer/store/settings'
-import { TranslateLanguageCode } from '@renderer/types'
-import { UpgradeChannel } from '@shared/config/constant'
-import type { SendMessageShortcut } from '@shared/data/preferenceTypes'
 
 export function useSettings() {
   const settings = useAppSelector((state) => state.settings)
-  const dispatch = useAppDispatch()
+  // const dispatch = useAppDispatch()
 
   return {
-    ...settings,
-    setSendMessageShortcut(shortcut: SendMessageShortcut) {
-      dispatch(_setSendMessageShortcut(shortcut))
-    },
+    ...settings
+    // setSendMessageShortcut(shortcut: SendMessageShortcut) {
+    //   dispatch(_setSendMessageShortcut(shortcut))
+    // },
 
-    setLaunch(isLaunchOnBoot: boolean | undefined, isLaunchToTray: boolean | undefined = undefined) {
-      if (isLaunchOnBoot !== undefined) {
-        dispatch(setLaunchOnBoot(isLaunchOnBoot))
-        window.api.setLaunchOnBoot(isLaunchOnBoot)
-      }
+    // setLaunch(isLaunchOnBoot: boolean | undefined, isLaunchToTray: boolean | undefined = undefined) {
+    //   if (isLaunchOnBoot !== undefined) {
+    //     dispatch(setLaunchOnBoot(isLaunchOnBoot))
+    //     window.api.setLaunchOnBoot(isLaunchOnBoot)
+    //   }
 
-      if (isLaunchToTray !== undefined) {
-        dispatch(setLaunchToTray(isLaunchToTray))
-        window.api.setLaunchToTray(isLaunchToTray)
-      }
-    },
+    //   if (isLaunchToTray !== undefined) {
+    //     dispatch(setLaunchToTray(isLaunchToTray))
+    //     window.api.setLaunchToTray(isLaunchToTray)
+    //   }
+    // },
 
-    setTray(isShowTray: boolean | undefined, isTrayOnClose: boolean | undefined = undefined) {
-      if (isShowTray !== undefined) {
-        dispatch(_setTray(isShowTray))
-        window.api.setTray(isShowTray)
-      }
-      if (isTrayOnClose !== undefined) {
-        dispatch(setTrayOnClose(isTrayOnClose))
-        window.api.setTrayOnClose(isTrayOnClose)
-      }
-    },
+    // setTray(isShowTray: boolean | undefined, isTrayOnClose: boolean | undefined = undefined) {
+    //   if (isShowTray !== undefined) {
+    //     dispatch(_setTray(isShowTray))
+    //     window.api.setTray(isShowTray)
+    //   }
+    //   if (isTrayOnClose !== undefined) {
+    //     dispatch(setTrayOnClose(isTrayOnClose))
+    //     window.api.setTrayOnClose(isTrayOnClose)
+    //   }
+    // },
 
-    setAutoCheckUpdate(isAutoUpdate: boolean) {
-      dispatch(_setAutoCheckUpdate(isAutoUpdate))
-      window.api.setAutoUpdate(isAutoUpdate)
-    },
+    // setAutoCheckUpdate(isAutoUpdate: boolean) {
+    //   dispatch(_setAutoCheckUpdate(isAutoUpdate))
+    //   window.api.setAutoUpdate(isAutoUpdate)
+    // },
 
-    setTestPlan(isTestPlan: boolean) {
-      dispatch(_setTestPlan(isTestPlan))
-      window.api.setTestPlan(isTestPlan)
-    },
+    // setTestPlan(isTestPlan: boolean) {
+    //   dispatch(_setTestPlan(isTestPlan))
+    //   window.api.setTestPlan(isTestPlan)
+    // },
 
-    setTestChannel(channel: UpgradeChannel) {
-      dispatch(_setTestChannel(channel))
-      window.api.setTestChannel(channel)
-    },
+    // setTestChannel(channel: UpgradeChannel) {
+    //   dispatch(_setTestChannel(channel))
+    //   window.api.setTestChannel(channel)
+    // },
 
     // setTheme(theme: ThemeMode) {
     //   dispatch(setTheme(theme))
@@ -70,9 +58,9 @@ export function useSettings() {
     // setWindowStyle(windowStyle: 'transparent' | 'opaque') {
     //   dispatch(setWindowStyle(windowStyle))
     // },
-    setTargetLanguage(targetLanguage: TranslateLanguageCode) {
-      dispatch(setTargetLanguage(targetLanguage))
-    }
+    // setTargetLanguage(targetLanguage: TranslateLanguageCode) {
+    //   dispatch(setTargetLanguage(targetLanguage))
+    // }
     // setTopicPosition(topicPosition: 'left' | 'right') {
     //   dispatch(setTopicPosition(topicPosition))
     // },
