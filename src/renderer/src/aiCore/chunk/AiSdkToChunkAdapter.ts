@@ -194,26 +194,27 @@ export class AiSdkToChunkAdapter {
           })
         } else if (final.webSearchResults.length) {
           const providerName = Object.keys(providerMetadata || {})[0]
-          switch (providerName) {
-            case WebSearchSource.OPENAI:
-              this.onChunk({
-                type: ChunkType.LLM_WEB_SEARCH_COMPLETE,
-                llm_web_search: {
-                  results: final.webSearchResults,
-                  source: WebSearchSource.OPENAI_RESPONSE
-                }
-              })
-              break
-            default:
-              this.onChunk({
-                type: ChunkType.LLM_WEB_SEARCH_COMPLETE,
-                llm_web_search: {
-                  results: final.webSearchResults,
-                  source: WebSearchSource.AISDK
-                }
-              })
-              break
+          const sourceMap: Record<string, WebSearchSource> = {
+            [WebSearchSource.OPENAI]: WebSearchSource.OPENAI_RESPONSE,
+            [WebSearchSource.ANTHROPIC]: WebSearchSource.ANTHROPIC,
+            [WebSearchSource.OPENROUTER]: WebSearchSource.OPENROUTER,
+            [WebSearchSource.GEMINI]: WebSearchSource.GEMINI,
+            [WebSearchSource.PERPLEXITY]: WebSearchSource.PERPLEXITY,
+            [WebSearchSource.QWEN]: WebSearchSource.QWEN,
+            [WebSearchSource.HUNYUAN]: WebSearchSource.HUNYUAN,
+            [WebSearchSource.ZHIPU]: WebSearchSource.ZHIPU,
+            [WebSearchSource.GROK]: WebSearchSource.GROK,
+            [WebSearchSource.WEBSEARCH]: WebSearchSource.WEBSEARCH
           }
+          const source = sourceMap[providerName] || WebSearchSource.AISDK
+
+          this.onChunk({
+            type: ChunkType.LLM_WEB_SEARCH_COMPLETE,
+            llm_web_search: {
+              results: final.webSearchResults,
+              source
+            }
+          })
         }
         if (finishReason === 'tool-calls') {
           this.onChunk({ type: ChunkType.LLM_RESPONSE_CREATED })
