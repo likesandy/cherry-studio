@@ -1,3 +1,4 @@
+import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import { isMac } from '@renderer/config/constant'
 import { isLocalAi } from '@renderer/config/env'
@@ -22,7 +23,6 @@ import useFullScreenNotice from './useFullScreenNotice'
 import { useRuntime } from './useRuntime'
 import { useSettings } from './useSettings'
 import useUpdateHandler from './useUpdateHandler'
-
 const logger = loggerService.withContext('useAppInit')
 
 export function useAppInit() {
@@ -31,12 +31,15 @@ export function useAppInit() {
     proxyUrl,
     proxyBypassRules,
     language,
-    windowStyle,
+    // windowStyle,
     autoCheckUpdate,
     proxyMode,
-    customCss,
+    // customCss,
     enableDataCollection
   } = useSettings()
+  const [windowStyle] = usePreference('app.theme.window_style')
+  const [customCss] = usePreference('ui.custom_css')
+
   const { minappShow } = useRuntime()
   const { setDefaultModel, setQuickModel, setTranslateModel } = useDefaultModel()
   const avatar = useLiveQuery(() => db.settings.get('image://avatar'))

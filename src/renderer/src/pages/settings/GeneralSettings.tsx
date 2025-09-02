@@ -40,9 +40,7 @@ const GeneralSettings: FC = () => {
     tray,
     proxyMode: storeProxyMode,
     enableDataCollection,
-    enableSpellCheck,
-    disableHardwareAcceleration,
-    setDisableHardwareAcceleration
+    enableSpellCheck
   } = useSettings()
   const [proxyUrl, setProxyUrl] = useState<string | undefined>(storeProxyUrl)
   const [proxyBypassRules, setProxyBypassRules] = useState<string | undefined>(storeProxyBypassRules)
@@ -51,6 +49,9 @@ const GeneralSettings: FC = () => {
   const { setTimeoutTimer } = useTimer()
 
   const [language, setLanguage] = usePreference('app.language')
+  const [disableHardwareAcceleration, setDisableHardwareAcceleration] = usePreference(
+    'app.disable_hardware_acceleration'
+  )
 
   const updateTray = (isShowTray: boolean) => {
     setTray(isShowTray)

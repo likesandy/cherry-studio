@@ -4,7 +4,7 @@ import {
   SendMessageShortcut,
   setAssistantIconType,
   setAutoCheckUpdate as _setAutoCheckUpdate,
-  setDisableHardwareAcceleration,
+  // setDisableHardwareAcceleration,
   setEnableDeveloperMode,
   setLaunchOnBoot,
   setLaunchToTray,
@@ -18,8 +18,8 @@ import {
   SettingsState,
   setTopicPosition,
   setTray as _setTray,
-  setTrayOnClose,
-  setWindowStyle
+  setTrayOnClose
+  // setWindowStyle
 } from '@renderer/store/settings'
 import { SidebarIcon, TranslateLanguageCode } from '@renderer/types'
 import { UpgradeChannel } from '@shared/config/constant'
@@ -75,9 +75,9 @@ export function useSettings() {
     // setTheme(theme: ThemeMode) {
     //   dispatch(setTheme(theme))
     // },
-    setWindowStyle(windowStyle: 'transparent' | 'opaque') {
-      dispatch(setWindowStyle(windowStyle))
-    },
+    // setWindowStyle(windowStyle: 'transparent' | 'opaque') {
+    //   dispatch(setWindowStyle(windowStyle))
+    // },
     setTargetLanguage(targetLanguage: TranslateLanguageCode) {
       dispatch(setTargetLanguage(targetLanguage))
     },
@@ -101,11 +101,11 @@ export function useSettings() {
     },
     setShowTokens(showTokens: boolean) {
       dispatch(setShowTokens(showTokens))
-    },
-    setDisableHardwareAcceleration(disableHardwareAcceleration: boolean) {
-      dispatch(setDisableHardwareAcceleration(disableHardwareAcceleration))
-      window.api.setDisableHardwareAcceleration(disableHardwareAcceleration)
     }
+    // setDisableHardwareAcceleration(disableHardwareAcceleration: boolean) {
+    //   dispatch(setDisableHardwareAcceleration(disableHardwareAcceleration))
+    //   window.api.setDisableHardwareAcceleration(disableHardwareAcceleration)
+    // }
   }
 }
 

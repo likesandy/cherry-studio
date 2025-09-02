@@ -357,7 +357,7 @@ export class PreferenceService {
     try {
       await window.api.preference.subscribe(keysToSubscribe)
       keysToSubscribe.forEach((key) => this.subscribedKeys.add(key))
-      logger.debug(`Subscribed to preference keys: ${keysToSubscribe.join(', ')}`)
+      logger.verbose(`Subscribed to preference keys: ${keysToSubscribe.join(', ')}`)
     } catch (error) {
       logger.error(`Failed to subscribe to preference keys ${keysToSubscribe.join(', ')}:`, error as Error)
     }

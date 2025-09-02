@@ -470,11 +470,11 @@ export class SelectionService {
     })
 
     /** uncomment to open dev tools in dev mode */
-    if (isDev) {
-      this.toolbarWindow.once('ready-to-show', () => {
-        this.toolbarWindow!.webContents.openDevTools({ mode: 'detach' })
-      })
-    }
+    // if (isDev) {
+    //   this.toolbarWindow.once('ready-to-show', () => {
+    //     this.toolbarWindow!.webContents.openDevTools({ mode: 'detach' })
+    //   })
+    // }
 
     if (readyCallback) {
       this.toolbarWindow.once('ready-to-show', readyCallback)

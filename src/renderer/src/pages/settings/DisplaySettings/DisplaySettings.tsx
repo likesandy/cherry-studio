@@ -1,3 +1,4 @@
+import { usePreference } from '@data/hooks/usePreference'
 import CodeEditor from '@renderer/components/CodeEditor'
 import { ResetIcon } from '@renderer/components/Icons'
 import { HStack } from '@renderer/components/Layout'
@@ -13,7 +14,6 @@ import {
   AssistantIconType,
   setAssistantIconType,
   setClickAssistantToShowTopic,
-  setCustomCss,
   setPinTopicsToTop,
   setShowTopicTime,
   setSidebarIcons
@@ -57,24 +57,26 @@ const ColorCircle = styled.div<{ color: string; isActive?: boolean }>`
 
 const DisplaySettings: FC = () => {
   const {
-    windowStyle,
-    setWindowStyle,
+    // windowStyle,
+    // setWindowStyle,
     topicPosition,
     setTopicPosition,
     clickAssistantToShowTopic,
     showTopicTime,
     pinTopicsToTop,
-    customCss,
+    // customCss,
     sidebarIcons,
     assistantIconType
   } = useSettings()
+  const [windowStyle, setWindowStyle] = usePreference('app.theme.window_style')
+  const [customCss, setCustomCss] = usePreference('ui.custom_css')
+
   const { navbarPosition, setNavbarPosition } = useNavbarPosition()
   const { theme, settedTheme, setTheme } = useTheme()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [currentZoom, setCurrentZoom] = useState(1.0)
   const { userTheme, setUserTheme } = useUserTheme()
-
   const [visibleIcons, setVisibleIcons] = useState(sidebarIcons?.visible || DEFAULT_SIDEBAR_ICONS)
   const [disabledIcons, setDisabledIcons] = useState(sidebarIcons?.disabled || [])
 
@@ -335,7 +337,7 @@ const DisplaySettings: FC = () => {
           value={customCss}
           language="css"
           placeholder={t('settings.display.custom.css.placeholder')}
-          onChange={(value) => dispatch(setCustomCss(value))}
+          onChange={(value) => setCustomCss(value)}
           height="60vh"
           expanded={false}
           wrapped

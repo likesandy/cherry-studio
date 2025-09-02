@@ -1,6 +1,6 @@
 import '@renderer/databases'
 
-import { useSettings } from '@renderer/hooks/useSettings'
+import { usePreference } from '@data/hooks/usePreference'
 import store, { persistor } from '@renderer/store'
 import { message } from 'antd'
 import { useEffect } from 'react'
@@ -14,7 +14,7 @@ import HomeWindow from './home/HomeWindow'
 
 // Inner component that uses the hook after Redux is initialized
 function MiniWindowContent(): React.ReactElement {
-  const { customCss } = useSettings()
+  const [customCss] = usePreference('ui.custom_css')
 
   useEffect(() => {
     let customCssElement = document.getElementById('user-defined-custom-css') as HTMLStyleElement

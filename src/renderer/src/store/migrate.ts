@@ -9,7 +9,6 @@ import {
   SYSTEM_MODELS
 } from '@renderer/config/models'
 import { BUILTIN_OCR_PROVIDERS, BUILTIN_OCR_PROVIDERS_MAP, DEFAULT_OCR_PROVIDER } from '@renderer/config/ocr'
-import { TRANSLATE_PROMPT } from '@shared/config/prompts'
 import {
   isSupportArrayContentProvider,
   isSupportDeveloperRoleProvider,
@@ -33,6 +32,7 @@ import {
 } from '@renderer/types'
 import { getDefaultGroupName, getLeadingEmoji, runAsyncFunction, uuid } from '@renderer/utils'
 import { defaultByPassRules, UpgradeChannel } from '@shared/config/constant'
+import { TRANSLATE_PROMPT } from '@shared/config/prompts'
 import { isEmpty } from 'lodash'
 import { createMigrate } from 'redux-persist'
 

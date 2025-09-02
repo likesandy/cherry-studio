@@ -36,3 +36,5 @@ export enum ThemeMode {
 
 /** 有限的UI语言 */
 export type LanguageVarious = 'zh-CN' | 'zh-TW' | 'el-GR' | 'en-US' | 'es-ES' | 'fr-FR' | 'ja-JP' | 'pt-PT' | 'ru-RU'
+
+export type WindowStyle = 'transparent' | 'opaque'

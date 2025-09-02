@@ -222,9 +222,9 @@ export class ConfigManager {
     return this.get<boolean>(ConfigKeys.DisableHardwareAcceleration, false)
   }
 
-  setDisableHardwareAcceleration(value: boolean) {
-    this.set(ConfigKeys.DisableHardwareAcceleration, value)
-  }
+  // setDisableHardwareAcceleration(value: boolean) {
+  //   this.set(ConfigKeys.DisableHardwareAcceleration, value)
+  // }
 
   setAndNotify(key: string, value: unknown) {
     this.set(key, value, true)

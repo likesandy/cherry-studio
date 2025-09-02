@@ -356,7 +356,7 @@ export class PreferenceService {
     const windowKeys = this.subscriptions.get(windowId)!
     keys.forEach((key) => windowKeys.add(key))
 
-    logger.debug(`Window ${windowId} subscribed to ${keys.length} preference keys`)
+    logger.verbose(`Window ${windowId} subscribed to ${keys.length} preference keys: ${keys.join(', ')}`)
   }
 
   /**
@@ -364,7 +364,9 @@ export class PreferenceService {
    */
   public unsubscribeForWindow(windowId: number): void {
     this.subscriptions.delete(windowId)
-    logger.debug(`Window ${windowId} unsubscribed from preference changes`)
+    logger.verbose(
+      `Window ${windowId} unsubscribed from preference changes: ${Array.from(this.subscriptions.keys()).join(', ')}`
+    )
   }
 
   /**

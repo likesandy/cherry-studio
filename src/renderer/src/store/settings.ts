@@ -776,9 +776,9 @@ const settingsSlice = createSlice({
     setEnableQuickPanelTriggers: (state, action: PayloadAction<boolean>) => {
       state.enableQuickPanelTriggers = action.payload
     },
-    setDisableHardwareAcceleration: (state, action: PayloadAction<boolean>) => {
-      state.disableHardwareAcceleration = action.payload
-    },
+    // setDisableHardwareAcceleration: (state, action: PayloadAction<boolean>) => {
+    //   state.disableHardwareAcceleration = action.payload
+    // },
     setOpenAISummaryText: (state, action: PayloadAction<OpenAISummaryText>) => {
       state.openAI.summaryText = action.payload
     },
@@ -956,7 +956,7 @@ export const {
   setSpellCheckLanguages,
   setExportMenuOptions,
   setEnableQuickPanelTriggers,
-  setDisableHardwareAcceleration,
+  // setDisableHardwareAcceleration,
   setOpenAISummaryText,
   setOpenAIVerbosity,
   setNotificationSettings,

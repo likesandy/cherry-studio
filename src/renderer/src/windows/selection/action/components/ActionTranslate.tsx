@@ -6,7 +6,6 @@ import LanguageSelect from '@renderer/components/LanguageSelect'
 import { LanguagesEnum, UNKNOWN } from '@renderer/config/translate'
 import db from '@renderer/databases'
 import { useTopicMessages } from '@renderer/hooks/useMessageOperations'
-import { useSettings } from '@renderer/hooks/useSettings'
 import useTranslate from '@renderer/hooks/useTranslate'
 import MessageContent from '@renderer/pages/home/Messages/MessageContent'
 import { getDefaultTopic, getDefaultTranslateAssistant } from '@renderer/services/AssistantService'
@@ -14,6 +13,7 @@ import { Assistant, Topic, TranslateLanguage, TranslateLanguageCode } from '@ren
 import { runAsyncFunction } from '@renderer/utils'
 import { abortCompletion } from '@renderer/utils/abortController'
 import { detectLanguage } from '@renderer/utils/translate'
+import { defaultLanguage } from '@shared/config/constant'
 import type { SelectionActionItem } from '@shared/data/preferenceTypes'
 import { Tooltip } from 'antd'
 import { ArrowRightFromLine, ArrowRightToLine, ChevronDown, CircleHelp, Globe } from 'lucide-react'
@@ -32,8 +32,8 @@ const logger = loggerService.withContext('ActionTranslate')
 
 const ActionTranslate: FC<Props> = ({ action, scrollToBottom }) => {
   const { t } = useTranslation()
-  const { language } = useSettings()
 
+  const [language] = usePreference('app.language')
   const [translateModelPrompt] = usePreference('feature.translate.model_prompt')
 
   const [targetLanguage, setTargetLanguage] = useState<TranslateLanguage>(LanguagesEnum.enUS)
@@ -60,7 +60,7 @@ const ActionTranslate: FC<Props> = ({ action, scrollToBottom }) => {
       let alterLang: TranslateLanguage
 
       if (!biDirectionLangPair || !biDirectionLangPair.value[0]) {
-        const lang = getLanguageByLangcode(language)
+        const lang = getLanguageByLangcode(language || navigator.language || defaultLanguage)
         if (lang !== UNKNOWN) {
           targetLang = lang
         } else {
