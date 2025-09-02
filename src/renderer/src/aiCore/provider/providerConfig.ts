@@ -19,7 +19,7 @@ import type { Model, Provider } from '@renderer/types'
 import { formatApiHost } from '@renderer/utils/api'
 import { cloneDeep, isEmpty } from 'lodash'
 
-import { aihubmixProviderCreator, newApiResolverCreator } from './config'
+import { aihubmixProviderCreator, newApiResolverCreator, vertexAnthropicProviderCreator } from './config'
 import { getAiSdkProviderId } from './factory'
 
 const logger = loggerService.withContext('ProviderConfigProcessor')
@@ -66,6 +66,9 @@ function handleSpecialProviders(model: Model, provider: Provider): Provider {
   }
   if (provider.id === 'newapi') {
     return newApiResolverCreator(model, provider)
+  }
+  if (provider.id === 'vertexai') {
+    return vertexAnthropicProviderCreator(model, provider)
   }
   return provider
 }
@@ -157,7 +160,7 @@ export function providerToAiSdkConfig(
     extraOptions.secretAccessKey = getAwsBedrockSecretAccessKey()
   }
   // google-vertex
-  if (aiSdkProviderId === 'google-vertex') {
+  if (aiSdkProviderId === 'google-vertex' || aiSdkProviderId === 'google-vertex-anthropic') {
     if (!isVertexAIConfigured()) {
       throw new Error('VertexAI is not configured. Please configure project, location and service account credentials.')
     }

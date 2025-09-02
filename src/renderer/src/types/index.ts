@@ -356,6 +356,7 @@ export type ProviderType =
   | 'vertexai'
   | 'mistral'
   | 'aws-bedrock'
+  | 'vertex-anthropic'
 
 export type ModelType = 'text' | 'vision' | 'embedding' | 'reasoning' | 'function_calling' | 'web_search' | 'rerank'
 

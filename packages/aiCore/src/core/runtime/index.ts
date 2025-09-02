@@ -46,13 +46,12 @@ export function createOpenAICompatibleExecutor(
 export async function streamText<T extends ProviderId>(
   providerId: T,
   options: ProviderSettingsMap[T] & { mode?: 'chat' | 'responses' },
-  modelId: string,
-  params: Parameters<RuntimeExecutor<T>['streamText']>[1],
+  params: Parameters<RuntimeExecutor<T>['streamText']>[0],
   plugins?: AiPlugin[],
   middlewares?: LanguageModelV2Middleware[]
 ): Promise<ReturnType<RuntimeExecutor<T>['streamText']>> {
   const executor = createExecutor(providerId, options, plugins)
-  return executor.streamText(modelId, params, { middlewares })
+  return executor.streamText(params, { middlewares })
 }
 
 /**
@@ -61,13 +60,12 @@ export async function streamText<T extends ProviderId>(
 export async function generateText<T extends ProviderId>(
   providerId: T,
   options: ProviderSettingsMap[T] & { mode?: 'chat' | 'responses' },
-  modelId: string,
-  params: Parameters<RuntimeExecutor<T>['generateText']>[1],
+  params: Parameters<RuntimeExecutor<T>['generateText']>[0],
   plugins?: AiPlugin[],
   middlewares?: LanguageModelV2Middleware[]
 ): Promise<ReturnType<RuntimeExecutor<T>['generateText']>> {
   const executor = createExecutor(providerId, options, plugins)
-  return executor.generateText(modelId, params, { middlewares })
+  return executor.generateText(params, { middlewares })
 }
 
 /**
@@ -76,13 +74,12 @@ export async function generateText<T extends ProviderId>(
 export async function generateObject<T extends ProviderId>(
   providerId: T,
   options: ProviderSettingsMap[T] & { mode?: 'chat' | 'responses' },
-  modelId: string,
-  params: Parameters<RuntimeExecutor<T>['generateObject']>[1],
+  params: Parameters<RuntimeExecutor<T>['generateObject']>[0],
   plugins?: AiPlugin[],
   middlewares?: LanguageModelV2Middleware[]
 ): Promise<ReturnType<RuntimeExecutor<T>['generateObject']>> {
   const executor = createExecutor(providerId, options, plugins)
-  return executor.generateObject(modelId, params, { middlewares })
+  return executor.generateObject(params, { middlewares })
 }
 
 /**
@@ -91,13 +88,12 @@ export async function generateObject<T extends ProviderId>(
 export async function streamObject<T extends ProviderId>(
   providerId: T,
   options: ProviderSettingsMap[T] & { mode?: 'chat' | 'responses' },
-  modelId: string,
-  params: Parameters<RuntimeExecutor<T>['streamObject']>[1],
+  params: Parameters<RuntimeExecutor<T>['streamObject']>[0],
   plugins?: AiPlugin[],
   middlewares?: LanguageModelV2Middleware[]
 ): Promise<ReturnType<RuntimeExecutor<T>['streamObject']>> {
   const executor = createExecutor(providerId, options, plugins)
-  return executor.streamObject(modelId, params, { middlewares })
+  return executor.streamObject(params, { middlewares })
 }
 
 /**
@@ -106,13 +102,11 @@ export async function streamObject<T extends ProviderId>(
 export async function generateImage<T extends ProviderId>(
   providerId: T,
   options: ProviderSettingsMap[T] & { mode?: 'chat' | 'responses' },
-  modelId: string,
-  params: Parameters<RuntimeExecutor<T>['generateImage']>[1],
-  plugins?: AiPlugin[],
-  middlewares?: LanguageModelV2Middleware[]
+  params: Parameters<RuntimeExecutor<T>['generateImage']>[0],
+  plugins?: AiPlugin[]
 ): Promise<ReturnType<RuntimeExecutor<T>['generateImage']>> {
   const executor = createExecutor(providerId, options, plugins)
-  return executor.generateImage(modelId, params, { middlewares })
+  return executor.generateImage(params)
 }
 
 // === Agent 功能预留 ===

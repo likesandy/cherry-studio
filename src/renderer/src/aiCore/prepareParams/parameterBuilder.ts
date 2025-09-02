@@ -30,7 +30,7 @@ const logger = loggerService.withContext('parameterBuilder')
  * 这是主要的参数构建函数，整合所有转换逻辑
  */
 export async function buildStreamTextParams(
-  sdkMessages: StreamTextParams['messages'],
+  sdkMessages: StreamTextParams['messages'] = [],
   assistant: Assistant,
   provider: Provider,
   options: {

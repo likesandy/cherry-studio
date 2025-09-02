@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type AiPlugin } from '../../plugins'
 import { globalRegistryManagement } from '../../providers/RegistryManagement'
-import { ImageGenerationError } from '../errors'
+import { ImageGenerationError, ImageModelResolutionError } from '../errors'
 import { RuntimeExecutor } from '../executor'
 
 // Mock dependencies
@@ -76,9 +76,7 @@ describe('RuntimeExecutor.generateImage', () => {
 
   describe('Basic functionality', () => {
     it('should generate a single image with minimal parameters', async () => {
-      const result = await executor.generateImage('dall-e-3', {
-        prompt: 'A futuristic cityscape at sunset'
-      })
+      const result = await executor.generateImage({ model: 'dall-e-3', prompt: 'A futuristic cityscape at sunset' })
 
       expect(globalRegistryManagement.imageModel).toHaveBeenCalledWith('openai|dall-e-3')
 
@@ -91,7 +89,8 @@ describe('RuntimeExecutor.generateImage', () => {
     })
 
     it('should generate image with pre-created model', async () => {
-      const result = await executor.generateImage(mockImageModel, {
+      const result = await executor.generateImage({
+        model: mockImageModel,
         prompt: 'A beautiful landscape'
       })
 
@@ -105,10 +104,7 @@ describe('RuntimeExecutor.generateImage', () => {
     })
 
     it('should support multiple images generation', async () => {
-      await executor.generateImage('dall-e-3', {
-        prompt: 'A futuristic cityscape',
-        n: 3
-      })
+      await executor.generateImage({ model: 'dall-e-3', prompt: 'A futuristic cityscape', n: 3 })
 
       expect(aiGenerateImage).toHaveBeenCalledWith({
         model: mockImageModel,
@@ -118,10 +114,7 @@ describe('RuntimeExecutor.generateImage', () => {
     })
 
     it('should support size specification', async () => {
-      await executor.generateImage('dall-e-3', {
-        prompt: 'A beautiful sunset',
-        size: '1024x1024'
-      })
+      await executor.generateImage({ model: 'dall-e-3', prompt: 'A beautiful sunset', size: '1024x1024' })
 
       expect(aiGenerateImage).toHaveBeenCalledWith({
         model: mockImageModel,
@@ -131,10 +124,7 @@ describe('RuntimeExecutor.generateImage', () => {
     })
 
     it('should support aspect ratio specification', async () => {
-      await executor.generateImage('dall-e-3', {
-        prompt: 'A mountain landscape',
-        aspectRatio: '16:9'
-      })
+      await executor.generateImage({ model: 'dall-e-3', prompt: 'A mountain landscape', aspectRatio: '16:9' })
 
       expect(aiGenerateImage).toHaveBeenCalledWith({
         model: mockImageModel,
@@ -144,10 +134,7 @@ describe('RuntimeExecutor.generateImage', () => {
     })
 
     it('should support seed for consistent output', async () => {
-      await executor.generateImage('dall-e-3', {
-        prompt: 'A cat in space',
-        seed: 1234567890
-      })
+      await executor.generateImage({ model: 'dall-e-3', prompt: 'A cat in space', seed: 1234567890 })
 
       expect(aiGenerateImage).toHaveBeenCalledWith({
         model: mockImageModel,
@@ -159,10 +146,7 @@ describe('RuntimeExecutor.generateImage', () => {
     it('should support abort signal', async () => {
       const abortController = new AbortController()
 
-      await executor.generateImage('dall-e-3', {
-        prompt: 'A cityscape',
-        abortSignal: abortController.signal
-      })
+      await executor.generateImage({ model: 'dall-e-3', prompt: 'A cityscape', abortSignal: abortController.signal })
 
       expect(aiGenerateImage).toHaveBeenCalledWith({
         model: mockImageModel,
@@ -172,7 +156,8 @@ describe('RuntimeExecutor.generateImage', () => {
     })
 
     it('should support provider-specific options', async () => {
-      await executor.generateImage('dall-e-3', {
+      await executor.generateImage({
+        model: 'dall-e-3',
         prompt: 'A space station',
         providerOptions: {
           openai: {
@@ -195,7 +180,8 @@ describe('RuntimeExecutor.generateImage', () => {
     })
 
     it('should support custom headers', async () => {
-      await executor.generateImage('dall-e-3', {
+      await executor.generateImage({
+        model: 'dall-e-3',
         prompt: 'A robot',
         headers: {
           'X-Custom-Header': 'test-value'
@@ -242,9 +228,7 @@ describe('RuntimeExecutor.generateImage', () => {
         [testPlugin]
       )
 
-      const result = await executorWithPlugin.generateImage('dall-e-3', {
-        prompt: 'A test image'
-      })
+      const result = await executorWithPlugin.generateImage({ model: 'dall-e-3', prompt: 'A test image' })
 
       expect(pluginCallOrder).toEqual(['onRequestStart', 'transformParams', 'transformResult', 'onRequestEnd'])
 
@@ -287,9 +271,7 @@ describe('RuntimeExecutor.generateImage', () => {
         [modelResolutionPlugin]
       )
 
-      await executorWithPlugin.generateImage('dall-e-3', {
-        prompt: 'A test image'
-      })
+      await executorWithPlugin.generateImage({ model: 'dall-e-3', prompt: 'A test image' })
 
       expect(modelResolutionPlugin.resolveModel).toHaveBeenCalledWith(
         'dall-e-3',
@@ -312,6 +294,7 @@ describe('RuntimeExecutor.generateImage', () => {
           if (!context.isRecursiveCall && params.prompt === 'original') {
             // Make a recursive call with modified prompt
             await context.recursiveCall({
+              model: 'dall-e-3',
               prompt: 'modified'
             })
           }
@@ -327,9 +310,7 @@ describe('RuntimeExecutor.generateImage', () => {
         [recursivePlugin]
       )
 
-      await executorWithPlugin.generateImage('dall-e-3', {
-        prompt: 'original'
-      })
+      await executorWithPlugin.generateImage({ model: 'dall-e-3', prompt: 'original' })
 
       expect(recursivePlugin.transformParams).toHaveBeenCalledTimes(2)
       expect(aiGenerateImage).toHaveBeenCalledTimes(2)
@@ -343,22 +324,47 @@ describe('RuntimeExecutor.generateImage', () => {
         throw modelError
       })
 
-      await expect(
-        executor.generateImage('invalid-model', {
-          prompt: 'A test image'
-        })
-      ).rejects.toThrow(ImageGenerationError)
+      await expect(executor.generateImage({ model: 'invalid-model', prompt: 'A test image' })).rejects.toThrow(
+        ImageGenerationError
+      )
+    })
+
+    it('should handle ImageModelResolutionError correctly', async () => {
+      const resolutionError = new ImageModelResolutionError('invalid-model', 'openai', new Error('Model not found'))
+      vi.mocked(globalRegistryManagement.imageModel).mockImplementation(() => {
+        throw resolutionError
+      })
+
+      const thrownError = await executor
+        .generateImage({ model: 'invalid-model', prompt: 'A test image' })
+        .catch((error) => error)
+
+      expect(thrownError).toBeInstanceOf(ImageGenerationError)
+      expect(thrownError.message).toContain('Failed to generate image:')
+      expect(thrownError.providerId).toBe('openai')
+      expect(thrownError.modelId).toBe('invalid-model')
+      expect(thrownError.cause).toBeInstanceOf(ImageModelResolutionError)
+      expect(thrownError.cause.message).toContain('Failed to resolve image model: invalid-model')
+    })
+
+    it('should handle ImageModelResolutionError without provider', async () => {
+      const resolutionError = new ImageModelResolutionError('unknown-model')
+      vi.mocked(globalRegistryManagement.imageModel).mockImplementation(() => {
+        throw resolutionError
+      })
+
+      await expect(executor.generateImage({ model: 'unknown-model', prompt: 'A test image' })).rejects.toThrow(
+        ImageGenerationError
+      )
     })
 
     it('should handle image generation API errors', async () => {
       const apiError = new Error('API request failed')
       vi.mocked(aiGenerateImage).mockRejectedValue(apiError)
 
-      await expect(
-        executor.generateImage('dall-e-3', {
-          prompt: 'A test image'
-        })
-      ).rejects.toThrow('Failed to generate image:')
+      await expect(executor.generateImage({ model: 'dall-e-3', prompt: 'A test image' })).rejects.toThrow(
+        'Failed to generate image:'
+      )
     })
 
     it('should handle NoImageGeneratedError', async () => {
@@ -370,11 +376,9 @@ describe('RuntimeExecutor.generateImage', () => {
       vi.mocked(aiGenerateImage).mockRejectedValue(noImageError)
       vi.mocked(NoImageGeneratedError.isInstance).mockReturnValue(true)
 
-      await expect(
-        executor.generateImage('dall-e-3', {
-          prompt: 'A test image'
-        })
-      ).rejects.toThrow('Failed to generate image:')
+      await expect(executor.generateImage({ model: 'dall-e-3', prompt: 'A test image' })).rejects.toThrow(
+        'Failed to generate image:'
+      )
     })
 
     it('should execute onError plugin hook on failure', async () => {
@@ -394,11 +398,9 @@ describe('RuntimeExecutor.generateImage', () => {
         [errorPlugin]
       )
 
-      await expect(
-        executorWithPlugin.generateImage('dall-e-3', {
-          prompt: 'A test image'
-        })
-      ).rejects.toThrow('Failed to generate image:')
+      await expect(executorWithPlugin.generateImage({ model: 'dall-e-3', prompt: 'A test image' })).rejects.toThrow(
+        'Failed to generate image:'
+      )
 
       expect(errorPlugin.onError).toHaveBeenCalledWith(
         error,
@@ -418,10 +420,7 @@ describe('RuntimeExecutor.generateImage', () => {
       setTimeout(() => abortController.abort(), 10)
 
       await expect(
-        executor.generateImage('dall-e-3', {
-          prompt: 'A test image',
-          abortSignal: abortController.signal
-        })
+        executor.generateImage({ model: 'dall-e-3', prompt: 'A test image', abortSignal: abortController.signal })
       ).rejects.toThrow('Failed to generate image:')
     })
   })
@@ -432,9 +431,7 @@ describe('RuntimeExecutor.generateImage', () => {
         apiKey: 'google-key'
       })
 
-      await googleExecutor.generateImage('imagen-3.0-generate-002', {
-        prompt: 'A landscape'
-      })
+      await googleExecutor.generateImage({ model: 'imagen-3.0-generate-002', prompt: 'A landscape' })
 
       expect(globalRegistryManagement.imageModel).toHaveBeenCalledWith('google|imagen-3.0-generate-002')
     })
@@ -444,9 +441,7 @@ describe('RuntimeExecutor.generateImage', () => {
         apiKey: 'xai-key'
       })
 
-      await xaiExecutor.generateImage('grok-2-image', {
-        prompt: 'A futuristic robot'
-      })
+      await xaiExecutor.generateImage({ model: 'grok-2-image', prompt: 'A futuristic robot' })
 
       expect(globalRegistryManagement.imageModel).toHaveBeenCalledWith('xai|grok-2-image')
     })
@@ -454,11 +449,7 @@ describe('RuntimeExecutor.generateImage', () => {
 
   describe('Advanced features', () => {
     it('should support batch image generation with maxImagesPerCall', async () => {
-      await executor.generateImage('dall-e-3', {
-        prompt: 'A test image',
-        n: 10,
-        maxImagesPerCall: 5
-      })
+      await executor.generateImage({ model: 'dall-e-3', prompt: 'A test image', n: 10, maxImagesPerCall: 5 })
 
       expect(aiGenerateImage).toHaveBeenCalledWith({
         model: mockImageModel,
@@ -469,10 +460,7 @@ describe('RuntimeExecutor.generateImage', () => {
     })
 
     it('should support retries with maxRetries', async () => {
-      await executor.generateImage('dall-e-3', {
-        prompt: 'A test image',
-        maxRetries: 3
-      })
+      await executor.generateImage({ model: 'dall-e-3', prompt: 'A test image', maxRetries: 3 })
 
       expect(aiGenerateImage).toHaveBeenCalledWith({
         model: mockImageModel,
@@ -494,7 +482,8 @@ describe('RuntimeExecutor.generateImage', () => {
 
       vi.mocked(aiGenerateImage).mockResolvedValue(resultWithWarnings)
 
-      const result = await executor.generateImage('dall-e-3', {
+      const result = await executor.generateImage({
+        model: 'dall-e-3',
         prompt: 'A test image',
         size: '2048x2048' // Unsupported size
       })
@@ -504,9 +493,7 @@ describe('RuntimeExecutor.generateImage', () => {
     })
 
     it('should provide access to provider metadata', async () => {
-      const result = await executor.generateImage('dall-e-3', {
-        prompt: 'A test image'
-      })
+      const result = await executor.generateImage({ model: 'dall-e-3', prompt: 'A test image' })
 
       expect(result.providerMetadata).toBeDefined()
       expect(result.providerMetadata.openai).toBeDefined()
@@ -526,9 +513,7 @@ describe('RuntimeExecutor.generateImage', () => {
 
       vi.mocked(aiGenerateImage).mockResolvedValue(resultWithMetadata)
 
-      const result = await executor.generateImage('dall-e-3', {
-        prompt: 'A test image'
-      })
+      const result = await executor.generateImage({ model: 'dall-e-3', prompt: 'A test image' })
 
       expect(result.responses).toHaveLength(1)
       expect(result.responses[0].modelId).toBe('dall-e-3')

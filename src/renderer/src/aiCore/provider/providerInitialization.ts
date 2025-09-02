@@ -25,6 +25,14 @@ export const NEW_PROVIDER_CONFIGS: ProviderConfig[] = [
     aliases: ['vertexai']
   },
   {
+    id: 'google-vertex-anthropic',
+    name: 'Google Vertex AI Anthropic',
+    import: () => import('@ai-sdk/google-vertex/anthropic/edge'),
+    creatorFunctionName: 'createVertexAnthropic',
+    supportsImageGeneration: true,
+    aliases: ['vertexai-anthropic']
+  },
+  {
     id: 'bedrock',
     name: 'Amazon Bedrock',
     import: () => import('@ai-sdk/amazon-bedrock'),

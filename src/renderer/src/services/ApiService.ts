@@ -93,7 +93,6 @@ export async function fetchChatCompletion({
     modelId: assistant.model?.id,
     modelName: assistant.model?.name
   })
-
   const AI = new AiProviderNew(assistant.model || getDefaultModel())
   const provider = AI.getActualProvider()
 
@@ -126,7 +125,6 @@ export async function fetchChatCompletion({
     streamOutput: assistant.settings?.streamOutput ?? true,
     onChunk: onChunkReceived,
     model: assistant.model,
-    provider: provider,
     enableReasoning: capabilities.enableReasoning,
     isPromptToolUse: isPromptToolUse(assistant),
     isSupportedToolUse: isSupportedToolUse(assistant),

@@ -72,42 +72,36 @@ export class RuntimeExecutor<T extends ProviderId = ProviderId> {
   // === 高阶重载：直接使用模型 ===
 
   /**
-   * 流式文本生成 - 使用已创建的模型（高级用法）
+   * 流式文本生成
    */
   async streamText(
-    model: LanguageModel,
-    params: Omit<Parameters<typeof streamText>[0], 'model'>
-  ): Promise<ReturnType<typeof streamText>>
-  async streamText(
-    modelId: string,
-    params: Omit<Parameters<typeof streamText>[0], 'model'>,
-    options?: {
-      middlewares?: LanguageModelV2Middleware[]
-    }
-  ): Promise<ReturnType<typeof streamText>>
-  async streamText(
-    modelOrId: LanguageModel,
-    params: Omit<Parameters<typeof streamText>[0], 'model'>,
+    params: Parameters<typeof streamText>[0],
     options?: {
       middlewares?: LanguageModelV2Middleware[]
     }
   ): Promise<ReturnType<typeof streamText>> {
-    this.pluginEngine.usePlugins([
-      this.createResolveModelPlugin(options?.middlewares),
-      this.createConfigureContextPlugin()
-    ])
+    const { model, ...restParams } = params
 
-    // 2. 执行插件处理
+    // 根据 model 类型决定插件配置
+    if (typeof model === 'string') {
+      this.pluginEngine.usePlugins([
+        this.createResolveModelPlugin(options?.middlewares),
+        this.createConfigureContextPlugin()
+      ])
+    } else {
+      this.pluginEngine.usePlugins([this.createConfigureContextPlugin()])
+    }
+
     return this.pluginEngine.executeStreamWithPlugins(
       'streamText',
-      typeof modelOrId === 'string' ? modelOrId : modelOrId.modelId,
-      params,
-      async (model, transformedParams, streamTransforms) => {
+      model,
+      restParams,
+      async (resolvedModel, transformedParams, streamTransforms) => {
         const experimental_transform =
           params?.experimental_transform ?? (streamTransforms.length > 0 ? streamTransforms : undefined)
 
         const finalParams = {
-          model,
+          model: resolvedModel,
           ...transformedParams,
           experimental_transform
         } as Parameters<typeof streamText>[0]
@@ -120,145 +114,126 @@ export class RuntimeExecutor<T extends ProviderId = ProviderId> {
   // === 其他方法的重载 ===
 
   /**
-   * 生成文本 - 使用已创建的模型
+   * 生成文本
    */
   async generateText(
-    model: LanguageModel,
-    params: Omit<Parameters<typeof generateText>[0], 'model'>
-  ): Promise<ReturnType<typeof generateText>>
-  async generateText(
-    modelId: string,
-    params: Omit<Parameters<typeof generateText>[0], 'model'>,
-    options?: {
-      middlewares?: LanguageModelV2Middleware[]
-    }
-  ): Promise<ReturnType<typeof generateText>>
-  async generateText(
-    modelOrId: LanguageModel | string,
-    params: Omit<Parameters<typeof generateText>[0], 'model'>,
+    params: Parameters<typeof generateText>[0],
     options?: {
       middlewares?: LanguageModelV2Middleware[]
     }
   ): Promise<ReturnType<typeof generateText>> {
-    this.pluginEngine.usePlugins([
-      this.createResolveModelPlugin(options?.middlewares),
-      this.createConfigureContextPlugin()
-    ])
+    const { model, ...restParams } = params
+
+    // 根据 model 类型决定插件配置
+    if (typeof model === 'string') {
+      this.pluginEngine.usePlugins([
+        this.createResolveModelPlugin(options?.middlewares),
+        this.createConfigureContextPlugin()
+      ])
+    } else {
+      this.pluginEngine.usePlugins([this.createConfigureContextPlugin()])
+    }
 
     return this.pluginEngine.executeWithPlugins(
       'generateText',
-      typeof modelOrId === 'string' ? modelOrId : modelOrId.modelId,
-      params,
-      async (model, transformedParams) =>
-        generateText({ model, ...transformedParams } as Parameters<typeof generateText>[0])
+      model,
+      restParams,
+      async (resolvedModel, transformedParams) =>
+        generateText({ model: resolvedModel, ...transformedParams } as Parameters<typeof generateText>[0])
     )
   }
 
   /**
-   * 生成结构化对象 - 使用已创建的模型
+   * 生成结构化对象
    */
   async generateObject(
-    model: LanguageModel,
-    params: Omit<Parameters<typeof generateObject>[0], 'model'>
-  ): Promise<ReturnType<typeof generateObject>>
-  async generateObject(
-    modelOrId: string,
-    params: Omit<Parameters<typeof generateObject>[0], 'model'>,
-    options?: {
-      middlewares?: LanguageModelV2Middleware[]
-    }
-  ): Promise<ReturnType<typeof generateObject>>
-  async generateObject(
-    modelOrId: LanguageModel | string,
-    params: Omit<Parameters<typeof generateObject>[0], 'model'>,
+    params: Parameters<typeof generateObject>[0],
     options?: {
       middlewares?: LanguageModelV2Middleware[]
     }
   ): Promise<ReturnType<typeof generateObject>> {
-    this.pluginEngine.usePlugins([
-      this.createResolveModelPlugin(options?.middlewares),
-      this.createConfigureContextPlugin()
-    ])
+    const { model, ...restParams } = params
+
+    // 根据 model 类型决定插件配置
+    if (typeof model === 'string') {
+      this.pluginEngine.usePlugins([
+        this.createResolveModelPlugin(options?.middlewares),
+        this.createConfigureContextPlugin()
+      ])
+    } else {
+      this.pluginEngine.usePlugins([this.createConfigureContextPlugin()])
+    }
 
     return this.pluginEngine.executeWithPlugins(
       'generateObject',
-      typeof modelOrId === 'string' ? modelOrId : modelOrId.modelId,
-      params,
-      async (model, transformedParams) =>
-        generateObject({ model, ...transformedParams } as Parameters<typeof generateObject>[0])
+      model,
+      restParams,
+      async (resolvedModel, transformedParams) =>
+        generateObject({ model: resolvedModel, ...transformedParams } as Parameters<typeof generateObject>[0])
     )
   }
 
   /**
-   * 流式生成结构化对象 - 使用已创建的模型
+   * 流式生成结构化对象
    */
   async streamObject(
-    model: LanguageModel,
-    params: Omit<Parameters<typeof streamObject>[0], 'model'>
-  ): Promise<ReturnType<typeof streamObject>>
-  async streamObject(
-    modelId: string,
-    params: Omit<Parameters<typeof streamObject>[0], 'model'>,
-    options?: {
-      middlewares?: LanguageModelV2Middleware[]
-    }
-  ): Promise<ReturnType<typeof streamObject>>
-  async streamObject(
-    modelOrId: LanguageModel | string,
-    params: Omit<Parameters<typeof streamObject>[0], 'model'>,
+    params: Parameters<typeof streamObject>[0],
     options?: {
       middlewares?: LanguageModelV2Middleware[]
     }
   ): Promise<ReturnType<typeof streamObject>> {
-    this.pluginEngine.usePlugins([
-      this.createResolveModelPlugin(options?.middlewares),
-      this.createConfigureContextPlugin()
-    ])
+    const { model, ...restParams } = params
+
+    // 根据 model 类型决定插件配置
+    if (typeof model === 'string') {
+      this.pluginEngine.usePlugins([
+        this.createResolveModelPlugin(options?.middlewares),
+        this.createConfigureContextPlugin()
+      ])
+    } else {
+      this.pluginEngine.usePlugins([this.createConfigureContextPlugin()])
+    }
 
     return this.pluginEngine.executeWithPlugins(
       'streamObject',
-      typeof modelOrId === 'string' ? modelOrId : modelOrId.modelId,
-      params,
-      async (model, transformedParams) =>
-        streamObject({ model, ...transformedParams } as Parameters<typeof streamObject>[0])
+      model,
+      restParams,
+      async (resolvedModel, transformedParams) =>
+        streamObject({ model: resolvedModel, ...transformedParams } as Parameters<typeof streamObject>[0])
     )
   }
 
   /**
-   * 生成图像 - 使用已创建的图像模型
+   * 生成图像
    */
   async generateImage(
-    model: ImageModelV2,
-    params: Omit<Parameters<typeof generateImage>[0], 'model'>
-  ): Promise<ReturnType<typeof generateImage>>
-  async generateImage(
-    modelId: string,
-    params: Omit<Parameters<typeof generateImage>[0], 'model'>,
-    options?: {
-      middlewares?: LanguageModelV2Middleware[]
-    }
-  ): Promise<ReturnType<typeof generateImage>>
-  async generateImage(
-    modelOrId: ImageModelV2 | string,
-    params: Omit<Parameters<typeof generateImage>[0], 'model'>
+    params: Omit<Parameters<typeof generateImage>[0], 'model'> & { model: string | ImageModelV2 }
   ): Promise<ReturnType<typeof generateImage>> {
     try {
-      this.pluginEngine.usePlugins([this.createResolveImageModelPlugin(), this.createConfigureContextPlugin()])
+      const { model, ...restParams } = params
+
+      // 根据 model 类型决定插件配置
+      if (typeof model === 'string') {
+        this.pluginEngine.usePlugins([this.createResolveImageModelPlugin(), this.createConfigureContextPlugin()])
+      } else {
+        this.pluginEngine.usePlugins([this.createConfigureContextPlugin()])
+      }
 
       return await this.pluginEngine.executeImageWithPlugins(
         'generateImage',
-        typeof modelOrId === 'string' ? modelOrId : modelOrId.modelId,
-        params,
-        async (model, transformedParams) => {
-          return await generateImage({ model, ...transformedParams })
+        model,
+        restParams,
+        async (resolvedModel, transformedParams) => {
+          return await generateImage({ model: resolvedModel, ...transformedParams })
         }
       )
     } catch (error) {
       if (error instanceof Error) {
+        const modelId = typeof params.model === 'string' ? params.model : params.model.modelId
         throw new ImageGenerationError(
           `Failed to generate image: ${error.message}`,
           this.config.providerId,
-          typeof modelOrId === 'string' ? modelOrId : modelOrId.modelId,
+          modelId,
           error
         )
       }

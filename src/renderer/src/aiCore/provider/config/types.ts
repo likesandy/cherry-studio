@@ -1,7 +1,9 @@
 import type { Model, Provider } from '@renderer/types'
 
-export interface ModelRule {
-  name: string
-  match: (model: Model) => boolean
-  provider: (provider: Provider) => Provider
+export interface RuleSet {
+  rules: Array<{
+    match: (model: Model) => boolean
+    provider: (provider: Provider) => Provider
+  }>
+  fallbackRule: (provider: Provider) => Provider
 }

@@ -9209,7 +9209,7 @@ __metadata:
     "@viz-js/lang-dot": "npm:^1.0.5"
     "@viz-js/viz": "npm:^3.14.0"
     "@xyflow/react": "npm:^12.4.4"
-    ai: "npm:^5.0.26"
+    ai: "npm:^5.0.29"
     antd: "patch:antd@npm%3A5.27.0#~/.yarn/patches/antd-npm-5.27.0-aa91c36546.patch"
     archiver: "npm:^7.0.1"
     async-mutex: "npm:^0.5.0"
@@ -9425,9 +9425,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai@npm:^5.0.26":
-  version: 5.0.26
-  resolution: "ai@npm:5.0.26"
+"ai@npm:^5.0.29":
+  version: 5.0.29
+  resolution: "ai@npm:5.0.29"
   dependencies:
     "@ai-sdk/gateway": "npm:1.0.15"
     "@ai-sdk/provider": "npm:2.0.0"
@@ -9435,7 +9435,7 @@ __metadata:
     "@opentelemetry/api": "npm:1.9.0"
   peerDependencies:
     zod: ^3.25.76 || ^4
-  checksum: 10c0/0423f296b1aa9f22ad106278e8d1e7a2ae9d068358720cdc23c0f222af5406ac1e5ccbce19833709aa1c62b841361d310fb3c42781f426966a9f9ca287ae7faa
+  checksum: 10c0/526cd2fd59b35b19d902665e3dc1ba5a09f2bb1377295d642fb8a33e13a890874e4dd4b49a787de7f31f4ec6b07257be8514efac08f993081daeb430cf2f60ba
   languageName: node
   linkType: hard
 

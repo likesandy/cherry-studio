@@ -4,11 +4,13 @@
 
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createAzure } from '@ai-sdk/azure'
+import { type AzureOpenAIProviderSettings } from '@ai-sdk/azure'
 import { createDeepSeek } from '@ai-sdk/deepseek'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createOpenAI, type OpenAIProviderSettings } from '@ai-sdk/openai'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import { createXai } from '@ai-sdk/xai'
+import { customProvider, type Provider } from 'ai'
 import * as z from 'zod'
 
 /**
@@ -16,12 +18,13 @@ import * as z from 'zod'
  */
 export const baseProviderIds = [
   'openai',
-  'openai-responses',
+  'openai-chat',
   'openai-compatible',
   'anthropic',
   'google',
   'xai',
   'azure',
+  'azure-responses',
   'deepseek'
 ] as const
 
@@ -38,7 +41,7 @@ export type BaseProviderId = z.infer<typeof baseProviderIdSchema>
 export const baseProviderSchema = z.object({
   id: baseProviderIdSchema,
   name: z.string(),
-  creator: z.function().args(z.any()).returns(z.any()),
+  creator: z.function().args(z.any()).returns(z.any()) as z.ZodType<(options: any) => Provider>,
   supportsImageGeneration: z.boolean()
 })
 
@@ -56,9 +59,17 @@ export const baseProviders = [
     supportsImageGeneration: true
   },
   {
-    id: 'openai-responses',
-    name: 'OpenAI Responses',
-    creator: (options: OpenAIProviderSettings) => createOpenAI(options).responses,
+    id: 'openai-chat',
+    name: 'OpenAI Chat',
+    creator: (options: OpenAIProviderSettings) => {
+      const provider = createOpenAI(options)
+      return customProvider({
+        fallbackProvider: {
+          ...provider,
+          languageModel: (modelId: string) => provider.chat(modelId)
+        }
+      })
+    },
     supportsImageGeneration: true
   },
   {
@@ -89,6 +100,20 @@ export const baseProviders = [
     id: 'azure',
     name: 'Azure OpenAI',
     creator: createAzure,
+    supportsImageGeneration: true
+  },
+  {
+    id: 'azure-responses',
+    name: 'Azure OpenAI Responses',
+    creator: (options: AzureOpenAIProviderSettings) => {
+      const provider = createAzure(options)
+      return customProvider({
+        fallbackProvider: {
+          ...provider,
+          languageModel: (modelId: string) => provider.responses(modelId)
+        }
+      })
+    },
     supportsImageGeneration: true
   },
   {

@@ -4,9 +4,8 @@
 import { isOpenAIModel } from '@renderer/config/models'
 import { Provider } from '@renderer/types'
 
-import { startsWith } from './helper'
-import { provider2Provider } from './helper'
-import type { ModelRule } from './types'
+import { provider2Provider, startsWith } from './helper'
+import type { RuleSet } from './types'
 
 const extraProviderConfig = (provider: Provider) => {
   return {
@@ -18,41 +17,41 @@ const extraProviderConfig = (provider: Provider) => {
   }
 }
 
-const AIHUBMIX_RULES: ModelRule[] = [
-  {
-    name: 'claude',
-    match: startsWith('claude'),
-    provider: (provider: Provider) => {
-      return extraProviderConfig({
-        ...provider,
-        type: 'anthropic'
-      })
+const AIHUBMIX_RULES: RuleSet = {
+  rules: [
+    {
+      match: startsWith('claude'),
+      provider: (provider: Provider) => {
+        return extraProviderConfig({
+          ...provider,
+          type: 'anthropic'
+        })
+      }
+    },
+    {
+      match: (model) =>
+        (startsWith('gemini')(model) || startsWith('imagen')(model)) &&
+        !model.id.endsWith('-nothink') &&
+        !model.id.endsWith('-search'),
+      provider: (provider: Provider) => {
+        return extraProviderConfig({
+          ...provider,
+          type: 'gemini',
+          apiHost: 'https://aihubmix.com/gemini'
+        })
+      }
+    },
+    {
+      match: isOpenAIModel,
+      provider: (provider: Provider) => {
+        return extraProviderConfig({
+          ...provider,
+          type: 'openai-response'
+        })
+      }
     }
-  },
-  {
-    name: 'gemini',
-    match: (model) =>
-      (startsWith('gemini')(model) || startsWith('imagen')(model)) &&
-      !model.id.endsWith('-nothink') &&
-      !model.id.endsWith('-search'),
-    provider: (provider: Provider) => {
-      return extraProviderConfig({
-        ...provider,
-        type: 'gemini',
-        apiHost: 'https://aihubmix.com/gemini'
-      })
-    }
-  },
-  {
-    name: 'openai',
-    match: isOpenAIModel,
-    provider: (provider: Provider) => {
-      return extraProviderConfig({
-        ...provider,
-        type: 'openai-response'
-      })
-    }
-  }
-]
+  ],
+  fallbackRule: (provider: Provider) => provider
+}
 
 export const aihubmixProviderCreator = provider2Provider.bind(null, AIHUBMIX_RULES)

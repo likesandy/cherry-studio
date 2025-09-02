@@ -64,11 +64,24 @@ export class PluginEngine<T extends ProviderId = ProviderId> {
    */
   async executeWithPlugins<TParams, TResult>(
     methodName: string,
-    modelId: string,
+    model: LanguageModel,
     params: TParams,
     executor: (model: LanguageModel, transformedParams: TParams) => Promise<TResult>,
     _context?: ReturnType<typeof createContext>
   ): Promise<TResult> {
+    // 统一处理模型解析
+    let resolvedModel: LanguageModel | undefined
+    let modelId: string
+
+    if (typeof model === 'string') {
+      // 字符串：需要通过插件解析
+      modelId = model
+    } else {
+      // 模型对象：直接使用
+      resolvedModel = model
+      modelId = model.modelId
+    }
+
     // 使用正确的createContext创建请求上下文
     const context = _context ? _context : createContext(this.providerId, modelId, params)
 
@@ -76,7 +89,7 @@ export class PluginEngine<T extends ProviderId = ProviderId> {
     context.recursiveCall = async (newParams: any): Promise<TResult> => {
       // 递归调用自身，重新走完整的插件流程
       context.isRecursiveCall = true
-      const result = await this.executeWithPlugins(methodName, modelId, newParams, executor, context)
+      const result = await this.executeWithPlugins(methodName, model, newParams, executor, context)
       context.isRecursiveCall = false
       return result
     }
@@ -88,17 +101,24 @@ export class PluginEngine<T extends ProviderId = ProviderId> {
       // 1. 触发请求开始事件
       await this.pluginManager.executeParallel('onRequestStart', context)
 
-      // 2. 解析模型
-      const model = await this.pluginManager.executeFirst<LanguageModel>('resolveModel', modelId, context)
-      if (!model) {
-        throw new Error(`Failed to resolve model: ${modelId}`)
+      // 2. 解析模型（如果是字符串）
+      if (typeof model === 'string') {
+        const resolved = await this.pluginManager.executeFirst<LanguageModel>('resolveModel', modelId, context)
+        if (!resolved) {
+          throw new Error(`Failed to resolve model: ${modelId}`)
+        }
+        resolvedModel = resolved
+      }
+
+      if (!resolvedModel) {
+        throw new Error(`Model resolution failed: no model available`)
       }
 
       // 3. 转换请求参数
       const transformedParams = await this.pluginManager.executeSequential('transformParams', params, context)
 
       // 4. 执行具体的 API 调用
-      const result = await executor(model, transformedParams)
+      const result = await executor(resolvedModel, transformedParams)
 
       // 5. 转换结果（对于非流式调用）
       const transformedResult = await this.pluginManager.executeSequential('transformResult', result, context)
@@ -120,11 +140,24 @@ export class PluginEngine<T extends ProviderId = ProviderId> {
    */
   async executeImageWithPlugins<TParams, TResult>(
     methodName: string,
-    modelId: string,
+    model: ImageModelV2 | string,
     params: TParams,
     executor: (model: ImageModelV2, transformedParams: TParams) => Promise<TResult>,
     _context?: ReturnType<typeof createContext>
   ): Promise<TResult> {
+    // 统一处理模型解析
+    let resolvedModel: ImageModelV2 | undefined
+    let modelId: string
+
+    if (typeof model === 'string') {
+      // 字符串：需要通过插件解析
+      modelId = model
+    } else {
+      // 模型对象：直接使用
+      resolvedModel = model
+      modelId = model.modelId
+    }
+
     // 使用正确的createContext创建请求上下文
     const context = _context ? _context : createContext(this.providerId, modelId, params)
 
@@ -132,7 +165,7 @@ export class PluginEngine<T extends ProviderId = ProviderId> {
     context.recursiveCall = async (newParams: any): Promise<TResult> => {
       // 递归调用自身，重新走完整的插件流程
       context.isRecursiveCall = true
-      const result = await this.executeImageWithPlugins(methodName, modelId, newParams, executor, context)
+      const result = await this.executeImageWithPlugins(methodName, model, newParams, executor, context)
       context.isRecursiveCall = false
       return result
     }
@@ -144,17 +177,24 @@ export class PluginEngine<T extends ProviderId = ProviderId> {
       // 1. 触发请求开始事件
       await this.pluginManager.executeParallel('onRequestStart', context)
 
-      // 2. 解析模型
-      const model = await this.pluginManager.executeFirst<ImageModelV2>('resolveModel', modelId, context)
-      if (!model) {
-        throw new Error(`Failed to resolve image model: ${modelId}`)
+      // 2. 解析模型（如果是字符串）
+      if (typeof model === 'string') {
+        const resolved = await this.pluginManager.executeFirst<ImageModelV2>('resolveModel', modelId, context)
+        if (!resolved) {
+          throw new Error(`Failed to resolve image model: ${modelId}`)
+        }
+        resolvedModel = resolved
+      }
+
+      if (!resolvedModel) {
+        throw new Error(`Image model resolution failed: no model available`)
       }
 
       // 3. 转换请求参数
       const transformedParams = await this.pluginManager.executeSequential('transformParams', params, context)
 
       // 4. 执行具体的 API 调用
-      const result = await executor(model, transformedParams)
+      const result = await executor(resolvedModel, transformedParams)
 
       // 5. 转换结果
       const transformedResult = await this.pluginManager.executeSequential('transformResult', result, context)
@@ -176,11 +216,24 @@ export class PluginEngine<T extends ProviderId = ProviderId> {
    */
   async executeStreamWithPlugins<TParams, TResult>(
     methodName: string,
-    modelId: string,
+    model: LanguageModel,
     params: TParams,
     executor: (model: LanguageModel, transformedParams: TParams, streamTransforms: any[]) => Promise<TResult>,
     _context?: ReturnType<typeof createContext>
   ): Promise<TResult> {
+    // 统一处理模型解析
+    let resolvedModel: LanguageModel | undefined
+    let modelId: string
+
+    if (typeof model === 'string') {
+      // 字符串：需要通过插件解析
+      modelId = model
+    } else {
+      // 模型对象：直接使用
+      resolvedModel = model
+      modelId = model.modelId
+    }
+
     // 创建请求上下文
     const context = _context ? _context : createContext(this.providerId, modelId, params)
 
@@ -188,7 +241,7 @@ export class PluginEngine<T extends ProviderId = ProviderId> {
     context.recursiveCall = async (newParams: any): Promise<TResult> => {
       // 递归调用自身，重新走完整的插件流程
       context.isRecursiveCall = true
-      const result = await this.executeStreamWithPlugins(methodName, modelId, newParams, executor, context)
+      const result = await this.executeStreamWithPlugins(methodName, model, newParams, executor, context)
       context.isRecursiveCall = false
       return result
     }
@@ -200,11 +253,17 @@ export class PluginEngine<T extends ProviderId = ProviderId> {
       // 1. 触发请求开始事件
       await this.pluginManager.executeParallel('onRequestStart', context)
 
-      // 2. 解析模型
-      const model = await this.pluginManager.executeFirst<LanguageModel>('resolveModel', modelId, context)
+      // 2. 解析模型（如果是字符串）
+      if (typeof model === 'string') {
+        const resolved = await this.pluginManager.executeFirst<LanguageModel>('resolveModel', modelId, context)
+        if (!resolved) {
+          throw new Error(`Failed to resolve model: ${modelId}`)
+        }
+        resolvedModel = resolved
+      }
 
-      if (!model) {
-        throw new Error(`Failed to resolve model: ${modelId}`)
+      if (!resolvedModel) {
+        throw new Error(`Model resolution failed: no model available`)
       }
 
       // 3. 转换请求参数
@@ -214,7 +273,7 @@ export class PluginEngine<T extends ProviderId = ProviderId> {
       const streamTransforms = this.pluginManager.collectStreamTransforms(transformedParams, context)
 
       // 5. 执行流式 API 调用
-      const result = await executor(model, transformedParams, streamTransforms)
+      const result = await executor(resolvedModel, transformedParams, streamTransforms)
 
       const transformedResult = await this.pluginManager.executeSequential('transformResult', result, context)
 
