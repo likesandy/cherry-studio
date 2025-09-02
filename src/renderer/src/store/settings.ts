@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { isMac } from '@renderer/config/constant'
-import { DEFAULT_SIDEBAR_ICONS } from '@renderer/config/sidebar'
 import {
   ApiServerConfig,
   CodeStyleVarious,
@@ -9,15 +8,20 @@ import {
   OpenAISummaryText,
   PaintingProvider,
   S3Config,
-  SidebarIcon,
   TranslateLanguageCode
 } from '@renderer/types'
 import { uuid } from '@renderer/utils'
 import { UpgradeChannel } from '@shared/config/constant'
 import { TRANSLATE_PROMPT } from '@shared/config/prompts'
-import type { SendMessageShortcut } from '@shared/data/preferenceTypes'
-import type { AssistantTabSortType } from '@shared/data/preferenceTypes'
-import { LanguageVarious, ThemeMode } from '@shared/data/preferenceTypes'
+import { DefaultPreferences } from '@shared/data/preferences'
+import type {
+  AssistantIconType,
+  AssistantTabSortType,
+  LanguageVarious,
+  SendMessageShortcut,
+  SidebarIcon
+} from '@shared/data/preferenceTypes'
+import { ThemeMode } from '@shared/data/preferenceTypes'
 import { OpenAIVerbosity } from '@types'
 
 import { RemoteSyncState } from './backup'
@@ -25,11 +29,11 @@ import { RemoteSyncState } from './backup'
 // export type SendMessageShortcut = 'Enter' | 'Shift+Enter' | 'Ctrl+Enter' | 'Command+Enter' | 'Alt+Enter'
 
 // Re-export for backward compatibility
-export { DEFAULT_SIDEBAR_ICONS }
+// export { DEFAULT_SIDEBAR_ICONS }
 
 export interface NutstoreSyncRuntime extends RemoteSyncState {}
 
-export type AssistantIconType = 'model' | 'emoji' | 'none'
+// export type AssistantIconType = 'model' | 'emoji' | 'none'
 
 export type UserTheme = {
   colorPrimary: string
@@ -310,7 +314,7 @@ export const initialState: SettingsState = {
   customCss: '',
   topicNamingPrompt: '',
   sidebarIcons: {
-    visible: DEFAULT_SIDEBAR_ICONS,
+    visible: DefaultPreferences.default['ui.sidebar.icons.visible'],
     disabled: []
   },
   narrowMode: false,

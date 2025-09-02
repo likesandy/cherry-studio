@@ -1,25 +1,18 @@
 import store, { useAppDispatch, useAppSelector } from '@renderer/store'
 import {
-  AssistantIconType,
-  setAssistantIconType,
   setAutoCheckUpdate as _setAutoCheckUpdate,
-  // setDisableHardwareAcceleration,
-  setEnableDeveloperMode,
   setLaunchOnBoot,
   setLaunchToTray,
-  setPinTopicsToTop,
   setSendMessageShortcut as _setSendMessageShortcut,
-  setSidebarIcons,
   setTargetLanguage,
   setTestChannel as _setTestChannel,
   setTestPlan as _setTestPlan,
   SettingsState,
-  setTopicPosition,
   setTray as _setTray,
   setTrayOnClose
   // setWindowStyle
 } from '@renderer/store/settings'
-import { SidebarIcon, TranslateLanguageCode } from '@renderer/types'
+import { TranslateLanguageCode } from '@renderer/types'
 import { UpgradeChannel } from '@shared/config/constant'
 import type { SendMessageShortcut } from '@shared/data/preferenceTypes'
 
@@ -79,25 +72,25 @@ export function useSettings() {
     // },
     setTargetLanguage(targetLanguage: TranslateLanguageCode) {
       dispatch(setTargetLanguage(targetLanguage))
-    },
-    setTopicPosition(topicPosition: 'left' | 'right') {
-      dispatch(setTopicPosition(topicPosition))
-    },
-    setPinTopicsToTop(pinTopicsToTop: boolean) {
-      dispatch(setPinTopicsToTop(pinTopicsToTop))
-    },
-    updateSidebarIcons(icons: { visible: SidebarIcon[]; disabled: SidebarIcon[] }) {
-      dispatch(setSidebarIcons(icons))
-    },
-    updateSidebarVisibleIcons(icons: SidebarIcon[]) {
-      dispatch(setSidebarIcons({ visible: icons }))
-    },
-    updateSidebarDisabledIcons(icons: SidebarIcon[]) {
-      dispatch(setSidebarIcons({ disabled: icons }))
-    },
-    setAssistantIconType(assistantIconType: AssistantIconType) {
-      dispatch(setAssistantIconType(assistantIconType))
     }
+    // setTopicPosition(topicPosition: 'left' | 'right') {
+    //   dispatch(setTopicPosition(topicPosition))
+    // },
+    // setPinTopicsToTop(pinTopicsToTop: boolean) {
+    //   dispatch(setPinTopicsToTop(pinTopicsToTop))
+    // }
+    // updateSidebarIcons(icons: { visible: SidebarIcon[]; disabled: SidebarIcon[] }) {
+    //   dispatch(setSidebarIcons(icons))
+    // },
+    // updateSidebarVisibleIcons(icons: SidebarIcon[]) {
+    //   dispatch(setSidebarIcons({ visible: icons }))
+    // },
+    // updateSidebarDisabledIcons(icons: SidebarIcon[]) {
+    //   dispatch(setSidebarIcons({ disabled: icons }))
+    // },
+    // setAssistantIconType(assistantIconType: AssistantIconType) {
+    //   dispatch(setAssistantIconType(assistantIconType))
+    // }
     // setDisableHardwareAcceleration(disableHardwareAcceleration: boolean) {
     //   dispatch(setDisableHardwareAcceleration(disableHardwareAcceleration))
     //   window.api.setDisableHardwareAcceleration(disableHardwareAcceleration)
@@ -118,18 +111,18 @@ export const getStoreSetting = (key: keyof SettingsState) => {
   return store.getState().settings[key]
 }
 
-export const useEnableDeveloperMode = () => {
-  const enableDeveloperMode = useAppSelector((state) => state.settings.enableDeveloperMode)
-  const dispatch = useAppDispatch()
+// export const useEnableDeveloperMode = () => {
+//   const enableDeveloperMode = useAppSelector((state) => state.settings.enableDeveloperMode)
+//   const dispatch = useAppDispatch()
 
-  return {
-    enableDeveloperMode,
-    setEnableDeveloperMode: (enableDeveloperMode: boolean) => {
-      dispatch(setEnableDeveloperMode(enableDeveloperMode))
-      window.api.config.set('enableDeveloperMode', enableDeveloperMode)
-    }
-  }
-}
+//   return {
+//     enableDeveloperMode,
+//     setEnableDeveloperMode: (enableDeveloperMode: boolean) => {
+//       dispatch(setEnableDeveloperMode(enableDeveloperMode))
+//       window.api.config.set('enableDeveloperMode', enableDeveloperMode)
+//     }
+//   }
+// }
 
 export const getEnableDeveloperMode = () => {
   return store.getState().settings.enableDeveloperMode

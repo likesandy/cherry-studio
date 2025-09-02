@@ -42,3 +42,16 @@ export type WindowStyle = 'transparent' | 'opaque'
 export type SendMessageShortcut = 'Enter' | 'Shift+Enter' | 'Ctrl+Enter' | 'Command+Enter' | 'Alt+Enter'
 
 export type AssistantTabSortType = 'tags' | 'list'
+
+export type SidebarIcon =
+  | 'assistants'
+  | 'agents'
+  | 'paintings'
+  | 'translate'
+  | 'minapp'
+  | 'knowledge'
+  | 'files'
+  | 'code_tools'
+  | 'notes'
+
+export type AssistantIconType = 'model' | 'emoji' | 'none'

@@ -4,7 +4,7 @@ import InfoTooltip from '@renderer/components/InfoTooltip'
 import { HStack } from '@renderer/components/Layout'
 import Selector from '@renderer/components/Selector'
 import { useTheme } from '@renderer/context/ThemeProvider'
-import { useEnableDeveloperMode, useSettings } from '@renderer/hooks/useSettings'
+import { useSettings } from '@renderer/hooks/useSettings'
 import { useTimer } from '@renderer/hooks/useTimer'
 import i18n from '@renderer/i18n'
 import { RootState, useAppDispatch } from '@renderer/store'
@@ -42,16 +42,16 @@ const GeneralSettings: FC = () => {
     enableDataCollection,
     enableSpellCheck
   } = useSettings()
-  const [proxyUrl, setProxyUrl] = useState<string | undefined>(storeProxyUrl)
-  const [proxyBypassRules, setProxyBypassRules] = useState<string | undefined>(storeProxyBypassRules)
-  const { theme } = useTheme()
-  const { enableDeveloperMode, setEnableDeveloperMode } = useEnableDeveloperMode()
-  const { setTimeoutTimer } = useTimer()
-
   const [language, setLanguage] = usePreference('app.language')
   const [disableHardwareAcceleration, setDisableHardwareAcceleration] = usePreference(
     'app.disable_hardware_acceleration'
   )
+  const [enableDeveloperMode, setEnableDeveloperMode] = usePreference('app.developer_mode.enabled')
+
+  const [proxyUrl, setProxyUrl] = useState<string | undefined>(storeProxyUrl)
+  const [proxyBypassRules, setProxyBypassRules] = useState<string | undefined>(storeProxyBypassRules)
+  const { theme } = useTheme()
+  const { setTimeoutTimer } = useTimer()
 
   const updateTray = (isShowTray: boolean) => {
     setTray(isShowTray)

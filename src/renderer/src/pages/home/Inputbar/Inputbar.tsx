@@ -219,7 +219,7 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
 
     logger.info('Starting to send message')
 
-    const parent = spanManagerService.startTrace(
+    const parent = await spanManagerService.startTrace(
       { topicId: topic.id, name: 'sendMessage', inputs: text },
       mentionedModels && mentionedModels.length > 0 ? mentionedModels : [assistant.model]
     )

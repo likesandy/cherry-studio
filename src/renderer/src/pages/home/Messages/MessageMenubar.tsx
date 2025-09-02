@@ -1,4 +1,5 @@
 // import { InfoCircleOutlined } from '@ant-design/icons'
+import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import { CopyIcon, DeleteIcon, EditIcon, RefreshIcon } from '@renderer/components/Icons'
 import ObsidianExportPopup from '@renderer/components/Popups/ObsidianExportPopup'
@@ -9,7 +10,7 @@ import { useMessageEditing } from '@renderer/context/MessageEditingContext'
 import { useChatContext } from '@renderer/hooks/useChatContext'
 import { useMessageOperations } from '@renderer/hooks/useMessageOperations'
 import { useNotesSettings } from '@renderer/hooks/useNotesSettings'
-import { useEnableDeveloperMode, useMessageStyle, useSettings } from '@renderer/hooks/useSettings'
+import { useMessageStyle } from '@renderer/hooks/useSettings'
 import { useTemporaryValue } from '@renderer/hooks/useTemporaryValue'
 import useTranslate from '@renderer/hooks/useTranslate'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
@@ -98,8 +99,9 @@ const MessageMenubar: FC<Props> = (props) => {
   } = useMessageOperations(topic)
 
   const { isBubbleStyle } = useMessageStyle()
-  const { enableDeveloperMode } = useEnableDeveloperMode()
-  const { confirmDeleteMessage, confirmRegenerateMessage } = useSettings()
+  const [enableDeveloperMode] = usePreference('app.developer_mode.enabled')
+  const [confirmDeleteMessage] = usePreference('chat.message.confirm_delete')
+  const [confirmRegenerateMessage] = usePreference('chat.message.confirm_regenerate')
 
   // const loading = useTopicLoading(topic)
 

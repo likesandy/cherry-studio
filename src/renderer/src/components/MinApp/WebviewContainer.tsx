@@ -1,5 +1,5 @@
+import { usePreference } from '@data/hooks/usePreference'
 import { useNavbarPosition } from '@renderer/hooks/useNavbar'
-import { useSettings } from '@renderer/hooks/useSettings'
 import { WebviewTag } from 'electron'
 import { memo, useEffect, useRef } from 'react'
 
@@ -23,7 +23,7 @@ const WebviewContainer = memo(
     onNavigateCallback: (appid: string, url: string) => void
   }) => {
     const webviewRef = useRef<WebviewTag | null>(null)
-    const { enableSpellCheck } = useSettings()
+    const [enableSpellCheck] = usePreference('app.spell_check.enabled')
     const { isLeftNavbar } = useNavbarPosition()
 
     const setRef = (appid: string) => {

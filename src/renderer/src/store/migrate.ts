@@ -15,7 +15,7 @@ import {
   isSupportStreamOptionsProvider,
   SYSTEM_PROVIDERS
 } from '@renderer/config/providers'
-import { DEFAULT_SIDEBAR_ICONS } from '@renderer/config/sidebar'
+// import { DEFAULT_SIDEBAR_ICONS } from '@renderer/config/sidebar'
 import db from '@renderer/databases'
 import i18n from '@renderer/i18n'
 import { DEFAULT_ASSISTANT_SETTINGS } from '@renderer/services/AssistantService'
@@ -33,6 +33,7 @@ import {
 import { getDefaultGroupName, getLeadingEmoji, runAsyncFunction, uuid } from '@renderer/utils'
 import { defaultByPassRules, UpgradeChannel } from '@shared/config/constant'
 import { TRANSLATE_PROMPT } from '@shared/config/prompts'
+import { DefaultPreferences } from '@shared/data/preferences'
 import { isEmpty } from 'lodash'
 import { createMigrate } from 'redux-persist'
 
@@ -45,7 +46,6 @@ import { initialState as notesInitialState } from './note'
 import { initialState as settingsInitialState } from './settings'
 import { initialState as shortcutsInitialState } from './shortcuts'
 import { defaultWebSearchProviders } from './websearch'
-
 const logger = loggerService.withContext('Migrate')
 
 // remove logo base64 data to reduce the size of the state
@@ -804,7 +804,7 @@ const migrateConfig = {
         })
       }
       state.settings.sidebarIcons = {
-        visible: DEFAULT_SIDEBAR_ICONS,
+        visible: DefaultPreferences.default['ui.sidebar.icons.visible'],
         disabled: []
       }
       return state
@@ -816,7 +816,7 @@ const migrateConfig = {
     try {
       if (!state.settings.sidebarIcons) {
         state.settings.sidebarIcons = {
-          visible: DEFAULT_SIDEBAR_ICONS,
+          visible: DefaultPreferences.default['ui.sidebar.icons.visible'],
           disabled: []
         }
       }
@@ -2181,10 +2181,10 @@ const migrateConfig = {
   '136': (state: RootState) => {
     try {
       state.settings.sidebarIcons.visible = [...new Set(state.settings.sidebarIcons.visible)].filter((icon) =>
-        DEFAULT_SIDEBAR_ICONS.includes(icon)
+        DefaultPreferences.default['ui.sidebar.icons.visible'].includes(icon)
       )
       state.settings.sidebarIcons.disabled = [...new Set(state.settings.sidebarIcons.disabled)].filter((icon) =>
-        DEFAULT_SIDEBAR_ICONS.includes(icon)
+        DefaultPreferences.default['ui.sidebar.icons.visible'].includes(icon)
       )
       return state
     } catch (error) {

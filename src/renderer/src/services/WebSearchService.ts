@@ -443,7 +443,7 @@ class WebSearchService {
     const signal = this.getRequestState(requestId).signal || this.signal
 
     const span = webSearchProvider.topicId
-      ? addSpan({
+      ? await addSpan({
           topicId: webSearchProvider.topicId,
           name: `WebSearch`,
           inputs: {

@@ -4,20 +4,11 @@ import { ResetIcon } from '@renderer/components/Icons'
 import { HStack } from '@renderer/components/Layout'
 import TextBadge from '@renderer/components/TextBadge'
 import { isMac, THEME_COLOR_PRESETS } from '@renderer/config/constant'
-import { DEFAULT_SIDEBAR_ICONS } from '@renderer/config/sidebar'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useNavbarPosition } from '@renderer/hooks/useNavbar'
-import { useSettings } from '@renderer/hooks/useSettings'
 import useUserTheme from '@renderer/hooks/useUserTheme'
-import { useAppDispatch } from '@renderer/store'
-import {
-  AssistantIconType,
-  setAssistantIconType,
-  setClickAssistantToShowTopic,
-  setPinTopicsToTop,
-  setShowTopicTime,
-  setSidebarIcons
-} from '@renderer/store/settings'
+import { DefaultPreferences } from '@shared/data/preferences'
+import { AssistantIconType } from '@shared/data/preferenceTypes'
 import { ThemeMode } from '@shared/data/preferenceTypes'
 import { Button, ColorPicker, Segmented, Switch } from 'antd'
 import { Minus, Monitor, Moon, Plus, Sun } from 'lucide-react'
@@ -56,29 +47,23 @@ const ColorCircle = styled.div<{ color: string; isActive?: boolean }>`
 `
 
 const DisplaySettings: FC = () => {
-  const {
-    // windowStyle,
-    // setWindowStyle,
-    topicPosition,
-    setTopicPosition,
-    clickAssistantToShowTopic,
-    showTopicTime,
-    pinTopicsToTop,
-    // customCss,
-    sidebarIcons,
-    assistantIconType
-  } = useSettings()
   const [windowStyle, setWindowStyle] = usePreference('ui.window_style')
   const [customCss, setCustomCss] = usePreference('ui.custom_css')
+  const [visibleIcons, setVisibleIcons] = usePreference('ui.sidebar.icons.visible')
+  const [invisibleIcons, setInvisibleIcons] = usePreference('ui.sidebar.icons.invisible')
+  const [topicPosition, setTopicPosition] = usePreference('topic.position')
+  const [clickAssistantToShowTopic, setClickAssistantToShowTopic] = usePreference('assistant.click_to_show_topic')
+  const [pinTopicsToTop, setPinTopicsToTop] = usePreference('topic.tab.pin_to_top')
+  const [showTopicTime, setShowTopicTime] = usePreference('topic.tab.show_time')
+  const [assistantIconType, setAssistantIconType] = usePreference('assistant.icon_type')
 
   const { navbarPosition, setNavbarPosition } = useNavbarPosition()
   const { theme, settedTheme, setTheme } = useTheme()
   const { t } = useTranslation()
-  const dispatch = useAppDispatch()
   const [currentZoom, setCurrentZoom] = useState(1.0)
   const { userTheme, setUserTheme } = useUserTheme()
-  const [visibleIcons, setVisibleIcons] = useState(sidebarIcons?.visible || DEFAULT_SIDEBAR_ICONS)
-  const [disabledIcons, setDisabledIcons] = useState(sidebarIcons?.disabled || [])
+  // const [visibleIcons, setVisibleIcons] = useState(sidebarIcons?.visible || DEFAULT_SIDEBAR_ICONS)
+  // const [disabledIcons, setDisabledIcons] = useState(sidebarIcons?.disabled || [])
 
   const handleWindowStyleChange = useCallback(
     (checked: boolean) => {
@@ -98,10 +83,9 @@ const DisplaySettings: FC = () => {
   )
 
   const handleReset = useCallback(() => {
-    setVisibleIcons([...DEFAULT_SIDEBAR_ICONS])
-    setDisabledIcons([])
-    dispatch(setSidebarIcons({ visible: DEFAULT_SIDEBAR_ICONS, disabled: [] }))
-  }, [dispatch])
+    setVisibleIcons(DefaultPreferences.default['ui.sidebar.icons.visible'])
+    setInvisibleIcons(DefaultPreferences.default['ui.sidebar.icons.invisible'])
+  }, [setVisibleIcons, setInvisibleIcons])
 
   const themeOptions = useMemo(
     () => [
@@ -278,7 +262,7 @@ const DisplaySettings: FC = () => {
               <SettingRowTitle>{t('settings.advanced.auto_switch_to_topics')}</SettingRowTitle>
               <Switch
                 checked={clickAssistantToShowTopic}
-                onChange={(checked) => dispatch(setClickAssistantToShowTopic(checked))}
+                onChange={(checked) => setClickAssistantToShowTopic(checked)}
               />
             </SettingRow>
             <SettingDivider />
@@ -286,12 +270,12 @@ const DisplaySettings: FC = () => {
         )}
         <SettingRow>
           <SettingRowTitle>{t('settings.topic.show.time')}</SettingRowTitle>
-          <Switch checked={showTopicTime} onChange={(checked) => dispatch(setShowTopicTime(checked))} />
+          <Switch checked={showTopicTime} onChange={(checked) => setShowTopicTime(checked)} />
         </SettingRow>
         <SettingDivider />
         <SettingRow>
           <SettingRowTitle>{t('settings.topic.pin_to_top')}</SettingRowTitle>
-          <Switch checked={pinTopicsToTop} onChange={(checked) => dispatch(setPinTopicsToTop(checked))} />
+          <Switch checked={pinTopicsToTop} onChange={(checked) => setPinTopicsToTop(checked)} />
         </SettingRow>
       </SettingGroup>
       <SettingGroup theme={theme}>
@@ -302,7 +286,7 @@ const DisplaySettings: FC = () => {
           <Segmented
             value={assistantIconType}
             shape="round"
-            onChange={(value) => dispatch(setAssistantIconType(value as AssistantIconType))}
+            onChange={(value) => setAssistantIconType(value as AssistantIconType)}
             options={assistantIconTypeOptions}
           />
         </SettingRow>
@@ -319,9 +303,9 @@ const DisplaySettings: FC = () => {
           <SettingDivider />
           <SidebarIconsManager
             visibleIcons={visibleIcons}
-            disabledIcons={disabledIcons}
+            invisibleIcons={invisibleIcons}
             setVisibleIcons={setVisibleIcons}
-            setDisabledIcons={setDisabledIcons}
+            setInvisibleIcons={setInvisibleIcons}
           />
         </SettingGroup>
       )}
