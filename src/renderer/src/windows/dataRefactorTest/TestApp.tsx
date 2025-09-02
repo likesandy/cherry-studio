@@ -49,7 +49,7 @@ const TestApp: React.FC = () => {
   const windowNumber = getWindowNumber()
 
   // Add theme preference monitoring for UI changes
-  const [theme, setTheme] = usePreference('app.theme.mode')
+  const [theme, setTheme] = usePreference('ui.theme_mode')
   const [language] = usePreference('app.language')
   const [zoomFactor] = usePreference('app.zoom_factor')
 

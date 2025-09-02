@@ -40,3 +40,5 @@ export type LanguageVarious = 'zh-CN' | 'zh-TW' | 'el-GR' | 'en-US' | 'es-ES' | 
 export type WindowStyle = 'transparent' | 'opaque'
 
 export type SendMessageShortcut = 'Enter' | 'Shift+Enter' | 'Ctrl+Enter' | 'Command+Enter' | 'Alt+Enter'
+
+export type AssistantTabSortType = 'tags' | 'list'

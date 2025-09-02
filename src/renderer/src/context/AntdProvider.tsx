@@ -17,7 +17,7 @@ import { useTheme } from './ThemeProvider'
 
 const AntdProvider: FC<PropsWithChildren> = ({ children }) => {
   const [language] = usePreference('app.language')
-  const [colorPrimary] = usePreference('app.theme.user.color_primary')
+  const [colorPrimary] = usePreference('ui.theme_user.color_primary')
   const { theme: _theme } = useTheme()
 
   return (

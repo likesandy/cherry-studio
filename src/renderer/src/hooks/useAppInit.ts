@@ -38,7 +38,7 @@ export function useAppInit() {
     enableDataCollection
   } = useSettings()
   const [language] = usePreference('app.language')
-  const [windowStyle] = usePreference('app.theme.window_style')
+  const [windowStyle] = usePreference('ui.window_style')
   const [customCss] = usePreference('ui.custom_css')
 
   const { minappShow } = useRuntime()

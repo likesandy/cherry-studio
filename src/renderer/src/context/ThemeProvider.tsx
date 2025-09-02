@@ -27,7 +27,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // 用户设置的主题
   // const { theme: settedTheme, setTheme: setSettedTheme } = useSettings()
 
-  const [settedTheme, setSettedTheme] = usePreference('app.theme.mode')
+  const [settedTheme, setSettedTheme] = usePreference('ui.theme_mode')
 
   const [actualTheme, setActualTheme] = useState<ThemeMode>(
     window.matchMedia('(prefers-color-scheme: dark)').matches ? ThemeMode.dark : ThemeMode.light

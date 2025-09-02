@@ -68,7 +68,7 @@ const DisplaySettings: FC = () => {
     sidebarIcons,
     assistantIconType
   } = useSettings()
-  const [windowStyle, setWindowStyle] = usePreference('app.theme.window_style')
+  const [windowStyle, setWindowStyle] = usePreference('ui.window_style')
   const [customCss, setCustomCss] = usePreference('ui.custom_css')
 
   const { navbarPosition, setNavbarPosition } = useNavbarPosition()

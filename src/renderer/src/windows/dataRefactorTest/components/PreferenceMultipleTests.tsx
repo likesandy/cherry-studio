@@ -17,12 +17,12 @@ const PreferenceMultipleTests: React.FC = () => {
 
   const scenarios = {
     basic: {
-      theme: 'app.theme.mode',
+      theme: 'ui.theme_mode',
       language: 'app.language',
       zoom: 'app.zoom_factor'
     },
     ui: {
-      theme: 'app.theme.mode',
+      theme: 'ui.theme_mode',
       zoom: 'app.zoom_factor',
       spell: 'app.spell_check.enabled'
     },
@@ -37,7 +37,7 @@ const PreferenceMultipleTests: React.FC = () => {
       opacity: 'feature.selection.action_window_opacity'
     },
     custom: {
-      key1: 'app.theme.mode',
+      key1: 'ui.theme_mode',
       key2: 'app.language',
       key3: 'app.zoom_factor',
       key4: 'app.spell_check.enabled'
@@ -79,7 +79,7 @@ const PreferenceMultipleTests: React.FC = () => {
       const prefKey = currentKeys[localKey as keyof typeof currentKeys]
 
       switch (prefKey) {
-        case 'app.theme.mode':
+        case 'ui.theme_mode':
           sampleUpdates[localKey] = values[localKey] === 'ThemeMode.dark' ? 'ThemeMode.light' : 'ThemeMode.dark'
           break
         case 'app.language':
@@ -150,7 +150,7 @@ const PreferenceMultipleTests: React.FC = () => {
       width: 150,
       render: (_, record) => (
         <Space size="small">
-          {record.prefKey === 'app.theme.mode' && (
+          {record.prefKey === 'ui.theme_mode' && (
             <Button
               size="small"
               onClick={() =>
@@ -339,7 +339,7 @@ const PreferenceMultipleTests: React.FC = () => {
               onClick={async () => {
                 const toggles: Record<string, any> = {}
                 Object.entries(currentKeys).forEach(([localKey, prefKey]) => {
-                  if (prefKey === 'app.theme.mode') {
+                  if (prefKey === 'ui.theme_mode') {
                     toggles[localKey] = values[localKey] === 'ThemeMode.dark' ? 'ThemeMode.light' : 'ThemeMode.dark'
                   } else if (prefKey === 'app.spell_check.enabled') {
                     toggles[localKey] = !values[localKey]

@@ -2,7 +2,7 @@ import { usePreference } from '@data/hooks/usePreference'
 import { isMac } from '@renderer/config/constant'
 
 function useNavBackgroundColor() {
-  const [windowStyle] = usePreference('app.theme.window_style')
+  const [windowStyle] = usePreference('ui.window_style')
 
   const macTransparentWindow = isMac && windowStyle === 'transparent'
 

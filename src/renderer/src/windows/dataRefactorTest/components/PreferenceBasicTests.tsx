@@ -12,7 +12,7 @@ const { Option } = Select
  * Tests single preference management with React hooks
  */
 const PreferenceBasicTests: React.FC = () => {
-  const [selectedKey, setSelectedKey] = useState<PreferenceKeyType>('app.theme.mode')
+  const [selectedKey, setSelectedKey] = useState<PreferenceKeyType>('ui.theme_mode')
 
   // Use the hook with the selected key
   const [value, setValue] = usePreference(selectedKey)
@@ -20,7 +20,7 @@ const PreferenceBasicTests: React.FC = () => {
   const [inputValue, setInputValue] = useState<string>('')
 
   // Add theme monitoring for visual changes
-  const [currentTheme] = usePreference('app.theme.mode')
+  const [currentTheme] = usePreference('ui.theme_mode')
   const isDarkTheme = currentTheme === ThemeMode.dark
 
   const handleSetValue = async () => {
@@ -51,7 +51,7 @@ const PreferenceBasicTests: React.FC = () => {
   }
 
   const testCases = [
-    { key: 'app.theme.mode', label: 'App Theme Mode', sampleValue: 'ThemeMode.dark', type: 'enum' },
+    { key: 'ui.theme_mode', label: 'App Theme Mode', sampleValue: 'ThemeMode.dark', type: 'enum' },
     { key: 'app.language', label: 'App Language', sampleValue: 'zh-CN', type: 'enum' },
     { key: 'app.spell_check.enabled', label: 'Spell Check', sampleValue: 'true', type: 'boolean' },
     { key: 'app.zoom_factor', label: 'Zoom Factor', sampleValue: '1.2', type: 'number', min: 0.5, max: 2.0, step: 0.1 },
@@ -132,7 +132,7 @@ const PreferenceBasicTests: React.FC = () => {
           <Text strong>快速操作:</Text>
           <Space wrap style={{ marginTop: 8 }}>
             {/* Theme Toggle with Visual Feedback */}
-            {selectedKey === 'app.theme.mode' && (
+            {selectedKey === 'ui.theme_mode' && (
               <Button
                 size="small"
                 type={isDarkTheme ? 'default' : 'primary'}

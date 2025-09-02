@@ -5,7 +5,7 @@ import { usePreference } from '@data/hooks/usePreference'
 import Color from 'color'
 
 export default function useUserTheme() {
-  const [colorPrimary, setColorPrimary] = usePreference('app.theme.user.color_primary')
+  const [colorPrimary, setColorPrimary] = usePreference('ui.theme_user.color_primary')
 
   const initUserTheme = (theme: { colorPrimary: string } = { colorPrimary }) => {
     const colorPrimary = Color(theme.colorPrimary)

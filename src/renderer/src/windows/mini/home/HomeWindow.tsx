@@ -40,7 +40,7 @@ const logger = loggerService.withContext('HomeWindow')
 const HomeWindow: FC<{ draggable?: boolean }> = ({ draggable = true }) => {
   const [readClipboardAtStartup] = usePreference('feature.quick_assistant.read_clipboard_at_startup')
   const [language] = usePreference('app.language')
-  const [windowStyle] = usePreference('app.theme.window_style')
+  const [windowStyle] = usePreference('ui.window_style')
   const { theme } = useTheme()
   const { t } = useTranslation()
 

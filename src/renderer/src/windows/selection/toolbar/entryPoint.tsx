@@ -12,8 +12,8 @@ loggerService.initWindowSource('SelectionToolbar')
 await preferenceService.preload([
   'app.language',
   'ui.custom_css',
-  'app.theme.mode',
-  'app.theme.user.color_primary',
+  'ui.theme_mode',
+  'ui.theme_user.color_primary',
   'feature.selection.compact',
   'feature.selection.action_items'
 ])

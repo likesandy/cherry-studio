@@ -1,6 +1,6 @@
 /**
  * Auto-generated preference mappings from classification.json
- * Generated at: 2025-09-02T05:21:08.374Z
+ * Generated at: 2025-09-02T06:27:50.213Z
  *
  * This file contains pure mapping relationships without default values.
  * Default values are managed in packages/shared/data/preferences.ts
@@ -72,7 +72,7 @@ export const REDUX_STORE_MAPPINGS = {
     },
     {
       originalKey: 'theme',
-      targetKey: 'app.theme.mode'
+      targetKey: 'ui.theme_mode'
     },
     {
       originalKey: 'tray',
@@ -81,6 +81,18 @@ export const REDUX_STORE_MAPPINGS = {
     {
       originalKey: 'trayOnClose',
       targetKey: 'app.tray.on_close'
+    },
+    {
+      originalKey: 'showAssistants',
+      targetKey: 'assistant.tab.show'
+    },
+    {
+      originalKey: 'showTopics',
+      targetKey: 'topic.tab.show'
+    },
+    {
+      originalKey: 'assistantsTabSortType',
+      targetKey: 'assistant.tab.sort_type'
     },
     {
       originalKey: 'sendMessageShortcut',
@@ -132,11 +144,11 @@ export const REDUX_STORE_MAPPINGS = {
     },
     {
       originalKey: 'userTheme.colorPrimary',
-      targetKey: 'app.theme.user.color_primary'
+      targetKey: 'ui.theme_user.color_primary'
     },
     {
       originalKey: 'windowStyle',
-      targetKey: 'app.theme.window_style'
+      targetKey: 'ui.window_style'
     },
     {
       originalKey: 'fontSize',
@@ -148,15 +160,15 @@ export const REDUX_STORE_MAPPINGS = {
     },
     {
       originalKey: 'showTopicTime',
-      targetKey: 'topic.show_time'
+      targetKey: 'topic.tab.show_time'
     },
     {
       originalKey: 'pinTopicsToTop',
-      targetKey: 'topic.pin_to_top'
+      targetKey: 'topic.tab.pin_to_top'
     },
     {
       originalKey: 'assistantIconType',
-      targetKey: 'ui.assistant_icon_type'
+      targetKey: 'assistant.icon_type'
     },
     {
       originalKey: 'pasteLongTextAsFile',
@@ -168,7 +180,7 @@ export const REDUX_STORE_MAPPINGS = {
     },
     {
       originalKey: 'clickAssistantToShowTopic',
-      targetKey: 'ui.click_assistant_to_show_topic'
+      targetKey: 'assistant.click_to_show_topic'
     },
     {
       originalKey: 'codeExecution.enabled',
@@ -732,9 +744,9 @@ export const REDUX_STORE_MAPPINGS = {
 /**
  * 映射统计:
  * - ElectronStore项: 1
- * - Redux Store项: 172
+ * - Redux Store项: 175
  * - Redux分类: settings, selectionStore, nutstore, shortcuts
- * - 总配置项: 173
+ * - 总配置项: 176
  *
  * 使用说明:
  * 1. ElectronStore读取: configManager.get(mapping.originalKey)

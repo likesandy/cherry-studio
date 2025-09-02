@@ -8,18 +8,18 @@ import { titleBarOverlayDark, titleBarOverlayLight } from '../config'
 class ThemeService {
   private theme: ThemeMode = ThemeMode.system
   constructor() {
-    this.theme = preferenceService.get('app.theme.mode')
+    this.theme = preferenceService.get('ui.theme_mode')
 
     if (this.theme === ThemeMode.dark || this.theme === ThemeMode.light || this.theme === ThemeMode.system) {
       nativeTheme.themeSource = this.theme
     } else {
       // 兼容旧版本
-      preferenceService.set('app.theme.mode', ThemeMode.system)
+      preferenceService.set('ui.theme_mode', ThemeMode.system)
       nativeTheme.themeSource = ThemeMode.system
     }
     nativeTheme.on('updated', this.themeUpdatadHandler.bind(this))
 
-    preferenceService.subscribeChange('app.theme.mode', (newTheme) => {
+    preferenceService.subscribeChange('ui.theme_mode', (newTheme) => {
       this.theme = newTheme
       nativeTheme.themeSource = newTheme
     })

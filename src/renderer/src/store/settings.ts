@@ -3,7 +3,6 @@ import { isMac } from '@renderer/config/constant'
 import { DEFAULT_SIDEBAR_ICONS } from '@renderer/config/sidebar'
 import {
   ApiServerConfig,
-  AssistantsSortType,
   CodeStyleVarious,
   MathEngine,
   OpenAIServiceTier,
@@ -17,6 +16,7 @@ import { uuid } from '@renderer/utils'
 import { UpgradeChannel } from '@shared/config/constant'
 import { TRANSLATE_PROMPT } from '@shared/config/prompts'
 import type { SendMessageShortcut } from '@shared/data/preferenceTypes'
+import type { AssistantTabSortType } from '@shared/data/preferenceTypes'
 import { LanguageVarious, ThemeMode } from '@shared/data/preferenceTypes'
 import { OpenAIVerbosity } from '@types'
 
@@ -38,7 +38,7 @@ export type UserTheme = {
 export interface SettingsState {
   showAssistants: boolean
   showTopics: boolean
-  assistantsTabSortType: AssistantsSortType
+  assistantsTabSortType: AssistantTabSortType
   sendMessageShortcut: SendMessageShortcut
   language: LanguageVarious
   targetLanguage: TranslateLanguageCode
@@ -432,7 +432,7 @@ const settingsSlice = createSlice({
     toggleShowTopics: (state) => {
       state.showTopics = !state.showTopics
     },
-    setAssistantsTabSortType: (state, action: PayloadAction<AssistantsSortType>) => {
+    setAssistantsTabSortType: (state, action: PayloadAction<AssistantTabSortType>) => {
       state.assistantsTabSortType = action.payload
     },
     setSendMessageShortcut: (state, action: PayloadAction<SendMessageShortcut>) => {
@@ -861,10 +861,10 @@ const settingsSlice = createSlice({
 export const {
   setShowModelNameInMarkdown,
   setShowModelProviderInMarkdown,
-  setShowAssistants,
-  toggleShowAssistants,
-  setShowTopics,
-  toggleShowTopics,
+  // setShowAssistants,
+  // toggleShowAssistants,
+  // setShowTopics,
+  // toggleShowTopics,
   setAssistantsTabSortType,
   setSendMessageShortcut,
   setLanguage,

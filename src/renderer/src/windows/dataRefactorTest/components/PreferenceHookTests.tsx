@@ -18,13 +18,13 @@ const PreferenceHookTests: React.FC = () => {
   const [subscriptionCount, setSubscriptionCount] = useState(0)
 
   // Test multiple hooks with same key
-  const [theme1] = usePreference('app.theme.mode')
-  const [theme2] = usePreference('app.theme.mode')
+  const [theme1] = usePreference('ui.theme_mode')
+  const [theme2] = usePreference('ui.theme_mode')
   const [language] = usePreference('app.language')
 
   // Manual preload implementation using useEffect
   React.useEffect(() => {
-    const preloadKeys: PreferenceKeyType[] = ['app.theme.mode', 'app.language', 'app.zoom_factor']
+    const preloadKeys: PreferenceKeyType[] = ['ui.theme_mode', 'app.language', 'app.zoom_factor']
     preferenceService.preload(preloadKeys).catch((error) => {
       logger.error('Failed to preload preferences:', error as Error)
     })
@@ -36,7 +36,7 @@ const PreferenceHookTests: React.FC = () => {
 
   const testSubscriptions = () => {
     // Test subscription behavior
-    const unsubscribe = preferenceService.subscribeChange('app.theme.mode')(() => {
+    const unsubscribe = preferenceService.subscribeChange('ui.theme_mode')(() => {
       setSubscriptionCount((prev) => prev + 1)
     })
 
@@ -51,7 +51,7 @@ const PreferenceHookTests: React.FC = () => {
 
   const testCacheWarming = async () => {
     try {
-      const keys: PreferenceKeyType[] = ['app.theme.mode', 'app.language', 'app.zoom_factor', 'app.spell_check.enabled']
+      const keys: PreferenceKeyType[] = ['ui.theme_mode', 'app.language', 'app.zoom_factor', 'app.spell_check.enabled']
       await preferenceService.preload(keys)
 
       const cachedStates = keys.map((key) => ({
@@ -69,7 +69,7 @@ const PreferenceHookTests: React.FC = () => {
 
   const testBatchOperations = async () => {
     try {
-      const keys: PreferenceKeyType[] = ['app.theme.mode', 'app.language']
+      const keys: PreferenceKeyType[] = ['ui.theme_mode', 'app.language']
       const result = await preferenceService.getMultiple(keys)
 
       message.success(`批量获取成功: ${Object.keys(result).length} 项`)
@@ -77,7 +77,7 @@ const PreferenceHookTests: React.FC = () => {
 
       // Test batch set
       await preferenceService.setMultiple({
-        'app.theme.mode': theme1 === ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
+        'ui.theme_mode': theme1 === ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
         'app.language': language === 'zh-CN' ? 'en-US' : 'zh-CN'
       })
 
@@ -94,7 +94,7 @@ const PreferenceHookTests: React.FC = () => {
     try {
       // Test rapid reads
       for (let i = 0; i < iterations; i++) {
-        preferenceService.getCachedValue('app.theme.mode')
+        preferenceService.getCachedValue('ui.theme_mode')
       }
 
       const readTime = performance.now() - start
@@ -103,7 +103,7 @@ const PreferenceHookTests: React.FC = () => {
       const writeStart = performance.now()
       for (let i = 0; i < 10; i++) {
         await preferenceService.set(
-          'app.theme.mode',
+          'ui.theme_mode',
           i % 3 === 0 ? ThemeMode.light : i % 3 === 1 ? ThemeMode.dark : ThemeMode.system
         )
       }
@@ -158,7 +158,7 @@ const PreferenceHookTests: React.FC = () => {
             <Text>
               Service实例: <Text code>{preferenceService ? '已连接' : '未连接'}</Text>
             </Text>
-            <Text>预加载Keys: app.theme.mode, app.language, app.zoom_factor</Text>
+            <Text>预加载Keys: ui.theme_mode, app.language, app.zoom_factor</Text>
             <Text type="secondary" style={{ fontSize: '12px' }}>
               usePreferenceService() 返回的是同一个单例实例
             </Text>
@@ -169,7 +169,7 @@ const PreferenceHookTests: React.FC = () => {
         <Card size="small" title="Hook 行为测试">
           <Space direction="vertical" size="small" style={{ width: '100%' }}>
             <Text strong>实时同步测试:</Text>
-            <Text type="secondary">1. 在其他测试组件中修改 app.theme.mode 或 app.language</Text>
+            <Text type="secondary">1. 在其他测试组件中修改 ui.theme_mode 或 app.language</Text>
             <Text type="secondary">2. 观察此组件中的值是否实时更新</Text>
             <Text type="secondary">3. 检查订阅触发次数是否增加</Text>
           </Space>

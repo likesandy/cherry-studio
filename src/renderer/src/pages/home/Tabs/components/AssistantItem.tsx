@@ -8,9 +8,10 @@ import { useTags } from '@renderer/hooks/useTags'
 import AssistantSettingsPopup from '@renderer/pages/settings/AssistantSettings'
 import { getDefaultModel } from '@renderer/services/AssistantService'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
-import { Assistant, AssistantsSortType } from '@renderer/types'
+import { Assistant } from '@renderer/types'
 import { getLeadingEmoji, uuid } from '@renderer/utils'
 import { hasTopicPendingRequests } from '@renderer/utils/queue'
+import type { AssistantTabSortType } from '@shared/data/preferenceTypes'
 import { Dropdown, MenuProps } from 'antd'
 import { omit } from 'lodash'
 import {
@@ -36,14 +37,14 @@ import AssistantTagsPopup from './AssistantTagsPopup'
 interface AssistantItemProps {
   assistant: Assistant
   isActive: boolean
-  sortBy: AssistantsSortType
+  sortBy: AssistantTabSortType
   onSwitch: (assistant: Assistant) => void
   onDelete: (assistant: Assistant) => void
   onCreateDefaultAssistant: () => void
   addAgent: (agent: any) => void
   copyAssistant: (assistant: Assistant) => void
   onTagClick?: (tag: string) => void
-  handleSortByChange?: (sortType: AssistantsSortType) => void
+  handleSortByChange?: (sortType: AssistantTabSortType) => void
 }
 
 const AssistantItem: FC<AssistantItemProps> = ({

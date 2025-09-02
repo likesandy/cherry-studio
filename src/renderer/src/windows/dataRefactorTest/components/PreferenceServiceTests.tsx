@@ -12,13 +12,13 @@ const { Text } = Typography
  * Tests the service layer functionality without React hooks
  */
 const PreferenceServiceTests: React.FC = () => {
-  const [testKey, setTestKey] = useState<string>('app.theme.mode')
+  const [testKey, setTestKey] = useState<string>('ui.theme_mode')
   const [testValue, setTestValue] = useState<string>(ThemeMode.dark)
   const [getResult, setGetResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
   // Theme monitoring for visual changes
-  const [currentTheme] = usePreference('app.theme.mode')
+  const [currentTheme] = usePreference('ui.theme_mode')
   const isDarkTheme = currentTheme === ThemeMode.dark
 
   const handleGet = async () => {
@@ -173,10 +173,10 @@ const PreferenceServiceTests: React.FC = () => {
           <Button
             size="small"
             onClick={() => {
-              setTestKey('app.theme.mode')
+              setTestKey('ui.theme_mode')
               setTestValue(ThemeMode.dark)
             }}>
-            Test: app.theme.mode
+            Test: ui.theme_mode
           </Button>
           <Button
             size="small"
