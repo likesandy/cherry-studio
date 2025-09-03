@@ -30,13 +30,3 @@ export function useAssistantsTabSortType() {
     setAssistantsTabSortType
   }
 }
-
-export function useShowWorkspace() {
-  const [showWorkspace, setShowWorkspace] = usePreference('feature.notes.show_workspace')
-
-  return {
-    showWorkspace,
-    setShowWorkspace,
-    toggleShowWorkspace: () => setShowWorkspace(!showWorkspace)
-  }
-}

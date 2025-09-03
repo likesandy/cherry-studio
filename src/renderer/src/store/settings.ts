@@ -221,8 +221,6 @@ export interface SettingsState {
   // API Server
   apiServer: ApiServerConfig
   showMessageOutline: boolean
-  // Notes Related
-  showWorkspace: boolean
 }
 
 // export type MultiModelMessageStyle = 'horizontal' | 'vertical' | 'fold' | 'grid'
@@ -415,9 +413,7 @@ export const initialState: SettingsState = {
     port: 23333,
     apiKey: `cs-sk-${uuid()}`
   },
-  showMessageOutline: false,
-  // Notes Related
-  showWorkspace: true
+  showMessageOutline: false
 }
 
 const settingsSlice = createSlice({
@@ -819,45 +815,39 @@ const settingsSlice = createSlice({
     setDefaultPaintingProvider: (state, action: PayloadAction<PaintingProvider>) => {
       state.defaultPaintingProvider = action.payload
     },
-    // setS3: (state, action: PayloadAction<S3Config>) => {
-    //   state.s3 = action.payload
-    // },
-    // setS3Partial: (state, action: PayloadAction<Partial<S3Config>>) => {
-    //   state.s3 = { ...state.s3, ...action.payload }
-    // },
-    // setEnableDeveloperMode: (state, action: PayloadAction<boolean>) => {
-    //   state.enableDeveloperMode = action.payload
-    // },
-    // setNavbarPosition: (state, action: PayloadAction<'left' | 'top'>) => {
-    //   state.navbarPosition = action.payload
-    // },
-    // // API Server actions
-    // setApiServerEnabled: (state, action: PayloadAction<boolean>) => {
-    //   state.apiServer = {
-    //     ...state.apiServer,
-    //     enabled: action.payload
-    //   }
-    // },
-    // setApiServerPort: (state, action: PayloadAction<number>) => {
-    //   state.apiServer = {
-    //     ...state.apiServer,
-    //     port: action.payload
-    //   }
-    // },
-    // setApiServerApiKey: (state, action: PayloadAction<string>) => {
-    //   state.apiServer = {
-    //     ...state.apiServer,
-    //     apiKey: action.payload
-    //   }
-    // },
-    // setShowMessageOutline: (state, action: PayloadAction<boolean>) => {
-    //   state.showMessageOutline = action.payload
-    // },
-    // setShowWorkspace: (state, action: PayloadAction<boolean>) => {
-    //   state.showWorkspace = action.payload
-    // },
-    toggleShowWorkspace: (state) => {
-      state.showWorkspace = !state.showWorkspace
+    setS3: (state, action: PayloadAction<S3Config>) => {
+      state.s3 = action.payload
+    },
+    setS3Partial: (state, action: PayloadAction<Partial<S3Config>>) => {
+      state.s3 = { ...state.s3, ...action.payload }
+    },
+    setEnableDeveloperMode: (state, action: PayloadAction<boolean>) => {
+      state.enableDeveloperMode = action.payload
+    },
+    setNavbarPosition: (state, action: PayloadAction<'left' | 'top'>) => {
+      state.navbarPosition = action.payload
+    },
+    // API Server actions
+    setApiServerEnabled: (state, action: PayloadAction<boolean>) => {
+      state.apiServer = {
+        ...state.apiServer,
+        enabled: action.payload
+      }
+    },
+    setApiServerPort: (state, action: PayloadAction<number>) => {
+      state.apiServer = {
+        ...state.apiServer,
+        port: action.payload
+      }
+    },
+    setApiServerApiKey: (state, action: PayloadAction<string>) => {
+      state.apiServer = {
+        ...state.apiServer,
+        apiKey: action.payload
+      }
+    },
+    setShowMessageOutline: (state, action: PayloadAction<boolean>) => {
+      state.showMessageOutline = action.payload
     }
   }
 })
@@ -986,11 +976,9 @@ export const {
   // setNavbarPosition,
   // setShowMessageOutline,
   // API Server actions
-  // setApiServerEnabled,
-  // setApiServerPort,
-  // setApiServerApiKey,
-  // setShowWorkspace,
-  toggleShowWorkspace
+  setApiServerEnabled,
+  setApiServerPort,
+  setApiServerApiKey
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

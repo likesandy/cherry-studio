@@ -3,6 +3,7 @@ import EditableNumber from '@renderer/components/EditableNumber'
 import { HStack } from '@renderer/components/Layout'
 import Scrollbar from '@renderer/components/Scrollbar'
 import Selector from '@renderer/components/Selector'
+import { HelpTooltip } from '@renderer/components/TooltipIcons'
 import { DEFAULT_CONTEXTCOUNT, DEFAULT_MAX_TOKENS, DEFAULT_TEMPERATURE } from '@renderer/config/constant'
 import { isOpenAIModel } from '@renderer/config/models'
 import { UNKNOWN } from '@renderer/config/translate'
@@ -20,8 +21,8 @@ import { modalConfirm } from '@renderer/utils'
 import { getSendMessageShortcutLabel } from '@renderer/utils/input'
 import type { SendMessageShortcut } from '@shared/data/preferenceTypes'
 import { ThemeMode } from '@shared/data/preferenceTypes'
-import { Button, Col, InputNumber, Row, Slider, Switch, Tooltip } from 'antd'
-import { CircleHelp, Settings2 } from 'lucide-react'
+import { Button, Col, InputNumber, Row, Slider, Switch } from 'antd'
+import { Settings2 } from 'lucide-react'
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -180,10 +181,10 @@ const SettingsTab: FC<Props> = (props) => {
         }>
         <SettingGroup style={{ marginTop: 5 }}>
           <Row align="middle">
-            <SettingRowTitleSmall>{t('chat.settings.temperature.label')}</SettingRowTitleSmall>
-            <Tooltip title={t('chat.settings.temperature.tip')}>
-              <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-            </Tooltip>
+            <SettingRowTitleSmall>
+              {t('chat.settings.temperature.label')}
+              <HelpTooltip title={t('chat.settings.temperature.tip')} />
+            </SettingRowTitleSmall>
             <Switch
               size="small"
               style={{ marginLeft: 'auto' }}
@@ -211,10 +212,10 @@ const SettingsTab: FC<Props> = (props) => {
             <SettingDivider />
           )}
           <Row align="middle">
-            <SettingRowTitleSmall>{t('chat.settings.context_count.label')}</SettingRowTitleSmall>
-            <Tooltip title={t('chat.settings.context_count.tip')}>
-              <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-            </Tooltip>
+            <SettingRowTitleSmall>
+              {t('chat.settings.context_count.label')}
+              <HelpTooltip title={t('chat.settings.context_count.tip')} />
+            </SettingRowTitleSmall>
           </Row>
           <Row align="middle" gutter={10}>
             <Col span={23}>
@@ -243,10 +244,10 @@ const SettingsTab: FC<Props> = (props) => {
           <SettingDivider />
           <SettingRow>
             <Row align="middle">
-              <SettingRowTitleSmall>{t('chat.settings.max_tokens.label')}</SettingRowTitleSmall>
-              <Tooltip title={t('chat.settings.max_tokens.tip')}>
-                <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-              </Tooltip>
+              <SettingRowTitleSmall>
+                {t('chat.settings.max_tokens.label')}
+                <HelpTooltip title={t('chat.settings.max_tokens.tip')} />
+              </SettingRowTitleSmall>
             </Row>
             <Switch
               size="small"
@@ -314,9 +315,7 @@ const SettingsTab: FC<Props> = (props) => {
           <SettingRow>
             <SettingRowTitleSmall>
               {t('chat.settings.thought_auto_collapse.label')}
-              <Tooltip title={t('chat.settings.thought_auto_collapse.tip')}>
-                <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-              </Tooltip>
+              <HelpTooltip title={t('chat.settings.thought_auto_collapse.tip')} />
             </SettingRowTitleSmall>
             <Switch
               size="small"
@@ -409,10 +408,8 @@ const SettingsTab: FC<Props> = (props) => {
           <SettingDivider />
           <SettingRow>
             <SettingRowTitleSmall>
-              {t('settings.math.single_dollar.label')}{' '}
-              <Tooltip title={t('settings.math.single_dollar.tip')}>
-                <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-              </Tooltip>
+              {t('settings.math.single_dollar.label')}
+              <HelpTooltip title={t('settings.math.single_dollar.tip')} />
             </SettingRowTitleSmall>
             <Switch
               size="small"
@@ -440,9 +437,7 @@ const SettingsTab: FC<Props> = (props) => {
           <SettingRow>
             <SettingRowTitleSmall>
               {t('chat.settings.code_execution.title')}
-              <Tooltip title={t('chat.settings.code_execution.tip')}>
-                <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-              </Tooltip>
+              <HelpTooltip title={t('chat.settings.code_execution.tip')} />
             </SettingRowTitleSmall>
             <Switch
               size="small"
@@ -456,9 +451,7 @@ const SettingsTab: FC<Props> = (props) => {
               <SettingRow style={{ paddingLeft: 8 }}>
                 <SettingRowTitleSmall>
                   {t('chat.settings.code_execution.timeout_minutes.label')}
-                  <Tooltip title={t('chat.settings.code_execution.timeout_minutes.tip')}>
-                    <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-                  </Tooltip>
+                  <HelpTooltip title={t('chat.settings.code_execution.timeout_minutes.tip')} />
                 </SettingRowTitleSmall>
                 <EditableNumber
                   size="small"
@@ -542,7 +535,10 @@ const SettingsTab: FC<Props> = (props) => {
           </SettingRow>
           <SettingDivider />
           <SettingRow>
-            <SettingRowTitleSmall>{t('chat.settings.code_image_tools')}</SettingRowTitleSmall>
+            <SettingRowTitleSmall>
+              {t('chat.settings.code_image_tools.label')}
+              <HelpTooltip title={t('chat.settings.code_image_tools.tip')} />
+            </SettingRowTitleSmall>
             <Switch size="small" checked={codeImageTools} onChange={(checked) => setCodeImageTools(checked)} />
           </SettingRow>
         </SettingGroup>
@@ -688,6 +684,7 @@ const Container = styled(Scrollbar)`
 
 const SettingRowTitleSmall = styled(SettingRowTitle)`
   font-size: 13px;
+  gap: 4px;
 `
 
 const SettingGroup = styled.div<{ theme?: ThemeMode }>`
