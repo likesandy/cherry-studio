@@ -237,5 +237,23 @@ export async function prepareSpecialProviderConfig(
     const { token } = await window.api.copilot.getToken(defaultHeaders)
     config.options.apiKey = token
   }
+  if (provider.id === 'cherryin') {
+    config.options.fetch = async (url, options) => {
+      // 在这里对最终参数进行签名
+      const signature = await window.api.cherryin.generateSignature({
+        method: 'POST',
+        path: '/chat/completions',
+        query: '',
+        body: JSON.parse(options.body)
+      })
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+          ...signature
+        }
+      })
+    }
+  }
   return config
 }

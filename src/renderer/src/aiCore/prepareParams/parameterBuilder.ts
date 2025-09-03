@@ -98,7 +98,8 @@ export async function buildStreamTextParams(
     headers: options.requestOptions?.headers,
     providerOptions,
     tools,
-    stopWhen: stepCountIs(10)
+    stopWhen: stepCountIs(10),
+    maxRetries: 0
   }
   if (assistant.prompt) {
     params.system = assistant.prompt
