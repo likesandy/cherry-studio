@@ -350,7 +350,7 @@ export function hasApiKey(provider: Provider) {
 // }
 
 export async function fetchModels(provider: Provider): Promise<SdkModel[]> {
-  const AI = new AiProviderNew({} as Model, provider)
+  const AI = new AiProviderNew(provider)
 
   try {
     return await AI.models()

@@ -131,12 +131,21 @@ export function providerToAiSdkConfig(
   // 添加额外headers
   if (actualProvider.extra_headers) {
     extraOptions.headers = actualProvider.extra_headers
+    // copy from openaiBaseClient/openaiResponseApiClient
+    if (aiSdkProviderId === 'openai') {
+      extraOptions.headers = {
+        ...extraOptions.headers,
+        'HTTP-Referer': 'https://cherry-ai.com',
+        'X-Title': 'Cherry Studio',
+        'X-Api-Key': baseConfig.apiKey
+      }
+    }
   }
 
   // copilot
   if (actualProvider.id === 'copilot') {
     extraOptions.headers = {
-      ...extraOptions.extra_headers,
+      ...extraOptions.headers,
       'editor-version': 'vscode/1.97.2',
       'copilot-vision-request': 'true'
     }
@@ -183,7 +192,6 @@ export function providerToAiSdkConfig(
     } else if (baseConfig.baseURL.endsWith('/v1')) {
       baseConfig.baseURL = baseConfig.baseURL.slice(0, -3)
     }
-
     baseConfig.baseURL = isEmpty(baseConfig.baseURL) ? '' : baseConfig.baseURL
   }
 

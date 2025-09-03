@@ -42,18 +42,36 @@ export type ModernAiProviderConfig = AiSdkMiddlewareConfig & {
 
 export default class ModernAiProvider {
   private legacyProvider: LegacyAiProvider
-  private config: ReturnType<typeof providerToAiSdkConfig>
+  private config?: ReturnType<typeof providerToAiSdkConfig>
   private actualProvider: Provider
-  private model: Model
+  private model?: Model
   private localProvider: Awaited<AiSdkProvider> | null = null
 
-  constructor(model: Model, provider?: Provider) {
-    this.actualProvider = provider || getActualProvider(model)
-    this.legacyProvider = new LegacyAiProvider(this.actualProvider)
-    this.model = model
+  // 构造函数重载签名
+  constructor(model: Model, provider?: Provider)
+  constructor(provider: Provider)
+  constructor(modelOrProvider: Model | Provider, provider?: Provider)
+  constructor(modelOrProvider: Model | Provider, provider?: Provider) {
+    if (this.isModel(modelOrProvider)) {
+      // 传入的是 Model
+      this.model = modelOrProvider
+      this.actualProvider = provider || getActualProvider(modelOrProvider)
+      // 只保存配置，不预先创建executor
+      this.config = providerToAiSdkConfig(this.actualProvider, modelOrProvider)
+    } else {
+      // 传入的是 Provider
+      this.actualProvider = modelOrProvider
+      // model为可选，某些操作（如fetchModels）不需要model
+    }
 
-    // 只保存配置，不预先创建executor
-    this.config = providerToAiSdkConfig(this.actualProvider, model)
+    this.legacyProvider = new LegacyAiProvider(this.actualProvider)
+  }
+
+  /**
+   * 类型守卫函数：通过 provider 属性区分 Model 和 Provider
+   */
+  private isModel(obj: Model | Provider): obj is Model {
+    return 'provider' in obj && typeof obj.provider === 'string'
   }
 
   public getActualProvider() {
@@ -61,6 +79,16 @@ export default class ModernAiProvider {
   }
 
   public async completions(modelId: string, params: StreamTextParams, config: ModernAiProviderConfig) {
+    // 检查model是否存在
+    if (!this.model) {
+      throw new Error('Model is required for completions. Please use constructor with model parameter.')
+    }
+
+    // 确保配置存在
+    if (!this.config) {
+      this.config = providerToAiSdkConfig(this.actualProvider, this.model)
+    }
+
     // 准备特殊配置
     await prepareSpecialProviderConfig(this.actualProvider, this.config)
 
@@ -127,7 +155,7 @@ export default class ModernAiProvider {
     params: StreamTextParams,
     config: ModernAiProviderConfig & { topicId: string }
   ): Promise<CompletionsResult> {
-    const modelId = this.model.id
+    const modelId = this.model!.id
     const traceName = `${this.actualProvider.name}.${modelId}.${config.callType}`
     const traceParams: StartSpanParams = {
       name: traceName,
@@ -211,10 +239,10 @@ export default class ModernAiProvider {
     params: StreamTextParams,
     config: ModernAiProviderConfig
   ): Promise<CompletionsResult> {
-    const modelId = this.model.id
+    const modelId = this.model!.id
     logger.info('Starting modernCompletions', {
       modelId,
-      providerId: this.config.providerId,
+      providerId: this.config!.providerId,
       topicId: config.topicId,
       hasOnChunk: !!config.onChunk,
       hasTools: !!params.tools && Object.keys(params.tools).length > 0,
@@ -225,11 +253,11 @@ export default class ModernAiProvider {
     const plugins = buildPlugins(config)
 
     // 用构建好的插件数组创建executor
-    const executor = createExecutor(this.config.providerId, this.config.options, plugins)
+    const executor = createExecutor(this.config!.providerId, this.config!.options, plugins)
 
     // 创建带有中间件的执行器
     if (config.onChunk) {
-      const accumulate = this.model.supported_text_delta !== false // true and undefined
+      const accumulate = this.model!.supported_text_delta !== false // true and undefined
       const adapter = new AiSdkToChunkAdapter(config.onChunk, config.mcpTools, accumulate)
 
       const streamResult = await executor.streamText({
@@ -308,7 +336,7 @@ export default class ModernAiProvider {
       }
 
       // 调用新 AI SDK 的图像生成功能
-      const executor = createExecutor(this.config.providerId, this.config.options, [])
+      const executor = createExecutor(this.config!.providerId, this.config!.options, [])
       const result = await executor.generateImage({
         model,
         ...imageParams
@@ -428,7 +456,7 @@ export default class ModernAiProvider {
       ...(signal && { abortSignal: signal })
     }
 
-    const executor = createExecutor(this.config.providerId, this.config.options, [])
+    const executor = createExecutor(this.config!.providerId, this.config!.options, [])
     const result = await executor.generateImage({
       model: this.localProvider?.imageModel(model) as ImageModel,
       ...aiSdkParams
