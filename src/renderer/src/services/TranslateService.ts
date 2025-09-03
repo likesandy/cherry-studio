@@ -87,7 +87,7 @@ export const translateText = async (
   abortKey?: string
 ) => {
   try {
-    const assistant = getDefaultTranslateAssistant(targetLanguage, text)
+    const assistant = await getDefaultTranslateAssistant(targetLanguage, text)
 
     const translatedText = await fetchTranslate({ assistant, onResponse, abortKey })
 

@@ -1,3 +1,4 @@
+import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
 import { CompletionsParams } from '@renderer/aiCore/middleware/schemas'
 import { SYSTEM_PROMPT_THRESHOLD } from '@renderer/config/constant'
@@ -12,7 +13,6 @@ import {
   isWebSearchModel
 } from '@renderer/config/models'
 import { getModel } from '@renderer/hooks/useModel'
-import { getStoreSetting } from '@renderer/hooks/useSettings'
 import i18n from '@renderer/i18n'
 import { currentSpan, withSpanResult } from '@renderer/services/SpanManagerService'
 import store from '@renderer/store'
@@ -680,7 +680,7 @@ export async function fetchLanguageDetection({ text, onResponse }: FetchLanguage
 }
 
 export async function fetchMessagesSummary({ messages, assistant }: { messages: Message[]; assistant: Assistant }) {
-  let prompt = (getStoreSetting('topicNamingPrompt') as string) || i18n.t('prompts.title')
+  let prompt = (await preferenceService.get('topic.naming_prompt')) || i18n.t('prompts.title')
   const model = getQuickModel() || assistant.model || getDefaultModel()
 
   if (prompt && containsSupportedVariables(prompt)) {

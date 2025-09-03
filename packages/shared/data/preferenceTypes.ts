@@ -65,3 +65,11 @@ export enum UpgradeChannel {
   RC = 'rc', // 公测版本
   BETA = 'beta' // 预览版本
 }
+
+export type ChatMessageStyle = 'plain' | 'bubble'
+
+export type ChatMessageNavigationMode = 'none' | 'buttons' | 'anchor'
+
+export type MultiModelMessageStyle = 'horizontal' | 'vertical' | 'fold' | 'grid'
+
+export type MultiModelGridPopoverTrigger = 'hover' | 'click'

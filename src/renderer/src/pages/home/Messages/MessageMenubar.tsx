@@ -1,5 +1,6 @@
 // import { InfoCircleOutlined } from '@ant-design/icons'
 import { usePreference } from '@data/hooks/usePreference'
+import { useMultiplePreferences } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import { CopyIcon, DeleteIcon, EditIcon, RefreshIcon } from '@renderer/components/Icons'
 import ObsidianExportPopup from '@renderer/components/Popups/ObsidianExportPopup'
@@ -16,7 +17,7 @@ import useTranslate from '@renderer/hooks/useTranslate'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
 import { getMessageTitle } from '@renderer/services/MessagesService'
 import { translateText } from '@renderer/services/TranslateService'
-import store, { RootState, useAppDispatch } from '@renderer/store'
+import store, { useAppDispatch } from '@renderer/store'
 import { messageBlocksSelectors, removeOneBlock } from '@renderer/store/messageBlock'
 import { selectMessagesForTopic } from '@renderer/store/newMessage'
 import { TraceIcon } from '@renderer/trace/pages/Component'
@@ -107,7 +108,19 @@ const MessageMenubar: FC<Props> = (props) => {
 
   const isUserMessage = message.role === 'user'
 
-  const exportMenuOptions = useSelector((state: RootState) => state.settings.exportMenuOptions)
+  const [exportMenuOptions] = useMultiplePreferences({
+    image: 'data.export.menus.image',
+    markdown: 'data.export.menus.markdown',
+    markdown_reason: 'data.export.menus.markdown_reason',
+    notion: 'data.export.menus.notion',
+    yuque: 'data.export.menus.yuque',
+    joplin: 'data.export.menus.joplin',
+    obsidian: 'data.export.menus.obsidian',
+    siyuan: 'data.export.menus.siyuan',
+    docx: 'data.export.menus.docx',
+    plain_text: 'data.export.menus.plain_text'
+  })
+
   const dispatch = useAppDispatch()
 
   // const processedMessage = useMemo(() => {
@@ -263,7 +276,7 @@ const MessageMenubar: FC<Props> = (props) => {
             key: 'clipboard',
             onClick: async () => {
               const title = await getMessageTitle(message)
-              const markdown = messageToMarkdown(message)
+              const markdown = await messageToMarkdown(message)
               exportMessageToNotes(title, markdown, notesPath)
             }
           }
@@ -315,7 +328,7 @@ const MessageMenubar: FC<Props> = (props) => {
             label: t('chat.topics.export.word'),
             key: 'word',
             onClick: async () => {
-              const markdown = messageToMarkdown(message)
+              const markdown = await messageToMarkdown(message)
               const title = await getMessageTitle(message)
               window.api.export.toWord(markdown, title)
             }
@@ -325,7 +338,7 @@ const MessageMenubar: FC<Props> = (props) => {
             key: 'notion',
             onClick: async () => {
               const title = await getMessageTitle(message)
-              const markdown = messageToMarkdown(message)
+              const markdown = await messageToMarkdown(message)
               exportMessageToNotion(title, markdown, message)
             }
           },
@@ -334,7 +347,7 @@ const MessageMenubar: FC<Props> = (props) => {
             key: 'yuque',
             onClick: async () => {
               const title = await getMessageTitle(message)
-              const markdown = messageToMarkdown(message)
+              const markdown = await messageToMarkdown(message)
               exportMarkdownToYuque(title, markdown)
             }
           },
@@ -359,7 +372,7 @@ const MessageMenubar: FC<Props> = (props) => {
             key: 'siyuan',
             onClick: async () => {
               const title = await getMessageTitle(message)
-              const markdown = messageToMarkdown(message)
+              const markdown = await messageToMarkdown(message)
               exportMarkdownToSiyuan(title, markdown)
             }
           }

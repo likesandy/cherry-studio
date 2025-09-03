@@ -13,7 +13,12 @@ import { TRANSLATE_PROMPT } from '@shared/config/prompts'
 import type {
   AssistantIconType,
   AssistantTabSortType,
+  ChatMessageNavigationMode,
+  ChatMessageStyle,
+  LanguageVarious,
   MultiModelFoldDisplayMode,
+  MultiModelGridPopoverTrigger,
+  MultiModelMessageStyle,
   ProxyMode,
   SelectionActionItem,
   SelectionFilterMode,
@@ -22,7 +27,7 @@ import type {
   SidebarIcon,
   WindowStyle
 } from '@shared/data/preferenceTypes'
-import { LanguageVarious, ThemeMode, UpgradeChannel } from '@shared/data/preferenceTypes'
+import { ThemeMode, UpgradeChannel } from '@shared/data/preferenceTypes'
 
 /* eslint @typescript-eslint/member-ordering: ["error", {
   "interfaces": { "order": "alphabetically" },
@@ -148,11 +153,11 @@ export interface PreferencesType {
     // redux/settings/gridColumns
     'chat.message.multi_model.grid_columns': number
     // redux/settings/gridPopoverTrigger
-    'chat.message.multi_model.grid_popover_trigger': string
+    'chat.message.multi_model.grid_popover_trigger': MultiModelGridPopoverTrigger
     // redux/settings/multiModelMessageStyle
-    'chat.message.multi_model.style': string
+    'chat.message.multi_model.style': MultiModelMessageStyle
     // redux/settings/messageNavigation
-    'chat.message.navigation_mode': string
+    'chat.message.navigation_mode': ChatMessageNavigationMode
     // redux/settings/renderInputMessageAsMarkdown
     'chat.message.render_as_markdown': boolean
     // redux/settings/showMessageDivider
@@ -162,7 +167,7 @@ export interface PreferencesType {
     // redux/settings/showPrompt
     'chat.message.show_prompt': boolean
     // redux/settings/messageStyle
-    'chat.message.style': string
+    'chat.message.style': ChatMessageStyle
     // redux/settings/thoughtAutoCollapse
     'chat.message.thought.auto_collapse': boolean
     // redux/settings/narrowMode

@@ -210,9 +210,9 @@ export class PreferenceService {
   }
 
   /**
-   * Get multiple preferences at once
+   * Get multiple preferences at once, return is Partial<PreferenceDefaultScopeType>
    */
-  public async getMultiple(keys: PreferenceKeyType[]): Promise<Partial<PreferenceDefaultScopeType>> {
+  public async getMultipleRaw(keys: PreferenceKeyType[]): Promise<Partial<PreferenceDefaultScopeType>> {
     // Check which keys are already cached
     const cachedResults: Partial<PreferenceDefaultScopeType> = {}
     const uncachedKeys: PreferenceKeyType[] = []
@@ -258,6 +258,23 @@ export class PreferenceService {
 
     return cachedResults
   }
+
+  /**
+   * Get multiple preferences at once and return them as a record of key-value pairs
+   */
+  public async getMultiple<T extends Record<string, PreferenceKeyType>>(
+    keys: T
+  ): Promise<{ [P in keyof T]: PreferenceDefaultScopeType[T[P]] }> {
+    const values = await this.getMultipleRaw(Object.values(keys))
+    const result = {} as { [P in keyof T]: PreferenceDefaultScopeType[T[P]] }
+
+    for (const key in keys) {
+      result[key] = values[keys[key]]!
+    }
+
+    return result
+  }
+
   /**
    * Set multiple preferences at once with configurable update strategy
    */
@@ -454,7 +471,7 @@ export class PreferenceService {
 
     if (uncachedKeys.length > 0) {
       try {
-        const values = await this.getMultiple(uncachedKeys)
+        const values = await this.getMultipleRaw(uncachedKeys)
         logger.debug(`Preloaded ${Object.keys(values).length} preferences`)
       } catch (error) {
         logger.error('Failed to preload preferences:', error as Error)

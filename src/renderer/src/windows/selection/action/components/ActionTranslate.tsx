@@ -87,13 +87,15 @@ const ActionTranslate: FC<Props> = ({ action, scrollToBottom }) => {
     if (initialized.current || !action.selectedText) return
     initialized.current = true
 
-    // Initialize assistant
-    const currentAssistant = getDefaultTranslateAssistant(targetLanguage, action.selectedText)
+    runAsyncFunction(async () => {
+      // Initialize assistant
+      const currentAssistant = await getDefaultTranslateAssistant(targetLanguage, action.selectedText!)
 
-    assistantRef.current = currentAssistant
+      assistantRef.current = currentAssistant
 
-    // Initialize topic
-    topicRef.current = getDefaultTopic(currentAssistant.id)
+      // Initialize topic
+      topicRef.current = getDefaultTopic(currentAssistant.id)
+    })
   }, [action, targetLanguage, translateModelPrompt])
 
   const fetchResult = useCallback(async () => {
@@ -141,7 +143,7 @@ const ActionTranslate: FC<Props> = ({ action, scrollToBottom }) => {
       }
     }
 
-    assistantRef.current = getDefaultTranslateAssistant(translateLang, action.selectedText)
+    assistantRef.current = await getDefaultTranslateAssistant(translateLang, action.selectedText)
     processMessages(assistantRef.current, topicRef.current, action.selectedText, setAskId, onStream, onFinish, onError)
   }, [action, targetLanguage, alterLanguage, scrollToBottom])
 

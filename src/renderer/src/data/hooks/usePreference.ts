@@ -315,7 +315,7 @@ export function useMultiplePreferences<T extends Record<string, PreferenceKeyTyp
     })
 
     if (uncachedKeys.length > 0) {
-      preferenceService.getMultiple(uncachedKeys).catch((error) => {
+      preferenceService.getMultipleRaw(uncachedKeys).catch((error) => {
         logger.error('Failed to load initial preferences:', error as Error)
       })
     }

@@ -1,3 +1,4 @@
+import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import { ContentSearch, ContentSearchRef } from '@renderer/components/ContentSearch'
 import { HStack } from '@renderer/components/Layout'
@@ -6,7 +7,6 @@ import { QuickPanelProvider } from '@renderer/components/QuickPanel'
 import { useAssistant } from '@renderer/hooks/useAssistant'
 import { useChatContext } from '@renderer/hooks/useChatContext'
 import { useNavbarPosition } from '@renderer/hooks/useNavbar'
-import { useSettings } from '@renderer/hooks/useSettings'
 import { useShortcut } from '@renderer/hooks/useShortcuts'
 import { useShowAssistants, useShowTopics } from '@renderer/hooks/useStore'
 import { useTimer } from '@renderer/hooks/useTimer'
@@ -36,7 +36,9 @@ interface Props {
 
 const Chat: FC<Props> = (props) => {
   const { assistant } = useAssistant(props.assistant.id)
-  const { topicPosition, messageStyle, messageNavigation } = useSettings()
+  const [topicPosition] = usePreference('topic.position')
+  const [messageStyle] = usePreference('chat.message.style')
+  const [messageNavigation] = usePreference('chat.message.navigation_mode')
   const { showTopics } = useShowTopics()
   const { isMultiSelectMode } = useChatContext(props.activeTopic)
   const { isTopNavbar } = useNavbarPosition()
@@ -178,7 +180,8 @@ const Chat: FC<Props> = (props) => {
 }
 
 export const useChatMaxWidth = () => {
-  const { showTopics, topicPosition } = useSettings()
+  const [showTopics] = usePreference('topic.tab.show')
+  const [topicPosition] = usePreference('topic.position')
   const { isLeftNavbar } = useNavbarPosition()
   const { showAssistants } = useShowAssistants()
   const showRightTopics = showTopics && topicPosition === 'right'

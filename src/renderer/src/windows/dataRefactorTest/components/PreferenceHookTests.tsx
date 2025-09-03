@@ -70,7 +70,7 @@ const PreferenceHookTests: React.FC = () => {
   const testBatchOperations = async () => {
     try {
       const keys: PreferenceKeyType[] = ['ui.theme_mode', 'app.language']
-      const result = await preferenceService.getMultiple(keys)
+      const result = await preferenceService.getMultipleRaw(keys)
 
       message.success(`批量获取成功: ${Object.keys(result).length} 项`)
       logger.debug('Batch get result:', { result })

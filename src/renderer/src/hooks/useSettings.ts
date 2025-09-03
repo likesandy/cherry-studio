@@ -1,8 +1,10 @@
-import store, { useAppSelector } from '@renderer/store'
-import {
-  SettingsState
-  // setWindowStyle
-} from '@renderer/store/settings'
+//TODO data refactor
+// this file will be removed
+
+import { usePreference } from '@data/hooks/usePreference'
+import { useAppSelector } from '@renderer/store'
+import store from '@renderer/store'
+import { SettingsState } from '@renderer/store/settings'
 
 export function useSettings() {
   const settings = useAppSelector((state) => state.settings)
@@ -87,7 +89,7 @@ export function useSettings() {
 }
 
 export function useMessageStyle() {
-  const { messageStyle } = useSettings()
+  const [messageStyle] = usePreference('chat.message.style')
   const isBubbleStyle = messageStyle === 'bubble'
 
   return {
@@ -112,6 +114,6 @@ export const getStoreSetting = (key: keyof SettingsState) => {
 //   }
 // }
 
-export const getEnableDeveloperMode = () => {
-  return store.getState().settings.enableDeveloperMode
-}
+// export const getEnableDeveloperMode = () => {
+//   return store.getState().settings.enableDeveloperMode
+// }
