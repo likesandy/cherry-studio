@@ -1,22 +1,30 @@
+import { loggerService } from '@logger'
 import { ContentSearch, ContentSearchRef } from '@renderer/components/ContentSearch'
+import { HStack } from '@renderer/components/Layout'
 import MultiSelectActionPopup from '@renderer/components/Popups/MultiSelectionPopup'
 import { QuickPanelProvider } from '@renderer/components/QuickPanel'
 import { useAssistant } from '@renderer/hooks/useAssistant'
 import { useChatContext } from '@renderer/hooks/useChatContext'
-import { useSettings } from '@renderer/hooks/useSettings'
+import { useNavbarPosition, useSettings } from '@renderer/hooks/useSettings'
 import { useShortcut } from '@renderer/hooks/useShortcuts'
-import { useShowTopics } from '@renderer/hooks/useStore'
+import { useShowAssistants, useShowTopics } from '@renderer/hooks/useStore'
+import { useTimer } from '@renderer/hooks/useTimer'
 import { Assistant, Topic } from '@renderer/types'
 import { classNames } from '@renderer/utils'
 import { Flex } from 'antd'
 import { debounce } from 'lodash'
-import React, { FC, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import React, { FC, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import styled from 'styled-components'
 
+import ChatNavbar from './ChatNavbar'
 import Inputbar from './Inputbar/Inputbar'
+import ChatNavigation from './Messages/ChatNavigation'
 import Messages from './Messages/Messages'
 import Tabs from './Tabs'
+
+const logger = loggerService.withContext('Chat')
 
 interface Props {
   assistant: Assistant
@@ -27,20 +35,16 @@ interface Props {
 
 const Chat: FC<Props> = (props) => {
   const { assistant } = useAssistant(props.assistant.id)
-  const { topicPosition, messageStyle, showAssistants } = useSettings()
+  const { topicPosition, messageStyle, messageNavigation } = useSettings()
   const { showTopics } = useShowTopics()
   const { isMultiSelectMode } = useChatContext(props.activeTopic)
+  const { isTopNavbar } = useNavbarPosition()
 
   const mainRef = React.useRef<HTMLDivElement>(null)
   const contentSearchRef = React.useRef<ContentSearchRef>(null)
   const [filterIncludeUser, setFilterIncludeUser] = useState(false)
 
-  const maxWidth = useMemo(() => {
-    const showRightTopics = showTopics && topicPosition === 'right'
-    const minusAssistantsWidth = showAssistants ? '- var(--assistants-width)' : ''
-    const minusRightTopicsWidth = showRightTopics ? '- var(--assistants-width)' : ''
-    return `calc(100vw - var(--sidebar-width) ${minusAssistantsWidth} ${minusRightTopicsWidth})`
-  }, [showAssistants, showTopics, topicPosition])
+  const { setTimeoutTimer } = useTimer()
 
   useHotkeys('esc', () => {
     contentSearchRef.current?.disable()
@@ -51,7 +55,7 @@ const Chat: FC<Props> = (props) => {
       const selectedText = window.getSelection()?.toString().trim()
       contentSearchRef.current?.enable(selectedText)
     } catch (error) {
-      console.error('Error enabling content search:', error)
+      logger.error('Error enabling content search:', error as Error)
     }
   })
 
@@ -77,10 +81,14 @@ const Chat: FC<Props> = (props) => {
     setFilterIncludeUser(!filterIncludeUser)
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        setTimeout(() => {
-          contentSearchRef.current?.search()
-          contentSearchRef.current?.focus()
-        }, 0)
+        setTimeoutTimer(
+          'userOutlinedItemClickHandler',
+          () => {
+            contentSearchRef.current?.search()
+            contentSearchRef.current?.focus()
+          },
+          0
+        )
       })
     })
   }
@@ -89,61 +97,114 @@ const Chat: FC<Props> = (props) => {
   const firstUpdateOrNoFirstUpdateHandler = debounce(() => {
     contentSearchRef.current?.silentSearch()
   }, 10)
+
   const messagesComponentUpdateHandler = () => {
     if (firstUpdateCompleted) {
       firstUpdateOrNoFirstUpdateHandler()
     }
   }
+
   const messagesComponentFirstUpdateHandler = () => {
-    setTimeout(() => (firstUpdateCompleted = true), 300)
+    setTimeoutTimer('messagesComponentFirstUpdateHandler', () => (firstUpdateCompleted = true), 300)
     firstUpdateOrNoFirstUpdateHandler()
   }
 
+  const mainHeight = isTopNavbar
+    ? 'calc(100vh - var(--navbar-height) - var(--navbar-height) - 12px)'
+    : 'calc(100vh - var(--navbar-height))'
+
   return (
     <Container id="chat" className={classNames([messageStyle, { 'multi-select-mode': isMultiSelectMode }])}>
-      <Main ref={mainRef} id="chat-main" vertical flex={1} justify="space-between" style={{ maxWidth }}>
-        <Messages
-          key={props.activeTopic.id}
-          assistant={assistant}
-          topic={props.activeTopic}
-          setActiveTopic={props.setActiveTopic}
-          onComponentUpdate={messagesComponentUpdateHandler}
-          onFirstUpdate={messagesComponentFirstUpdateHandler}
-        />
-        <ContentSearch
-          ref={contentSearchRef}
-          searchTarget={mainRef as React.RefObject<HTMLElement>}
-          filter={contentSearchFilter}
-          includeUser={filterIncludeUser}
-          onIncludeUserChange={userOutlinedItemClickHandler}
-        />
-        <QuickPanelProvider>
-          <Inputbar assistant={assistant} setActiveTopic={props.setActiveTopic} topic={props.activeTopic} />
-          {isMultiSelectMode && <MultiSelectActionPopup topic={props.activeTopic} />}
-        </QuickPanelProvider>
-      </Main>
-      {topicPosition === 'right' && showTopics && (
-        <Tabs
-          activeAssistant={assistant}
+      {isTopNavbar && (
+        <ChatNavbar
+          activeAssistant={props.assistant}
           activeTopic={props.activeTopic}
-          setActiveAssistant={props.setActiveAssistant}
           setActiveTopic={props.setActiveTopic}
-          position="right"
+          setActiveAssistant={props.setActiveAssistant}
+          position="left"
         />
       )}
+      <HStack>
+        <Main
+          ref={mainRef}
+          id="chat-main"
+          vertical
+          flex={1}
+          justify="space-between"
+          style={{ maxWidth: '100%', height: mainHeight }}>
+          <Messages
+            key={props.activeTopic.id}
+            assistant={assistant}
+            topic={props.activeTopic}
+            setActiveTopic={props.setActiveTopic}
+            onComponentUpdate={messagesComponentUpdateHandler}
+            onFirstUpdate={messagesComponentFirstUpdateHandler}
+          />
+          <ContentSearch
+            ref={contentSearchRef}
+            searchTarget={mainRef as React.RefObject<HTMLElement>}
+            filter={contentSearchFilter}
+            includeUser={filterIncludeUser}
+            onIncludeUserChange={userOutlinedItemClickHandler}
+          />
+          {messageNavigation === 'buttons' && <ChatNavigation containerId="messages" />}
+          <QuickPanelProvider>
+            <Inputbar assistant={assistant} setActiveTopic={props.setActiveTopic} topic={props.activeTopic} />
+            {isMultiSelectMode && <MultiSelectActionPopup topic={props.activeTopic} />}
+          </QuickPanelProvider>
+        </Main>
+        <AnimatePresence initial={false}>
+          {topicPosition === 'right' && showTopics && (
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 'auto', opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              style={{ overflow: 'hidden' }}>
+              <Tabs
+                activeAssistant={assistant}
+                activeTopic={props.activeTopic}
+                setActiveAssistant={props.setActiveAssistant}
+                setActiveTopic={props.setActiveTopic}
+                position="right"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </HStack>
     </Container>
   )
 }
 
+export const useChatMaxWidth = () => {
+  const { showTopics, topicPosition } = useSettings()
+  const { isLeftNavbar } = useNavbarPosition()
+  const { showAssistants } = useShowAssistants()
+  const showRightTopics = showTopics && topicPosition === 'right'
+  const minusAssistantsWidth = showAssistants ? '- var(--assistants-width)' : ''
+  const minusRightTopicsWidth = showRightTopics ? '- var(--assistants-width)' : ''
+  const sidebarWidth = isLeftNavbar ? '- var(--sidebar-width)' : ''
+  return `calc(100vw ${sidebarWidth} ${minusAssistantsWidth} ${minusRightTopicsWidth})`
+}
+
 const Container = styled.div`
   display: flex;
-  flex-direction: row;
-  height: 100%;
+  flex-direction: column;
+  height: calc(100vh - var(--navbar-height));
   flex: 1;
+  [navbar-position='top'] & {
+    height: calc(100vh - var(--navbar-height) -6px);
+    background-color: var(--color-background);
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    overflow: hidden;
+  }
 `
 
 const Main = styled(Flex)`
-  height: calc(100vh - var(--navbar-height));
+  [navbar-position='left'] & {
+    height: calc(100vh - var(--navbar-height));
+  }
   transform: translateZ(0);
   position: relative;
 `

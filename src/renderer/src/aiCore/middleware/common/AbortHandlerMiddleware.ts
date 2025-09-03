@@ -1,8 +1,11 @@
+import { loggerService } from '@logger'
 import { Chunk, ChunkType, ErrorChunk } from '@renderer/types/chunk'
 import { addAbortController, removeAbortController } from '@renderer/utils/abortController'
 
 import { CompletionsParams, CompletionsResult } from '../schemas'
 import type { CompletionsContext, CompletionsMiddleware } from '../types'
+
+const logger = loggerService.withContext('aiCore:AbortHandlerMiddleware')
 
 export const MIDDLEWARE_NAME = 'AbortHandlerMiddleware'
 
@@ -18,32 +21,38 @@ export const AbortHandlerMiddleware: CompletionsMiddleware =
       return result
     }
 
-    // 获取当前消息的ID用于abort管理
-    // 优先使用处理过的消息，如果没有则使用原始消息
-    let messageId: string | undefined
-
-    if (typeof params.messages === 'string') {
-      messageId = `message-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-    } else {
-      const processedMessages = params.messages
-      const lastUserMessage = processedMessages.findLast((m) => m.role === 'user')
-      messageId = lastUserMessage?.id
-    }
-
-    if (!messageId) {
-      console.warn(`[${MIDDLEWARE_NAME}] No messageId found, abort functionality will not be available.`)
-      return next(ctx, params)
-    }
-
     const abortController = new AbortController()
     const abortFn = (): void => abortController.abort()
-
-    addAbortController(messageId, abortFn)
-
     let abortSignal: AbortSignal | null = abortController.signal
+    let abortKey: string
 
+    // 如果参数中传入了abortKey则优先使用
+    if (params.abortKey) {
+      abortKey = params.abortKey
+    } else {
+      // 获取当前消息的ID用于abort管理
+      // 优先使用处理过的消息，如果没有则使用原始消息
+      let messageId: string | undefined
+
+      if (typeof params.messages === 'string') {
+        messageId = `message-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+      } else {
+        const processedMessages = params.messages
+        const lastUserMessage = processedMessages.findLast((m) => m.role === 'user')
+        messageId = lastUserMessage?.id
+      }
+
+      if (!messageId) {
+        logger.warn(`No messageId found, abort functionality will not be available.`)
+        return next(ctx, params)
+      }
+
+      abortKey = messageId
+    }
+
+    addAbortController(abortKey, abortFn)
     const cleanup = (): void => {
-      removeAbortController(messageId as string, abortFn)
+      removeAbortController(abortKey, abortFn)
       if (ctx._internal?.flowControl) {
         ctx._internal.flowControl.abortController = undefined
         ctx._internal.flowControl.abortSignal = undefined

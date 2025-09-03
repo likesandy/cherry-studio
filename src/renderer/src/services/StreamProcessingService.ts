@@ -1,8 +1,11 @@
+import { loggerService } from '@logger'
 import type { ExternalToolResult, GenerateImageResponse, MCPToolResponse, WebSearchResponse } from '@renderer/types'
 import type { Chunk } from '@renderer/types/chunk'
 import { ChunkType } from '@renderer/types/chunk'
 import type { Response } from '@renderer/types/newMessage'
 import { AssistantMessageStatus } from '@renderer/types/newMessage'
+
+const logger = loggerService.withContext('StreamProcessingService')
 
 // Define the structure for the callbacks that the StreamProcessor will invoke
 export interface StreamProcessorCallbacks {
@@ -26,7 +29,7 @@ export interface StreamProcessorCallbacks {
   // External tool call in progress
   onExternalToolInProgress?: () => void
   // Citation data received (e.g., from Internet and  Knowledge Base)
-  onExternalToolComplete?: (externalToolResult: ExternalToolResult) => void
+  onExternalToolComplete?: (externalToolResult: ExternalToolResult) => void | Promise<void>
   // LLM Web search in progress
   onLLMWebSearchInProgress?: () => void
   // LLM Web search complete
@@ -48,7 +51,7 @@ export function createStreamProcessor(callbacks: StreamProcessorCallbacks = {}) 
   return (chunk: Chunk) => {
     try {
       const data = chunk
-      // console.log('data: ', chunk)
+      logger.debug('data: ', data)
       switch (data.type) {
         case ChunkType.BLOCK_COMPLETE: {
           if (callbacks.onComplete) callbacks.onComplete(AssistantMessageStatus.SUCCESS, data?.response)
@@ -135,11 +138,11 @@ export function createStreamProcessor(callbacks: StreamProcessorCallbacks = {}) 
         }
         default: {
           // Handle unknown chunk types or log an error
-          console.warn(`Unknown chunk type: ${data.type}`)
+          logger.warn(`Unknown chunk type: ${data.type}`)
         }
       }
     } catch (error) {
-      console.error('Error processing stream chunk:', error)
+      logger.error('Error processing stream chunk:', error as Error)
       callbacks.onError?.(error)
     }
   }

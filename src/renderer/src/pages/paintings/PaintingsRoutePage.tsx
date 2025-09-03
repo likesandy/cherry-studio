@@ -1,3 +1,4 @@
+import { loggerService } from '@logger'
 import { useAppDispatch } from '@renderer/store'
 import { setDefaultPaintingProvider } from '@renderer/store/settings'
 import { PaintingProvider } from '@renderer/types'
@@ -9,8 +10,11 @@ import DmxapiPage from './DmxapiPage'
 import NewApiPage from './NewApiPage'
 import SiliconPage from './SiliconPage'
 import TokenFluxPage from './TokenFluxPage'
+import ZhipuPage from './ZhipuPage'
 
-const Options = ['aihubmix', 'silicon', 'dmxapi', 'tokenflux', 'new-api']
+const logger = loggerService.withContext('PaintingsRoutePage')
+
+const Options = ['zhipu', 'aihubmix', 'silicon', 'dmxapi', 'tokenflux', 'new-api']
 
 const PaintingsRoutePage: FC = () => {
   const params = useParams()
@@ -18,7 +22,7 @@ const PaintingsRoutePage: FC = () => {
   const dispatch = useAppDispatch()
 
   useEffect(() => {
-    console.debug('defaultPaintingProvider', provider)
+    logger.debug(`defaultPaintingProvider: ${provider}`)
     if (provider && Options.includes(provider)) {
       dispatch(setDefaultPaintingProvider(provider as PaintingProvider))
     }
@@ -26,7 +30,8 @@ const PaintingsRoutePage: FC = () => {
 
   return (
     <Routes>
-      <Route path="*" element={<AihubmixPage Options={Options} />} />
+      <Route path="*" element={<ZhipuPage Options={Options} />} />
+      <Route path="/zhipu" element={<ZhipuPage Options={Options} />} />
       <Route path="/aihubmix" element={<AihubmixPage Options={Options} />} />
       <Route path="/silicon" element={<SiliconPage Options={Options} />} />
       <Route path="/dmxapi" element={<DmxapiPage Options={Options} />} />

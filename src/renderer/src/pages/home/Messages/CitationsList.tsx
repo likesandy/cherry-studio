@@ -1,13 +1,14 @@
 import ContextMenu from '@renderer/components/ContextMenu'
 import Favicon from '@renderer/components/Icons/FallbackFavicon'
 import Scrollbar from '@renderer/components/Scrollbar'
+import { useTemporaryValue } from '@renderer/hooks/useTemporaryValue'
 import { Citation } from '@renderer/types'
 import { fetchWebContent } from '@renderer/utils/fetch'
 import { cleanMarkdownContent } from '@renderer/utils/formats'
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { Button, message, Popover, Skeleton } from 'antd'
 import { Check, Copy, FileSearch } from 'lucide-react'
-import React, { useState } from 'react'
+import React from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
@@ -46,14 +47,20 @@ const CitationsList: React.FC<CitationsListProps> = ({ citations }) => {
   const popoverContent = (
     <PopoverContentContainer>
       {citations.map((citation) => (
-        <PopoverContentItem key={citation.url || citation.number}>
-          {citation.type === 'websearch' ? (
+        <PopoverContentItem key={citation.url || citation.number || citation.title}>
+          {citation.type === 'websearch' && (
             <PopoverContent>
               <WebSearchCitation citation={citation} />
             </PopoverContent>
-          ) : (
+          )}
+          {citation.type === 'memory' && (
             <KnowledgePopoverContent>
-              <KnowledgeCitation citation={citation} />
+              <KnowledgeCitation citation={{ ...citation }} />
+            </KnowledgePopoverContent>
+          )}
+          {citation.type === 'knowledge' && (
+            <KnowledgePopoverContent>
+              <KnowledgeCitation citation={{ ...citation }} />
             </KnowledgePopoverContent>
           )}
         </PopoverContentItem>
@@ -110,7 +117,7 @@ const handleLinkClick = (url: string, event: React.MouseEvent) => {
 }
 
 const CopyButton: React.FC<{ content: string }> = ({ content }) => {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useTemporaryValue(false, 2000)
   const { t } = useTranslation()
 
   const handleCopy = () => {
@@ -119,8 +126,7 @@ const CopyButton: React.FC<{ content: string }> = ({ content }) => {
       .writeText(content)
       .then(() => {
         setCopied(true)
-        message.success(t('common.copied'))
-        setTimeout(() => setCopied(false), 2000)
+        window.message.success(t('common.copied'))
       })
       .catch(() => {
         message.error(t('message.copy.failed'))

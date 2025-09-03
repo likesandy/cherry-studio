@@ -1,9 +1,11 @@
-import Logger from '@renderer/config/logger'
+import { loggerService } from '@logger'
 import { FileMetadata } from '@renderer/types'
-import { getFileExtension } from '@renderer/utils'
+import { getFileExtension, isSupportedFile } from '@renderer/utils'
+
+const logger = loggerService.withContext('PasteService')
 
 // Track last focused component
-type ComponentType = 'inputbar' | 'messageEditor' | null
+type ComponentType = 'inputbar' | 'messageEditor' | 'TranslatePage' | null
 let lastFocusedComponent: ComponentType = 'inputbar' // Default to inputbar
 
 // 处理函数类型
@@ -58,6 +60,7 @@ export const handlePaste = async (
     // 2. 文件/图片粘贴（仅在无文本时处理）
     if (event.clipboardData?.files && event.clipboardData.files.length > 0) {
       event.preventDefault()
+      const extensionSet = new Set(supportExts)
       try {
         for (const file of event.clipboardData.files) {
           // 使用新的API获取文件路径
@@ -88,7 +91,7 @@ export const handlePaste = async (
           }
 
           // 有路径的情况
-          if (supportExts.includes(getFileExtension(filePath))) {
+          if (await isSupportedFile(filePath, extensionSet)) {
             const selectedFile = await window.api.file.get(filePath)
             if (selectedFile) {
               setFiles((prevFiles) => [...prevFiles, selectedFile])
@@ -103,7 +106,7 @@ export const handlePaste = async (
           }
         }
       } catch (error) {
-        Logger.error('[PasteService] onPaste:', error)
+        logger.error('onPaste:', error as Error)
         if (t) {
           window.message.error(t('chat.input.file_error'))
         }
@@ -113,7 +116,7 @@ export const handlePaste = async (
     // 其他情况默认粘贴
     return false
   } catch (error) {
-    Logger.error('[PasteService] handlePaste error:', error)
+    logger.error('handlePaste error:', error as Error)
     return false
   }
 }
@@ -145,7 +148,7 @@ export const init = () => {
   })
 
   isInitialized = true
-  Logger.info('[PasteService] Global paste handler initialized')
+  logger.verbose('Global paste handler initialized')
 }
 
 /**

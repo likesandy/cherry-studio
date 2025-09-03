@@ -53,14 +53,16 @@ files:
   - '!node_modules/pdf-parse/lib/pdf.js/{v1.9.426,v1.10.88,v2.0.550}'
   - '!node_modules/mammoth/{mammoth.browser.js,mammoth.browser.min.js}'
   - '!node_modules/selection-hook/prebuilds/**/*' # we rebuild .node, don't use prebuilds
-  - '!node_modules/pdfjs-dist/web/**/*'
-  - '!node_modules/pdfjs-dist/legacy/web/*'
   - '!node_modules/selection-hook/node_modules' # we don't need what in the node_modules dir
   - '!node_modules/selection-hook/src' # we don't need source files
+  - '!node_modules/tesseract.js-core/{tesseract-core.js,tesseract-core.wasm,tesseract-core.wasm.js}' # we don't need source files
+  - '!node_modules/tesseract.js-core/{tesseract-core-lstm.js,tesseract-core-lstm.wasm,tesseract-core-lstm.wasm.js}' # we don't need source files
+  - '!node_modules/tesseract.js-core/{tesseract-core-simd-lstm.js,tesseract-core-simd-lstm.wasm,tesseract-core-simd-lstm.wasm.js}' # we don't need source files
   - '!**/*.{h,iobj,ipdb,tlog,recipe,vcxproj,vcxproj.filters,Makefile,*.Makefile}' # filter .node build files
 asarUnpack:
   - resources/**
   - '**/*.{metal,exp,lib}'
+  - 'node_modules/@img/sharp-libvips-*/**'
 win:
   executableName: Cherry Studio
   artifactName: ${productName}-${version}-${arch}-setup.${ext}
@@ -100,6 +102,7 @@ linux:
   target:
     - target: AppImage
     - target: deb
+    - target: rpm
   maintainer: electronjs.org
   category: Utility
   desktop:
@@ -112,13 +115,30 @@ publish:
   url: https://releases.cherry-ai.com
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
+beforePack: scripts/before-pack.js
 afterPack: scripts/after-pack.js
 afterSign: scripts/notarize.js
 artifactBuildCompleted: scripts/artifact-build-completed.js
 releaseInfo:
   releaseNotes: |
-    • [新增] MCP 工具调用自动审批流程
-    • [优化] 输入框快捷弹窗多选交互支持
-    • [新增] 网页内容生成实时预览功能
-    • [支持] Grok-4 大语言模型接入
-    • [修复] Anthropic 模型输出截断缺陷
+    ✨ 重要更新：
+    - 新增笔记模块，支持富文本编辑和管理
+    - 内置 GLM-4.5-Flash 免费模型（由智谱开放平台提供）
+    - 内置 Qwen3-8B 免费模型（由硅基流动提供）
+    - 新增 Nano Banana（Gemini 2.5 Flash Image）模型支持
+    - 新增系统 OCR 功能 (macOS & Windows)
+    - 新增图片 OCR 识别和翻译功能
+    - 模型切换支持通过标签筛选
+    - 翻译功能增强：历史搜索和收藏
+
+    🔧 性能优化：
+    - 优化历史页面搜索性能
+    - 优化拖拽列表组件交互
+    - 升级 Electron 到 37.4.0
+
+    🐛 修复问题：
+    - 修复知识库加密 PDF 文档处理
+    - 修复导航栏在左侧时笔记侧边栏按钮缺失
+    - 修复多个模型兼容性问题
+    - 修复 MCP 相关问题
+    - 其他稳定性改进

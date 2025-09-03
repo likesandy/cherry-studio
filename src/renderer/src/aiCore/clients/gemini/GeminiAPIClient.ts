@@ -16,6 +16,7 @@ import {
   ThinkingConfig,
   Tool
 } from '@google/genai'
+import { loggerService } from '@logger'
 import { nanoid } from '@reduxjs/toolkit'
 import { GenericChunk } from '@renderer/aiCore/middleware/schemas'
 import {
@@ -51,6 +52,7 @@ import {
   GeminiSdkRawOutput,
   GeminiSdkToolCall
 } from '@renderer/types/sdk'
+import { isToolUseModeFunction } from '@renderer/utils/assistant'
 import {
   geminiFunctionCallToMcpTool,
   isEnabledToolUse,
@@ -58,11 +60,13 @@ import {
   mcpToolsToGeminiTools
 } from '@renderer/utils/mcp-tools'
 import { findFileBlocks, findImageBlocks, getMainTextContent } from '@renderer/utils/messageUtils/find'
-import { buildSystemPrompt } from '@renderer/utils/prompt'
 import { defaultTimeout, MB } from '@shared/config/constant'
+import { t } from 'i18next'
 
 import { BaseApiClient } from '../BaseApiClient'
 import { RequestTransformer, ResponseChunkTransformer } from '../types'
+
+const logger = loggerService.withContext('GeminiAPIClient')
 
 export class GeminiAPIClient extends BaseApiClient<
   GoogleGenAI,
@@ -139,7 +143,7 @@ export class GeminiAPIClient extends BaseApiClient<
       //  console.log(response?.generatedImages?.[0]?.image?.imageBytes);
       return images
     } catch (error) {
-      console.error('[generateImage] error:', error)
+      logger.error('[generateImage] error:', error as Error)
       throw error
     }
   }
@@ -425,8 +429,7 @@ export class GeminiAPIClient extends BaseApiClient<
   private getGenerateImageParameter(): Partial<GenerateContentConfig> {
     return {
       systemInstruction: undefined,
-      responseModalities: [Modality.TEXT, Modality.IMAGE],
-      responseMimeType: 'text/plain'
+      responseModalities: [Modality.TEXT, Modality.IMAGE]
     }
   }
 
@@ -445,7 +448,7 @@ export class GeminiAPIClient extends BaseApiClient<
       }> => {
         const { messages, mcpTools, maxTokens, enableWebSearch, enableUrlContext, enableGenerateImage } = coreRequest
         // 1. 处理系统消息
-        let systemInstruction = assistant.prompt
+        const systemInstruction = assistant.prompt
 
         // 2. 设置工具
         const { tools } = this.setupToolsConfig({
@@ -453,10 +456,6 @@ export class GeminiAPIClient extends BaseApiClient<
           model,
           enableToolUse: isEnabledToolUse(assistant)
         })
-
-        if (this.useSystemPromptForTools) {
-          systemInstruction = await buildSystemPrompt(assistant.prompt || '', mcpTools, assistant)
-        }
 
         let messageContents: Content = { role: 'user', parts: [] } // Initialize messageContents
         const history: Content[] = []
@@ -477,16 +476,20 @@ export class GeminiAPIClient extends BaseApiClient<
           }
         }
 
-        if (enableWebSearch) {
-          tools.push({
-            googleSearch: {}
-          })
-        }
+        if (tools.length === 0 || !isToolUseModeFunction(assistant)) {
+          if (enableWebSearch) {
+            tools.push({
+              googleSearch: {}
+            })
+          }
 
-        if (enableUrlContext) {
-          tools.push({
-            urlContext: {}
-          })
+          if (enableUrlContext) {
+            tools.push({
+              urlContext: {}
+            })
+          }
+        } else if (enableWebSearch || enableUrlContext) {
+          logger.warn('Native tools cannot be used with function calling for now.')
         }
 
         if (isGemmaModel(model) && assistant.prompt) {
@@ -533,6 +536,7 @@ export class GeminiAPIClient extends BaseApiClient<
           ...(enableGenerateImage ? this.getGenerateImageParameter() : {}),
           ...this.getBudgetToken(assistant, model),
           // 只在对话场景下应用自定义参数，避免影响翻译、总结等其他业务逻辑
+          // 注意：用户自定义参数总是应该覆盖其他参数
           ...(coreRequest.callType === 'chat' ? this.getCustomParameters(assistant) : {})
         }
 
@@ -558,6 +562,15 @@ export class GeminiAPIClient extends BaseApiClient<
     let isFirstThinkingChunk = true
     return () => ({
       async transform(chunk: GeminiSdkRawChunk, controller: TransformStreamDefaultController<GenericChunk>) {
+        logger.silly('chunk', chunk)
+        if (typeof chunk === 'string') {
+          try {
+            chunk = JSON.parse(chunk)
+          } catch (error) {
+            logger.error('invalid chunk', { chunk, error })
+            throw new Error(t('error.chat.chunk.non_json'))
+          }
+        }
         if (chunk.candidates && chunk.candidates.length > 0) {
           for (const candidate of chunk.candidates) {
             if (candidate.content) {

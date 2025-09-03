@@ -1,6 +1,8 @@
 import { CheckOutlined } from '@ant-design/icons'
+import { loggerService } from '@logger'
 import ThinkingEffect from '@renderer/components/ThinkingEffect'
 import { useSettings } from '@renderer/hooks/useSettings'
+import { useTemporaryValue } from '@renderer/hooks/useTemporaryValue'
 import { MessageBlockStatus, type ThinkingMessageBlock } from '@renderer/types/newMessage'
 import { Collapse, message as antdMessage, Tooltip } from 'antd'
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
@@ -9,12 +11,13 @@ import styled from 'styled-components'
 
 import Markdown from '../../Markdown/Markdown'
 
+const logger = loggerService.withContext('ThinkingBlock')
 interface Props {
   block: ThinkingMessageBlock
 }
 
 const ThinkingBlock: React.FC<Props> = ({ block }) => {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useTemporaryValue(false, 2000)
   const { t } = useTranslation()
   const { messageFont, fontSize, thoughtAutoCollapse } = useSettings()
   const [activeKey, setActiveKey] = useState<'thought' | ''>(thoughtAutoCollapse ? '' : 'thought')
@@ -36,14 +39,13 @@ const ThinkingBlock: React.FC<Props> = ({ block }) => {
         .then(() => {
           antdMessage.success({ content: t('message.copied'), key: 'copy-message' })
           setCopied(true)
-          setTimeout(() => setCopied(false), 2000)
         })
         .catch((error) => {
-          console.error('Failed to copy text:', error)
+          logger.error('Failed to copy text:', error)
           antdMessage.error({ content: t('message.copy.failed'), key: 'copy-message-error' })
         })
     }
-  }, [block.content, t])
+  }, [block.content, setCopied, t])
 
   if (!block.content) {
     return null
@@ -136,7 +138,6 @@ const ThinkingTimeSeconds = memo(
 )
 
 const CollapseContainer = styled(Collapse)`
-  margin-top: 15px;
   margin-bottom: 15px;
   .ant-collapse-header {
     padding: 0 !important;
