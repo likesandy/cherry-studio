@@ -1,6 +1,27 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { ApiServerConfig, OpenAIServiceTier, OpenAISummaryText, PaintingProvider } from '@renderer/types'
+import { isMac } from '@renderer/config/constant'
+import {
+  ApiServerConfig,
+  CodeStyleVarious,
+  MathEngine,
+  OpenAIServiceTier,
+  OpenAISummaryText,
+  PaintingProvider,
+  S3Config,
+  TranslateLanguageCode
+} from '@renderer/types'
 import { uuid } from '@renderer/utils'
+import { TRANSLATE_PROMPT } from '@shared/config/prompts'
+import { DefaultPreferences } from '@shared/data/preferences'
+import type {
+  AssistantIconType,
+  AssistantTabSortType,
+  LanguageVarious,
+  MultiModelMessageStyle,
+  SendMessageShortcut,
+  SidebarIcon
+} from '@shared/data/preferenceTypes'
+import { ThemeMode, UpgradeChannel } from '@shared/data/preferenceTypes'
 import { OpenAIVerbosity } from '@types'
 
 import { RemoteSyncState } from './backup'
@@ -19,159 +40,159 @@ export type UserTheme = {
 }
 
 export interface SettingsState {
-  // showAssistants: boolean
-  // showTopics: boolean
-  // assistantsTabSortType: AssistantTabSortType
-  // sendMessageShortcut: SendMessageShortcut
-  // language: LanguageVarious
-  // targetLanguage: TranslateLanguageCode
-  // proxyMode: 'system' | 'custom' | 'none'
-  // proxyUrl?: string
-  // proxyBypassRules?: string
-  // userName: string
-  // userId: string
-  // showPrompt: boolean
-  // showMessageDivider: boolean
-  // messageFont: 'system' | 'serif'
-  // showInputEstimatedTokens: boolean
-  // launchOnBoot: boolean
-  // launchToTray: boolean
-  // trayOnClose: boolean
-  // tray: boolean
-  // theme: ThemeMode
-  // userTheme: {
-  // colorPrimary: string
-  // }
-  // windowStyle: 'transparent' | 'opaque'
-  // fontSize: number
-  // topicPosition: 'left' | 'right'
-  // showTopicTime: boolean
-  // pinTopicsToTop: boolean
-  // assistantIconType: AssistantIconType
-  // pasteLongTextAsFile: boolean
-  // pasteLongTextThreshold: number
-  // clickAssistantToShowTopic: boolean
-  // autoCheckUpdate: boolean
-  // testPlan: boolean
-  // testChannel: UpgradeChannel
-  // renderInputMessageAsMarkdown: boolean
-  // // 代码执行
-  // codeExecution: {
-  //   enabled: boolean
-  //   timeoutMinutes: number
-  // }
-  // codeEditor: {
-  //   enabled: boolean
-  //   themeLight: string
-  //   themeDark: string
-  //   highlightActiveLine: boolean
-  //   foldGutter: boolean
-  //   autocompletion: boolean
-  //   keymap: boolean
-  // }
-  // /** @deprecated use codeViewer instead */
-  // codePreview: {
-  //   themeLight: CodeStyleVarious
-  //   themeDark: CodeStyleVarious
-  // }
-  // codeViewer: {
-  //   themeLight: CodeStyleVarious
-  //   themeDark: CodeStyleVarious
-  // }
-  // codeShowLineNumbers: boolean
-  // codeCollapsible: boolean
-  // codeWrappable: boolean
-  // codeImageTools: boolean
-  // mathEngine: MathEngine
-  // mathEnableSingleDollar: boolean
-  // messageStyle: 'plain' | 'bubble'
-  // foldDisplayMode: 'expanded' | 'compact'
-  // gridColumns: number
-  // gridPopoverTrigger: 'hover' | 'click'
-  // messageNavigation: 'none' | 'buttons' | 'anchor'
-  // // 数据目录设置
-  // skipBackupFile: boolean
-  // // webdav 配置 host, user, pass, path
-  // webdavHost: string
-  // webdavUser: string
-  // webdavPass: string
-  // webdavPath: string
-  // webdavAutoSync: boolean
-  // webdavSyncInterval: number
-  // webdavMaxBackups: number
-  // webdavSkipBackupFile: boolean
-  // webdavDisableStream: boolean
-  // translateModelPrompt: string
-  // autoTranslateWithSpace: boolean
-  // showTranslateConfirm: boolean
-  // enableTopicNaming: boolean
-  // customCss: string
-  // topicNamingPrompt: string
-  // // 消息操作确认设置
-  // confirmDeleteMessage: boolean
-  // confirmRegenerateMessage: boolean
-  // // Sidebar icons
-  // sidebarIcons: {
-  //   visible: SidebarIcon[]
-  //   disabled: SidebarIcon[]
-  // }
-  // narrowMode: boolean
-  // // QuickAssistant
-  // enableQuickAssistant: boolean
-  // clickTrayToShowQuickAssistant: boolean
-  // multiModelMessageStyle: MultiModelMessageStyle
-  // readClipboardAtStartup: boolean
-  // notionDatabaseID: string | null
-  // notionApiKey: string | null
-  // notionPageNameKey: string | null
-  // markdownExportPath: string | null
-  // forceDollarMathInMarkdown: boolean
-  // useTopicNamingForMessageTitle: boolean
-  // showModelNameInMarkdown: boolean
-  // showModelProviderInMarkdown: boolean
-  // thoughtAutoCollapse: boolean
-  // notionExportReasoning: boolean
-  // excludeCitationsInExport: boolean
-  // standardizeCitationsInExport: boolean
-  // yuqueToken: string | null
-  // yuqueUrl: string | null
-  // yuqueRepoId: string | null
-  // joplinToken: string | null
-  // joplinUrl: string | null
-  // joplinExportReasoning: boolean
-  // defaultObsidianVault: string | null
+  showAssistants: boolean
+  showTopics: boolean
+  assistantsTabSortType: AssistantTabSortType
+  sendMessageShortcut: SendMessageShortcut
+  language: LanguageVarious
+  targetLanguage: TranslateLanguageCode
+  proxyMode: 'system' | 'custom' | 'none'
+  proxyUrl?: string
+  proxyBypassRules?: string
+  userName: string
+  userId: string
+  showPrompt: boolean
+  showMessageDivider: boolean
+  messageFont: 'system' | 'serif'
+  showInputEstimatedTokens: boolean
+  launchOnBoot: boolean
+  launchToTray: boolean
+  trayOnClose: boolean
+  tray: boolean
+  theme: ThemeMode
+  userTheme: {
+    colorPrimary: string
+  }
+  windowStyle: 'transparent' | 'opaque'
+  fontSize: number
+  topicPosition: 'left' | 'right'
+  showTopicTime: boolean
+  pinTopicsToTop: boolean
+  assistantIconType: AssistantIconType
+  pasteLongTextAsFile: boolean
+  pasteLongTextThreshold: number
+  clickAssistantToShowTopic: boolean
+  autoCheckUpdate: boolean
+  testPlan: boolean
+  testChannel: UpgradeChannel
+  renderInputMessageAsMarkdown: boolean
+  // 代码执行
+  codeExecution: {
+    enabled: boolean
+    timeoutMinutes: number
+  }
+  codeEditor: {
+    enabled: boolean
+    themeLight: string
+    themeDark: string
+    highlightActiveLine: boolean
+    foldGutter: boolean
+    autocompletion: boolean
+    keymap: boolean
+  }
+  /** @deprecated use codeViewer instead */
+  codePreview: {
+    themeLight: CodeStyleVarious
+    themeDark: CodeStyleVarious
+  }
+  codeViewer: {
+    themeLight: CodeStyleVarious
+    themeDark: CodeStyleVarious
+  }
+  codeShowLineNumbers: boolean
+  codeCollapsible: boolean
+  codeWrappable: boolean
+  codeImageTools: boolean
+  mathEngine: MathEngine
+  mathEnableSingleDollar: boolean
+  messageStyle: 'plain' | 'bubble'
+  foldDisplayMode: 'expanded' | 'compact'
+  gridColumns: number
+  gridPopoverTrigger: 'hover' | 'click'
+  messageNavigation: 'none' | 'buttons' | 'anchor'
+  // 数据目录设置
+  skipBackupFile: boolean
+  // webdav 配置 host, user, pass, path
+  webdavHost: string
+  webdavUser: string
+  webdavPass: string
+  webdavPath: string
+  webdavAutoSync: boolean
+  webdavSyncInterval: number
+  webdavMaxBackups: number
+  webdavSkipBackupFile: boolean
+  webdavDisableStream: boolean
+  translateModelPrompt: string
+  autoTranslateWithSpace: boolean
+  showTranslateConfirm: boolean
+  enableTopicNaming: boolean
+  customCss: string
+  topicNamingPrompt: string
+  // 消息操作确认设置
+  confirmDeleteMessage: boolean
+  confirmRegenerateMessage: boolean
+  // Sidebar icons
+  sidebarIcons: {
+    visible: SidebarIcon[]
+    disabled: SidebarIcon[]
+  }
+  narrowMode: boolean
+  // QuickAssistant
+  enableQuickAssistant: boolean
+  clickTrayToShowQuickAssistant: boolean
+  multiModelMessageStyle: MultiModelMessageStyle
+  readClipboardAtStartup: boolean
+  notionDatabaseID: string | null
+  notionApiKey: string | null
+  notionPageNameKey: string | null
+  markdownExportPath: string | null
+  forceDollarMathInMarkdown: boolean
+  useTopicNamingForMessageTitle: boolean
+  showModelNameInMarkdown: boolean
+  showModelProviderInMarkdown: boolean
+  thoughtAutoCollapse: boolean
+  notionExportReasoning: boolean
+  excludeCitationsInExport: boolean
+  standardizeCitationsInExport: boolean
+  yuqueToken: string | null
+  yuqueUrl: string | null
+  yuqueRepoId: string | null
+  joplinToken: string | null
+  joplinUrl: string | null
+  joplinExportReasoning: boolean
+  defaultObsidianVault: string | null
   defaultAgent: string | null
-  // // 思源笔记配置
-  // siyuanApiUrl: string | null
-  // siyuanToken: string | null
-  // siyuanBoxId: string | null
-  // siyuanRootPath: string | null
+  // 思源笔记配置
+  siyuanApiUrl: string | null
+  siyuanToken: string | null
+  siyuanBoxId: string | null
+  siyuanRootPath: string | null
   // 订阅的助手地址
   agentssubscribeUrl: string | null
   // MinApps
   maxKeepAliveMinapps: number
   showOpenedMinappsInSidebar: boolean
   minappsOpenLinkExternal: boolean
-  // // 隐私设置
-  // enableDataCollection: boolean
-  // enableSpellCheck: boolean
-  // spellCheckLanguages: string[]
-  // enableQuickPanelTriggers: boolean
-  // // 硬件加速设置
-  // disableHardwareAcceleration: boolean
-  // exportMenuOptions: {
-  //   image: boolean
-  //   markdown: boolean
-  //   markdown_reason: boolean
-  //   notion: boolean
-  //   yuque: boolean
-  //   joplin: boolean
-  //   obsidian: boolean
-  //   siyuan: boolean
-  //   docx: boolean
-  //   plain_text: boolean
-  //   notes: boolean
-  // }
+  // 隐私设置
+  enableDataCollection: boolean
+  enableSpellCheck: boolean
+  spellCheckLanguages: string[]
+  enableQuickPanelTriggers: boolean
+  // 硬件加速设置
+  disableHardwareAcceleration: boolean
+  exportMenuOptions: {
+    image: boolean
+    markdown: boolean
+    markdown_reason: boolean
+    notion: boolean
+    yuque: boolean
+    joplin: boolean
+    obsidian: boolean
+    siyuan: boolean
+    docx: boolean
+    plain_text: boolean
+    notes: boolean
+  }
   // OpenAI
   openAI: {
     summaryText: OpenAISummaryText
@@ -179,24 +200,24 @@ export interface SettingsState {
     serviceTier: OpenAIServiceTier
     verbosity: OpenAIVerbosity
   }
-  // // Notification
-  // notification: {
-  //   assistant: boolean
-  //   backup: boolean
-  //   knowledge: boolean
-  // }
-  // // Local backup settings
-  // localBackupDir: string
-  // localBackupAutoSync: boolean
-  // localBackupSyncInterval: number
-  // localBackupMaxBackups: number
-  // localBackupSkipBackupFile: boolean
+  // Notification
+  notification: {
+    assistant: boolean
+    backup: boolean
+    knowledge: boolean
+  }
+  // Local backup settings
+  localBackupDir: string
+  localBackupAutoSync: boolean
+  localBackupSyncInterval: number
+  localBackupMaxBackups: number
+  localBackupSkipBackupFile: boolean
   defaultPaintingProvider: PaintingProvider
-  // s3: S3Config
+  s3: S3Config
   // Developer mode
-  // enableDeveloperMode: boolean
-  // // UI
-  // navbarPosition: 'left' | 'top'
+  enableDeveloperMode: boolean
+  // UI
+  navbarPosition: 'left' | 'top'
   // API Server
   apiServer: ApiServerConfig
   showMessageOutline?: boolean
@@ -207,186 +228,186 @@ export interface SettingsState {
 // export type MultiModelMessageStyle = 'horizontal' | 'vertical' | 'fold' | 'grid'
 
 export const initialState: SettingsState = {
-  // showAssistants: true,
-  // showTopics: true,
-  // assistantsTabSortType: 'list',
-  // sendMessageShortcut: 'Enter',
-  // language: navigator.language as LanguageVarious,
-  // targetLanguage: 'en-us',
-  // proxyMode: 'system',
-  // proxyUrl: undefined,
-  // proxyBypassRules: undefined,
-  // userName: '',
-  // userId: uuid(),
-  // showPrompt: true,
-  // showMessageDivider: true,
-  // messageFont: 'system',
-  // showInputEstimatedTokens: false,
-  // launchOnBoot: false,
-  // launchToTray: false,
-  // trayOnClose: true,
-  // tray: true,
-  // theme: ThemeMode.system,
-  // userTheme: {
-  //   colorPrimary: '#00b96b'
-  // },
-  // windowStyle: isMac ? 'transparent' : 'opaque',
-  // fontSize: 14,
-  // topicPosition: 'left',
-  // showTopicTime: false,
-  // pinTopicsToTop: false,
-  // assistantIconType: 'emoji',
-  // pasteLongTextAsFile: false,
-  // pasteLongTextThreshold: 1500,
-  // clickAssistantToShowTopic: true,
-  // autoCheckUpdate: true,
-  // testPlan: false,
-  // testChannel: UpgradeChannel.LATEST,
-  // renderInputMessageAsMarkdown: false,
-  // codeExecution: {
-  //   enabled: false,
-  //   timeoutMinutes: 1
-  // },
-  // codeEditor: {
-  //   enabled: false,
-  //   themeLight: 'auto',
-  //   themeDark: 'auto',
-  //   highlightActiveLine: false,
-  //   foldGutter: false,
-  //   autocompletion: true,
-  //   keymap: false
-  // },
-  // /** @deprecated use codeViewer instead */
-  // codePreview: {
-  //   themeLight: 'auto',
-  //   themeDark: 'auto'
-  // },
-  // codeViewer: {
-  //   themeLight: 'auto',
-  //   themeDark: 'auto'
-  // },
-  // codeShowLineNumbers: false,
-  // codeCollapsible: false,
-  // codeWrappable: false,
-  // codeImageTools: false,
-  // mathEngine: 'KaTeX',
-  // mathEnableSingleDollar: true,
-  // messageStyle: 'plain',
-  // foldDisplayMode: 'expanded',
-  // gridColumns: 2,
-  // gridPopoverTrigger: 'click',
-  // messageNavigation: 'none',
-  // skipBackupFile: false,
-  // webdavHost: '',
-  // webdavUser: '',
-  // webdavPass: '',
-  // webdavPath: '/cherry-studio',
-  // webdavAutoSync: false,
-  // webdavSyncInterval: 0,
-  // webdavMaxBackups: 0,
-  // webdavSkipBackupFile: false,
-  // webdavDisableStream: false,
-  // translateModelPrompt: TRANSLATE_PROMPT,
-  // autoTranslateWithSpace: false,
-  // showTranslateConfirm: true,
-  // enableTopicNaming: true,
-  // customCss: '',
-  // topicNamingPrompt: '',
-  // sidebarIcons: {
-  //   visible: DefaultPreferences.default['ui.sidebar.icons.visible'],
-  //   disabled: []
-  // },
-  // narrowMode: false,
-  // enableQuickAssistant: false,
-  // clickTrayToShowQuickAssistant: false,
-  // readClipboardAtStartup: true,
-  // multiModelMessageStyle: 'horizontal',
-  // notionDatabaseID: '',
-  // notionApiKey: '',
-  // notionPageNameKey: 'Name',
-  // markdownExportPath: null,
-  // forceDollarMathInMarkdown: false,
-  // useTopicNamingForMessageTitle: false,
-  // showModelNameInMarkdown: false,
-  // showModelProviderInMarkdown: false,
-  // thoughtAutoCollapse: true,
-  // notionExportReasoning: false,
-  // excludeCitationsInExport: false,
-  // standardizeCitationsInExport: false,
-  // yuqueToken: '',
-  // yuqueUrl: '',
-  // yuqueRepoId: '',
-  // joplinToken: '',
-  // joplinUrl: '',
-  // joplinExportReasoning: false,
-  // defaultObsidianVault: null,
+  showAssistants: true,
+  showTopics: true,
+  assistantsTabSortType: 'list',
+  sendMessageShortcut: 'Enter',
+  language: navigator.language as LanguageVarious,
+  targetLanguage: 'en-us',
+  proxyMode: 'system',
+  proxyUrl: undefined,
+  proxyBypassRules: undefined,
+  userName: '',
+  userId: uuid(),
+  showPrompt: true,
+  showMessageDivider: true,
+  messageFont: 'system',
+  showInputEstimatedTokens: false,
+  launchOnBoot: false,
+  launchToTray: false,
+  trayOnClose: true,
+  tray: true,
+  theme: ThemeMode.system,
+  userTheme: {
+    colorPrimary: '#00b96b'
+  },
+  windowStyle: isMac ? 'transparent' : 'opaque',
+  fontSize: 14,
+  topicPosition: 'left',
+  showTopicTime: false,
+  pinTopicsToTop: false,
+  assistantIconType: 'emoji',
+  pasteLongTextAsFile: false,
+  pasteLongTextThreshold: 1500,
+  clickAssistantToShowTopic: true,
+  autoCheckUpdate: true,
+  testPlan: false,
+  testChannel: UpgradeChannel.LATEST,
+  renderInputMessageAsMarkdown: false,
+  codeExecution: {
+    enabled: false,
+    timeoutMinutes: 1
+  },
+  codeEditor: {
+    enabled: false,
+    themeLight: 'auto',
+    themeDark: 'auto',
+    highlightActiveLine: false,
+    foldGutter: false,
+    autocompletion: true,
+    keymap: false
+  },
+  /** @deprecated use codeViewer instead */
+  codePreview: {
+    themeLight: 'auto',
+    themeDark: 'auto'
+  },
+  codeViewer: {
+    themeLight: 'auto',
+    themeDark: 'auto'
+  },
+  codeShowLineNumbers: false,
+  codeCollapsible: false,
+  codeWrappable: false,
+  codeImageTools: false,
+  mathEngine: 'KaTeX',
+  mathEnableSingleDollar: true,
+  messageStyle: 'plain',
+  foldDisplayMode: 'expanded',
+  gridColumns: 2,
+  gridPopoverTrigger: 'click',
+  messageNavigation: 'none',
+  skipBackupFile: false,
+  webdavHost: '',
+  webdavUser: '',
+  webdavPass: '',
+  webdavPath: '/cherry-studio',
+  webdavAutoSync: false,
+  webdavSyncInterval: 0,
+  webdavMaxBackups: 0,
+  webdavSkipBackupFile: false,
+  webdavDisableStream: false,
+  translateModelPrompt: TRANSLATE_PROMPT,
+  autoTranslateWithSpace: false,
+  showTranslateConfirm: true,
+  enableTopicNaming: true,
+  customCss: '',
+  topicNamingPrompt: '',
+  sidebarIcons: {
+    visible: DefaultPreferences.default['ui.sidebar.icons.visible'],
+    disabled: []
+  },
+  narrowMode: false,
+  enableQuickAssistant: false,
+  clickTrayToShowQuickAssistant: false,
+  readClipboardAtStartup: true,
+  multiModelMessageStyle: 'horizontal',
+  notionDatabaseID: '',
+  notionApiKey: '',
+  notionPageNameKey: 'Name',
+  markdownExportPath: null,
+  forceDollarMathInMarkdown: false,
+  useTopicNamingForMessageTitle: false,
+  showModelNameInMarkdown: false,
+  showModelProviderInMarkdown: false,
+  thoughtAutoCollapse: true,
+  notionExportReasoning: false,
+  excludeCitationsInExport: false,
+  standardizeCitationsInExport: false,
+  yuqueToken: '',
+  yuqueUrl: '',
+  yuqueRepoId: '',
+  joplinToken: '',
+  joplinUrl: '',
+  joplinExportReasoning: false,
+  defaultObsidianVault: null,
   defaultAgent: null,
-  // siyuanApiUrl: null,
-  // siyuanToken: null,
-  // siyuanBoxId: null,
-  // siyuanRootPath: null,
+  siyuanApiUrl: null,
+  siyuanToken: null,
+  siyuanBoxId: null,
+  siyuanRootPath: null,
   agentssubscribeUrl: '',
   // MinApps
   maxKeepAliveMinapps: 3,
   showOpenedMinappsInSidebar: true,
   minappsOpenLinkExternal: false,
-  // enableDataCollection: false,
-  // enableSpellCheck: false,
-  // spellCheckLanguages: [],
-  // enableQuickPanelTriggers: false,
-  // // 消息操作确认设置
-  // confirmDeleteMessage: true,
-  // confirmRegenerateMessage: true,
-  // // 硬件加速设置
-  // disableHardwareAcceleration: false,
-  // exportMenuOptions: {
-  //   image: true,
-  //   markdown: true,
-  //   markdown_reason: true,
-  //   notion: true,
-  //   yuque: true,
-  //   joplin: true,
-  //   obsidian: true,
-  //   siyuan: true,
-  //   docx: true,
-  //   plain_text: true,
-  //   notes: true
-  // },
+  enableDataCollection: false,
+  enableSpellCheck: false,
+  spellCheckLanguages: [],
+  enableQuickPanelTriggers: false,
+  // 消息操作确认设置
+  confirmDeleteMessage: true,
+  confirmRegenerateMessage: true,
+  // 硬件加速设置
+  disableHardwareAcceleration: false,
+  exportMenuOptions: {
+    image: true,
+    markdown: true,
+    markdown_reason: true,
+    notion: true,
+    yuque: true,
+    joplin: true,
+    obsidian: true,
+    siyuan: true,
+    docx: true,
+    plain_text: true,
+    notes: true
+  },
   // OpenAI
   openAI: {
     summaryText: 'off',
     serviceTier: 'auto',
     verbosity: 'medium'
   },
-  // notification: {
-  //   assistant: false,
-  //   backup: false,
-  //   knowledge: false
-  // },
-  // // Local backup settings
-  // localBackupDir: '',
-  // localBackupAutoSync: false,
-  // localBackupSyncInterval: 0,
-  // localBackupMaxBackups: 0,
-  // localBackupSkipBackupFile: false,
+  notification: {
+    assistant: false,
+    backup: false,
+    knowledge: false
+  },
+  // Local backup settings
+  localBackupDir: '',
+  localBackupAutoSync: false,
+  localBackupSyncInterval: 0,
+  localBackupMaxBackups: 0,
+  localBackupSkipBackupFile: false,
   defaultPaintingProvider: 'zhipu',
-  // s3: {
-  //   endpoint: '',
-  //   region: '',
-  //   bucket: '',
-  //   accessKeyId: '',
-  //   secretAccessKey: '',
-  //   root: '',
-  //   autoSync: false,
-  //   syncInterval: 0,
-  //   maxBackups: 0,
-  //   skipBackupFile: false
-  // },
+  s3: {
+    endpoint: '',
+    region: '',
+    bucket: '',
+    accessKeyId: '',
+    secretAccessKey: '',
+    root: '',
+    autoSync: false,
+    syncInterval: 0,
+    maxBackups: 0,
+    skipBackupFile: false
+  },
 
-  // // Developer mode
-  // enableDeveloperMode: false,
-  // // UI
-  // navbarPosition: 'top',
+  // Developer mode
+  enableDeveloperMode: false,
+  // UI
+  navbarPosition: 'top',
   // API Server
   apiServer: {
     enabled: false,
@@ -394,7 +415,7 @@ export const initialState: SettingsState = {
     port: 23333,
     apiKey: `cs-sk-${uuid()}`
   },
-  // showMessageOutline: undefined,
+  showMessageOutline: false,
   // Notes Related
   showWorkspace: true
 }
