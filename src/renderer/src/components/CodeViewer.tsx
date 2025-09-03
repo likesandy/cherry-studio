@@ -12,7 +12,7 @@ import styled from 'styled-components'
 
 interface CodeViewerProps {
   language: string
-  children: string
+  children: React.ReactNode
   expanded?: boolean
   wrapped?: boolean
   onHeightChange?: (scrollHeight: number) => void
