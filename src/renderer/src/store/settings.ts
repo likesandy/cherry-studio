@@ -220,7 +220,7 @@ export interface SettingsState {
   navbarPosition: 'left' | 'top'
   // API Server
   apiServer: ApiServerConfig
-  showMessageOutline?: boolean
+  showMessageOutline: boolean
   // Notes Related
   showWorkspace: boolean
 }

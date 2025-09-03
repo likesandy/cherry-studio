@@ -262,12 +262,13 @@ export const CodeBlockView: React.FC<Props> = memo(({ children, language, onSave
       ) : (
         <CodeViewer
           className="source-view"
+          value={children}
           language={language}
+          onHeightChange={handleHeightChange}
           expanded={shouldExpand}
           wrapped={shouldWrap}
-          onHeightChange={handleHeightChange}>
-          {children}
-        </CodeViewer>
+          maxHeight={`${MAX_COLLAPSED_CODE_HEIGHT}px`}
+        />
       ),
     [children, codeEditorEnabled, handleHeightChange, language, onSave, shouldExpand, shouldWrap]
   )

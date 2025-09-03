@@ -141,7 +141,7 @@ const Markdown: FC<Props> = ({ block, postProcess }) => {
     } as Partial<Components>
   }, [block.id])
 
-  if (messageContent.includes('<style>')) {
+  if (/<style\b[^>]*>/i.test(messageContent)) {
     components.style = MarkdownShadowDOMRenderer as any
   }
 
