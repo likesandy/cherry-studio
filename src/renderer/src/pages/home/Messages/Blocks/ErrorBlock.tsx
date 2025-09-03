@@ -164,12 +164,7 @@ ${t('error.stack')}: ${error.stack || 'N/A'}
         {error.requestBody && (
           <ErrorDetailItem>
             <ErrorDetailLabel>{t('error.requestBody')}:</ErrorDetailLabel>
-            <CodeViewer
-              className="source-view"
-              language="json"
-              expanded={true}
-              // unwrapped={true}
-            >
+            <CodeViewer className="source-view" language="json" expanded>
               {JSON.stringify(error.requestBody, null, 2)}
             </CodeViewer>
           </ErrorDetailItem>
