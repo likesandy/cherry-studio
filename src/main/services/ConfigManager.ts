@@ -1,4 +1,4 @@
-import { UpgradeChannel, ZOOM_SHORTCUTS } from '@shared/config/constant'
+import { ZOOM_SHORTCUTS } from '@shared/config/constant'
 import { Shortcut } from '@types'
 import Store from 'electron-store'
 
@@ -52,29 +52,29 @@ export class ConfigManager {
   //   this.set(ConfigKeys.Theme, theme)
   // }
 
-  getLaunchToTray(): boolean {
-    return !!this.get(ConfigKeys.LaunchToTray, false)
-  }
+  // getLaunchToTray(): boolean {
+  //   return !!this.get(ConfigKeys.LaunchToTray, false)
+  // }
 
-  setLaunchToTray(value: boolean) {
-    this.set(ConfigKeys.LaunchToTray, value)
-  }
+  // setLaunchToTray(value: boolean) {
+  //   this.set(ConfigKeys.LaunchToTray, value)
+  // }
 
-  getTray(): boolean {
-    return !!this.get(ConfigKeys.Tray, true)
-  }
+  // getTray(): boolean {
+  //   return !!this.get(ConfigKeys.Tray, true)
+  // }
 
-  setTray(value: boolean) {
-    this.setAndNotify(ConfigKeys.Tray, value)
-  }
+  // setTray(value: boolean) {
+  //   this.setAndNotify(ConfigKeys.Tray, value)
+  // }
 
-  getTrayOnClose(): boolean {
-    return !!this.get(ConfigKeys.TrayOnClose, true)
-  }
+  // getTrayOnClose(): boolean {
+  //   return !!this.get(ConfigKeys.TrayOnClose, true)
+  // }
 
-  setTrayOnClose(value: boolean) {
-    this.set(ConfigKeys.TrayOnClose, value)
-  }
+  // setTrayOnClose(value: boolean) {
+  //   this.set(ConfigKeys.TrayOnClose, value)
+  // }
 
   getZoomFactor(): number {
     return this.get<number>(ConfigKeys.ZoomFactor, 1)
@@ -119,104 +119,104 @@ export class ConfigManager {
     )
   }
 
-  getClickTrayToShowQuickAssistant(): boolean {
-    return this.get<boolean>(ConfigKeys.ClickTrayToShowQuickAssistant, false)
-  }
+  // getClickTrayToShowQuickAssistant(): boolean {
+  //   return this.get<boolean>(ConfigKeys.ClickTrayToShowQuickAssistant, false)
+  // }
 
-  setClickTrayToShowQuickAssistant(value: boolean) {
-    this.set(ConfigKeys.ClickTrayToShowQuickAssistant, value)
-  }
+  // setClickTrayToShowQuickAssistant(value: boolean) {
+  //   this.set(ConfigKeys.ClickTrayToShowQuickAssistant, value)
+  // }
 
-  getEnableQuickAssistant(): boolean {
-    return this.get(ConfigKeys.EnableQuickAssistant, false)
-  }
+  // getEnableQuickAssistant(): boolean {
+  //   return this.get(ConfigKeys.EnableQuickAssistant, false)
+  // }
 
-  setEnableQuickAssistant(value: boolean) {
-    this.setAndNotify(ConfigKeys.EnableQuickAssistant, value)
-  }
+  // setEnableQuickAssistant(value: boolean) {
+  //   this.setAndNotify(ConfigKeys.EnableQuickAssistant, value)
+  // }
 
-  getAutoUpdate(): boolean {
-    return this.get<boolean>(ConfigKeys.AutoUpdate, true)
-  }
+  // getAutoUpdate(): boolean {
+  //   return this.get<boolean>(ConfigKeys.AutoUpdate, true)
+  // }
 
-  setAutoUpdate(value: boolean) {
-    this.set(ConfigKeys.AutoUpdate, value)
-  }
+  // setAutoUpdate(value: boolean) {
+  //   this.set(ConfigKeys.AutoUpdate, value)
+  // }
 
-  getTestPlan(): boolean {
-    return this.get<boolean>(ConfigKeys.TestPlan, false)
-  }
+  // getTestPlan(): boolean {
+  //   return this.get<boolean>(ConfigKeys.TestPlan, false)
+  // }
 
-  setTestPlan(value: boolean) {
-    this.set(ConfigKeys.TestPlan, value)
-  }
+  // setTestPlan(value: boolean) {
+  //   this.set(ConfigKeys.TestPlan, value)
+  // }
 
-  getTestChannel(): UpgradeChannel {
-    return this.get<UpgradeChannel>(ConfigKeys.TestChannel)
-  }
+  // getTestChannel(): UpgradeChannel {
+  //   return this.get<UpgradeChannel>(ConfigKeys.TestChannel)
+  // }
 
-  setTestChannel(value: UpgradeChannel) {
-    this.set(ConfigKeys.TestChannel, value)
-  }
+  // setTestChannel(value: UpgradeChannel) {
+  //   this.set(ConfigKeys.TestChannel, value)
+  // }
 
-  getEnableDataCollection(): boolean {
-    return this.get<boolean>(ConfigKeys.EnableDataCollection, true)
-  }
+  // getEnableDataCollection(): boolean {
+  //   return this.get<boolean>(ConfigKeys.EnableDataCollection, true)
+  // }
 
-  setEnableDataCollection(value: boolean) {
-    this.set(ConfigKeys.EnableDataCollection, value)
-  }
+  // setEnableDataCollection(value: boolean) {
+  //   this.set(ConfigKeys.EnableDataCollection, value)
+  // }
 
-  // Selection Assistant: is enabled the selection assistant
-  getSelectionAssistantEnabled(): boolean {
-    return this.get<boolean>(ConfigKeys.SelectionAssistantEnabled, false)
-  }
+  // // Selection Assistant: is enabled the selection assistant
+  // getSelectionAssistantEnabled(): boolean {
+  //   return this.get<boolean>(ConfigKeys.SelectionAssistantEnabled, false)
+  // }
 
-  setSelectionAssistantEnabled(value: boolean) {
-    this.setAndNotify(ConfigKeys.SelectionAssistantEnabled, value)
-  }
+  // setSelectionAssistantEnabled(value: boolean) {
+  //   this.setAndNotify(ConfigKeys.SelectionAssistantEnabled, value)
+  // }
 
-  // Selection Assistant: trigger mode (selected, ctrlkey)
-  getSelectionAssistantTriggerMode(): string {
-    return this.get<string>(ConfigKeys.SelectionAssistantTriggerMode, 'selected')
-  }
+  // // Selection Assistant: trigger mode (selected, ctrlkey)
+  // getSelectionAssistantTriggerMode(): string {
+  //   return this.get<string>(ConfigKeys.SelectionAssistantTriggerMode, 'selected')
+  // }
 
-  setSelectionAssistantTriggerMode(value: string) {
-    this.setAndNotify(ConfigKeys.SelectionAssistantTriggerMode, value)
-  }
+  // setSelectionAssistantTriggerMode(value: string) {
+  //   this.setAndNotify(ConfigKeys.SelectionAssistantTriggerMode, value)
+  // }
 
-  // Selection Assistant: if action window position follow toolbar
-  getSelectionAssistantFollowToolbar(): boolean {
-    return this.get<boolean>(ConfigKeys.SelectionAssistantFollowToolbar, true)
-  }
+  // // Selection Assistant: if action window position follow toolbar
+  // getSelectionAssistantFollowToolbar(): boolean {
+  //   return this.get<boolean>(ConfigKeys.SelectionAssistantFollowToolbar, true)
+  // }
 
-  setSelectionAssistantFollowToolbar(value: boolean) {
-    this.setAndNotify(ConfigKeys.SelectionAssistantFollowToolbar, value)
-  }
+  // setSelectionAssistantFollowToolbar(value: boolean) {
+  //   this.setAndNotify(ConfigKeys.SelectionAssistantFollowToolbar, value)
+  // }
 
-  getSelectionAssistantRemeberWinSize(): boolean {
-    return this.get<boolean>(ConfigKeys.SelectionAssistantRemeberWinSize, false)
-  }
+  // getSelectionAssistantRemeberWinSize(): boolean {
+  //   return this.get<boolean>(ConfigKeys.SelectionAssistantRemeberWinSize, false)
+  // }
 
-  setSelectionAssistantRemeberWinSize(value: boolean) {
-    this.setAndNotify(ConfigKeys.SelectionAssistantRemeberWinSize, value)
-  }
+  // setSelectionAssistantRemeberWinSize(value: boolean) {
+  //   this.setAndNotify(ConfigKeys.SelectionAssistantRemeberWinSize, value)
+  // }
 
-  getSelectionAssistantFilterMode(): string {
-    return this.get<string>(ConfigKeys.SelectionAssistantFilterMode, 'default')
-  }
+  // getSelectionAssistantFilterMode(): string {
+  //   return this.get<string>(ConfigKeys.SelectionAssistantFilterMode, 'default')
+  // }
 
-  setSelectionAssistantFilterMode(value: string) {
-    this.setAndNotify(ConfigKeys.SelectionAssistantFilterMode, value)
-  }
+  // setSelectionAssistantFilterMode(value: string) {
+  //   this.setAndNotify(ConfigKeys.SelectionAssistantFilterMode, value)
+  // }
 
-  getSelectionAssistantFilterList(): string[] {
-    return this.get<string[]>(ConfigKeys.SelectionAssistantFilterList, [])
-  }
+  // getSelectionAssistantFilterList(): string[] {
+  //   return this.get<string[]>(ConfigKeys.SelectionAssistantFilterList, [])
+  // }
 
-  setSelectionAssistantFilterList(value: string[]) {
-    this.setAndNotify(ConfigKeys.SelectionAssistantFilterList, value)
-  }
+  // setSelectionAssistantFilterList(value: string[]) {
+  //   this.setAndNotify(ConfigKeys.SelectionAssistantFilterList, value)
+  // }
 
   getDisableHardwareAcceleration(): boolean {
     return this.get<boolean>(ConfigKeys.DisableHardwareAcceleration, false)
@@ -230,13 +230,13 @@ export class ConfigManager {
     this.set(key, value, true)
   }
 
-  getEnableDeveloperMode(): boolean {
-    return this.get<boolean>(ConfigKeys.EnableDeveloperMode, false)
-  }
+  // getEnableDeveloperMode(): boolean {
+  //   return this.get<boolean>(ConfigKeys.EnableDeveloperMode, false)
+  // }
 
-  setEnableDeveloperMode(value: boolean) {
-    this.set(ConfigKeys.EnableDeveloperMode, value)
-  }
+  // setEnableDeveloperMode(value: boolean) {
+  //   this.set(ConfigKeys.EnableDeveloperMode, value)
+  // }
 
   set(key: string, value: unknown, isNotify: boolean = false) {
     this.store.set(key, value)

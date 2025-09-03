@@ -2,10 +2,10 @@ import type { ExtractChunkData } from '@cherrystudio/embedjs-interfaces'
 import { electronAPI } from '@electron-toolkit/preload'
 import { SpanEntity, TokenUsage } from '@mcp-trace/trace-core'
 import { SpanContext } from '@opentelemetry/api'
-import { UpgradeChannel } from '@shared/config/constant'
 import type { LogLevel, LogSourceWithContext } from '@shared/config/logger'
 import type { FileChangeEvent } from '@shared/config/types'
 import type { PreferenceDefaultScopeType, PreferenceKeyType, SelectionActionItem } from '@shared/data/preferenceTypes'
+import { UpgradeChannel } from '@shared/data/preferenceTypes'
 import { IpcChannel } from '@shared/IpcChannel'
 import {
   AddMemoryOptions,

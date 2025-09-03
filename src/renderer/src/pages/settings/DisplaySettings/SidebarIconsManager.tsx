@@ -8,8 +8,6 @@ import {
   DropResult
 } from '@hello-pangea/dnd'
 import { getSidebarIconLabel } from '@renderer/i18n/label'
-// import { useAppDispatch } from '@renderer/store'
-// import { setSidebarIcons } from '@renderer/store/settings'
 import { SidebarIcon } from '@shared/data/preferenceTypes'
 import { message } from 'antd'
 import {
@@ -41,8 +39,6 @@ const SidebarIconsManager: FC<SidebarIconsManagerProps> = ({
   setInvisibleIcons
 }) => {
   const { t } = useTranslation()
-
-  // const dispatch = useAppDispatch()
 
   const onDragEnd = useCallback(
     (result: DropResult) => {

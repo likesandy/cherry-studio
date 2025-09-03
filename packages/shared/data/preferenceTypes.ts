@@ -59,3 +59,9 @@ export type AssistantIconType = 'model' | 'emoji' | 'none'
 export type ProxyMode = 'system' | 'custom' | 'none'
 
 export type MultiModelFoldDisplayMode = 'expanded' | 'compact'
+
+export enum UpgradeChannel {
+  LATEST = 'latest', // 最新稳定版本
+  RC = 'rc', // 公测版本
+  BETA = 'beta' // 预览版本
+}

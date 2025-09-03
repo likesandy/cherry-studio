@@ -11,7 +11,6 @@ import {
   TranslateLanguageCode
 } from '@renderer/types'
 import { uuid } from '@renderer/utils'
-import { UpgradeChannel } from '@shared/config/constant'
 import { TRANSLATE_PROMPT } from '@shared/config/prompts'
 import { DefaultPreferences } from '@shared/data/preferences'
 import type {
@@ -21,6 +20,7 @@ import type {
   SendMessageShortcut,
   SidebarIcon
 } from '@shared/data/preferenceTypes'
+import { UpgradeChannel } from '@shared/data/preferenceTypes'
 import { ThemeMode } from '@shared/data/preferenceTypes'
 import { OpenAIVerbosity } from '@types'
 
@@ -899,7 +899,7 @@ export const {
   // setTestChannel,
   // setRenderInputMessageAsMarkdown,
   // setClickAssistantToShowTopic,
-  setSkipBackupFile,
+  // setSkipBackupFile,
   // setWebdavHost,
   // setWebdavUser,
   // setWebdavPass,
@@ -922,7 +922,7 @@ export const {
   // setGridColumns,
   // setGridPopoverTrigger,
   // setMessageStyle,
-  setTranslateModelPrompt,
+  // setTranslateModelPrompt,
   // setAutoTranslateWithSpace,
   // setShowTranslateConfirm,
   // setEnableTopicNaming,
@@ -951,8 +951,8 @@ export const {
   // setJoplinToken,
   // setJoplinUrl,
   // setJoplinExportReasoning,
-  setMessageNavigation,
-  setDefaultObsidianVault,
+  // setMessageNavigation,
+  // setDefaultObsidianVault,
   setDefaultAgent,
   // setSiyuanApiUrl,
   // setSiyuanToken,
@@ -986,9 +986,9 @@ export const {
   // setNavbarPosition,
   // setShowMessageOutline,
   // API Server actions
-  setApiServerEnabled,
-  setApiServerPort,
-  setApiServerApiKey,
+  // setApiServerEnabled,
+  // setApiServerPort,
+  // setApiServerApiKey,
   // setShowWorkspace,
   toggleShowWorkspace
 } = settingsSlice.actions

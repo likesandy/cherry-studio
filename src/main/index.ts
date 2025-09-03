@@ -157,6 +157,8 @@ if (!app.requestSingleInstanceLock()) {
       return
     }
 
+    // DATA REFACTOR USE
+    // TODO: remove when data refactor is stable
     //************FOR TESTING ONLY START****************/
 
     await preferenceService.initialize()
@@ -177,7 +179,7 @@ if (!app.requestSingleInstanceLock()) {
     electronApp.setAppUserModelId(import.meta.env.VITE_MAIN_BUNDLE_ID || 'com.kangfenmao.CherryStudio')
 
     // Mac: Hide dock icon before window creation when launch to tray is set
-    const isLaunchToTray = configManager.getLaunchToTray()
+    const isLaunchToTray = preferenceService.get('app.tray.on_launch')
     if (isLaunchToTray) {
       app.dock?.hide()
     }

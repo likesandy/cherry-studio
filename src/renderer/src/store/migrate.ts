@@ -31,9 +31,10 @@ import {
   WebSearchProvider
 } from '@renderer/types'
 import { getDefaultGroupName, getLeadingEmoji, runAsyncFunction, uuid } from '@renderer/utils'
-import { defaultByPassRules, UpgradeChannel } from '@shared/config/constant'
+import { defaultByPassRules } from '@shared/config/constant'
 import { TRANSLATE_PROMPT } from '@shared/config/prompts'
 import { DefaultPreferences } from '@shared/data/preferences'
+import { UpgradeChannel } from '@shared/data/preferenceTypes'
 import { isEmpty } from 'lodash'
 import { createMigrate } from 'redux-persist'
 

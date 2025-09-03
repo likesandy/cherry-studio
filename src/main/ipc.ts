@@ -3,13 +3,15 @@ import { arch } from 'node:os'
 import path from 'node:path'
 
 import { PreferenceService } from '@data/PreferenceService'
+import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
 import { isLinux, isMac, isPortable, isWin } from '@main/constant'
 import { generateSignature } from '@main/integration/cherryin'
 import { getBinaryPath, isBinaryExists, runInstallScript } from '@main/utils/process'
 import { handleZoomFactor } from '@main/utils/zoom'
 import { SpanEntity, TokenUsage } from '@mcp-trace/trace-core'
-import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, UpgradeChannel } from '@shared/config/constant'
+import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH } from '@shared/config/constant'
+import { UpgradeChannel } from '@shared/data/preferenceTypes'
 import { IpcChannel } from '@shared/IpcChannel'
 import { FileMetadata, Provider, Shortcut } from '@types'
 import { BrowserWindow, dialog, ipcMain, ProxyConfig, session, shell, systemPreferences, webContents } from 'electron'
@@ -159,40 +161,38 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
     appService.setAppLaunchOnBoot(isLaunchOnBoot)
   })
 
-  // launch to tray
-  ipcMain.handle(IpcChannel.App_SetLaunchToTray, (_, isActive: boolean) => {
-    configManager.setLaunchToTray(isActive)
-  })
+  // // launch to tray
+  // ipcMain.handle(IpcChannel.App_SetLaunchToTray, (_, isActive: boolean) => {
+  //   configManager.setLaunchToTray(isActive)
+  // })
 
-  // tray
-  ipcMain.handle(IpcChannel.App_SetTray, (_, isActive: boolean) => {
-    configManager.setTray(isActive)
-  })
+  // // tray
+  // ipcMain.handle(IpcChannel.App_SetTray, (_, isActive: boolean) => {
+  //   configManager.setTray(isActive)
+  // })
 
-  // to tray on close
-  ipcMain.handle(IpcChannel.App_SetTrayOnClose, (_, isActive: boolean) => {
-    configManager.setTrayOnClose(isActive)
-  })
+  // // to tray on close
+  // ipcMain.handle(IpcChannel.App_SetTrayOnClose, (_, isActive: boolean) => {
+  //   configManager.setTrayOnClose(isActive)
+  // })
 
-  // auto update
-  ipcMain.handle(IpcChannel.App_SetAutoUpdate, (_, isActive: boolean) => {
-    appUpdater.setAutoUpdate(isActive)
-    configManager.setAutoUpdate(isActive)
-  })
+  // // auto update
+  // ipcMain.handle(IpcChannel.App_SetAutoUpdate, (_, isActive: boolean) => {
+  //   appUpdater.setAutoUpdate(isActive)
+  //   configManager.setAutoUpdate(isActive)
+  // })
 
   ipcMain.handle(IpcChannel.App_SetTestPlan, async (_, isActive: boolean) => {
     logger.info(`set test plan: ${isActive}`)
-    if (isActive !== configManager.getTestPlan()) {
+    if (isActive !== preferenceService.get('app.dist.test_plan.enabled')) {
       appUpdater.cancelDownload()
-      configManager.setTestPlan(isActive)
     }
   })
 
   ipcMain.handle(IpcChannel.App_SetTestChannel, async (_, channel: UpgradeChannel) => {
     logger.info(`set test channel: ${channel}`)
-    if (channel !== configManager.getTestChannel()) {
+    if (channel !== preferenceService.get('app.dist.test_plan.channel')) {
       appUpdater.cancelDownload()
-      configManager.setTestChannel(channel)
     }
   })
 
