@@ -17,9 +17,9 @@ const logger = loggerService.withContext('usePreference')
  *
  * @param key - The preference key to manage (must be a valid PreferenceKeyType)
  * @param options - Optional configuration for update behavior:
- *   - strategy: 'optimistic' (default) for immediate UI updates, 'pessimistic' for database-first updates
+ *   - optimistic: true (default) for immediate UI updates, false for database-first updates
  * @returns A tuple [value, setValue] where:
- *   - value: Current preference value or undefined if not loaded/cached
+ *   - value: Current preference value with defaults applied (never undefined)
  *   - setValue: Async function to update the preference value
  *
  * @example
@@ -28,19 +28,14 @@ const logger = loggerService.withContext('usePreference')
  * const [theme, setTheme] = usePreference('app.theme.mode')
  *
  * // Pessimistic updates for critical settings
- * const [apiKey, setApiKey] = usePreference('api.key', { strategy: 'pessimistic' })
+ * const [apiKey, setApiKey] = usePreference('api.key', { optimistic: false })
  *
  * // Simple optimistic updates
  * const [fontSize, setFontSize] = usePreference('chat.message.font_size', {
- *   strategy: 'optimistic'
+ *   optimistic: true
  * })
  *
- * // Conditional rendering based on preference value
- * if (theme === undefined) {
- *   return <LoadingSpinner />
- * }
- *
- * // Updating preference value
+ * // Value is never undefined - defaults are applied automatically
  * const handleThemeChange = async (newTheme: string) => {
  *   try {
  *     await setTheme(newTheme) // UI updates immediately with optimistic strategy
@@ -62,7 +57,7 @@ const logger = loggerService.withContext('usePreference')
  * ```typescript
  * // Advanced usage with form handling for message font size
  * const [fontSize, setFontSize] = usePreference('chat.message.font_size', {
- *   strategy: 'optimistic' // Immediate feedback for UI preferences
+ *   optimistic: true // Immediate feedback for UI preferences
  * })
  *
  * const handleFontSizeChange = useCallback(async (size: number) => {
@@ -75,7 +70,7 @@ const logger = loggerService.withContext('usePreference')
  * return (
  *   <input
  *     type="number"
- *     value={fontSize ?? 14}
+ *     value={fontSize}
  *     onChange={(e) => handleFontSizeChange(Number(e.target.value))}
  *     min={8}
  *     max={72}
@@ -131,9 +126,9 @@ export function usePreference<K extends PreferenceKeyType>(
  * @param keys - Object mapping local names to preference keys. Keys are your custom names,
  *               values must be valid PreferenceKeyType identifiers
  * @param options - Optional configuration for update behavior:
- *   - strategy: 'optimistic' (default) for immediate UI updates, 'pessimistic' for database-first updates
+ *   - optimistic: true (default) for immediate UI updates, false for database-first updates
  * @returns A tuple [values, updateValues] where:
- *   - values: Object with your local keys mapped to current preference values (undefined if not loaded)
+ *   - values: Object with your local keys mapped to current preference values with defaults applied
  *   - updateValues: Async function to batch update multiple preferences at once
  *
  * @example
@@ -149,12 +144,12 @@ export function usePreference<K extends PreferenceKeyType>(
  * const [apiSettings, setApiSettings] = useMultiplePreferences({
  *   apiKey: 'api.key',
  *   endpoint: 'api.endpoint'
- * }, { strategy: 'pessimistic' })
+ * }, { optimistic: false })
  *
- * // Accessing individual values with type safety
- * const currentTheme = uiSettings.theme // string | undefined
- * const currentFontSize = uiSettings.fontSize // number | undefined
- * const showLines = uiSettings.showLineNumbers // boolean | undefined
+ * // Accessing individual values with type safety (defaults applied automatically)
+ * const currentTheme = uiSettings.theme // string (never undefined)
+ * const currentFontSize = uiSettings.fontSize // number (never undefined)
+ * const showLines = uiSettings.showLineNumbers // boolean (never undefined)
  *
  * // Batch updating multiple preferences
  * const resetToDefaults = async () => {
@@ -198,11 +193,7 @@ export function usePreference<K extends PreferenceKeyType>(
  *   }
  * }
  *
- * // Conditional rendering based on loading state
- * if (Object.values(settings).every(val => val === undefined)) {
- *   return <SettingsSkeletonLoader />
- * }
- *
+ * // No need to check for undefined - defaults are applied automatically
  * return (
  *   <form onSubmit={(e) => {
  *     e.preventDefault()
@@ -214,13 +205,13 @@ export function usePreference<K extends PreferenceKeyType>(
  *     <input
  *       name="maxBackups"
  *       type="number"
- *       defaultValue={settings.maxBackups ?? 10}
+ *       defaultValue={settings.maxBackups}
  *       min="0"
  *     />
  *     <input
  *       name="syncInterval"
  *       type="number"
- *       defaultValue={settings.syncInterval ?? 3600}
+ *       defaultValue={settings.syncInterval}
  *       min="60"
  *     />
  *     <button type="submit">Save Backup Settings</button>
@@ -241,12 +232,13 @@ export function usePreference<K extends PreferenceKeyType>(
  *
  * // Single subscription handles all code preferences
  * // More efficient than 5 separate usePreference calls
+ * // No need for null checks - defaults are already applied
  * const codeConfig = useMemo(() => ({
- *   showLineNumbers: codePrefs.showLineNumbers ?? false,
- *   wrappable: codePrefs.wrappable ?? false,
- *   collapsible: codePrefs.collapsible ?? false,
- *   autocompletion: codePrefs.autocompletion ?? true,
- *   foldGutter: codePrefs.foldGutter ?? false
+ *   showLineNumbers: codePrefs.showLineNumbers,
+ *   wrappable: codePrefs.wrappable,
+ *   collapsible: codePrefs.collapsible,
+ *   autocompletion: codePrefs.autocompletion,
+ *   foldGutter: codePrefs.foldGutter
  * }), [codePrefs])
  *
  * return <CodeBlock config={codeConfig} />

@@ -7,9 +7,17 @@ import type {
 } from '@shared/data/preferenceTypes'
 
 const logger = loggerService.withContext('PreferenceService')
+
 /**
- * Renderer-side PreferenceService providing cached access to preferences
- * with real-time synchronization across windows using useSyncExternalStore
+ * Renderer-side PreferenceService providing cached access to preferences with real-time synchronization
+ *
+ * Features:
+ * - Caching system for fast access to frequently used preferences
+ * - Optimistic and pessimistic update strategies
+ * - Real-time synchronization across windows via IPC
+ * - Race condition handling for concurrent updates
+ * - Batch operations for multiple preferences
+ * - Integration with React's useSyncExternalStore
  */
 export class PreferenceService {
   private static instance: PreferenceService
@@ -53,6 +61,7 @@ export class PreferenceService {
 
   /**
    * Get the singleton instance of PreferenceService
+   * @returns The singleton PreferenceService instance
    */
   public static getInstance(): PreferenceService {
     if (!PreferenceService.instance) {
@@ -63,6 +72,7 @@ export class PreferenceService {
 
   /**
    * Setup IPC change listener for preference updates from main process
+   * Establishes communication channel for real-time preference synchronization
    */
   private setupChangeListeners() {
     if (!window.api?.preference?.onChanged) {
@@ -83,6 +93,7 @@ export class PreferenceService {
 
   /**
    * Notify all relevant listeners about preference changes
+   * @param key The preference key that changed
    */
   private notifyChangeListeners(key: string) {
     // Notify global listeners
@@ -96,7 +107,9 @@ export class PreferenceService {
   }
 
   /**
-   * Get a single preference value with caching
+   * Get a single preference value with caching and auto-subscription
+   * @param key The preference key to retrieve
+   * @returns Promise resolving to the preference value with defaults applied
    */
   public async get<K extends PreferenceKeyType>(key: K): Promise<PreferenceDefaultScopeType[K]> {
     // Check cache first
@@ -127,6 +140,10 @@ export class PreferenceService {
 
   /**
    * Set a single preference value with configurable update strategy
+   * @param key The preference key to update
+   * @param value The new value to set
+   * @param options Update strategy options (optimistic by default)
+   * @returns Promise that resolves when update completes
    */
   public async set<K extends PreferenceKeyType>(
     key: K,
@@ -142,6 +159,10 @@ export class PreferenceService {
 
   /**
    * Optimistic update: Queue request to prevent race conditions
+   * Updates UI immediately, then syncs to database with rollback on failure
+   * @param key The preference key to update
+   * @param value The new value to set
+   * @returns Promise that resolves when update completes
    */
   private async setOptimistic<K extends PreferenceKeyType>(
     key: K,
@@ -153,6 +174,10 @@ export class PreferenceService {
 
   /**
    * Execute optimistic update with proper race condition handling
+   * @param key The preference key to update
+   * @param value The new value to set
+   * @param requestId Unique identifier for this update request
+   * @returns Promise that resolves when update completes
    */
   private async executeOptimisticUpdate(key: PreferenceKeyType, value: any, requestId: string): Promise<void> {
     const existingState = this.optimisticValues.get(key)
@@ -190,6 +215,10 @@ export class PreferenceService {
 
   /**
    * Pessimistic update: Wait for database confirmation before updating UI
+   * Updates database first, then UI on success
+   * @param key The preference key to update
+   * @param value The new value to set
+   * @returns Promise that resolves when update completes
    */
   private async setPessimistic<K extends PreferenceKeyType>(
     key: K,
@@ -210,7 +239,9 @@ export class PreferenceService {
   }
 
   /**
-   * Get multiple preferences at once, return is Partial<PreferenceDefaultScopeType>
+   * Get multiple preferences at once with caching and auto-subscription
+   * @param keys Array of preference keys to retrieve
+   * @returns Promise resolving to partial object with preference values
    */
   public async getMultipleRaw(keys: PreferenceKeyType[]): Promise<Partial<PreferenceDefaultScopeType>> {
     // Check which keys are already cached
@@ -261,6 +292,8 @@ export class PreferenceService {
 
   /**
    * Get multiple preferences at once and return them as a record of key-value pairs
+   * @param keys Object mapping local names to preference keys
+   * @returns Promise resolving to object with mapped preference values
    */
   public async getMultiple<T extends Record<string, PreferenceKeyType>>(
     keys: T
@@ -277,6 +310,9 @@ export class PreferenceService {
 
   /**
    * Set multiple preferences at once with configurable update strategy
+   * @param updates Object containing preference key-value pairs to update
+   * @param options Update strategy options (optimistic by default)
+   * @returns Promise that resolves when all updates complete
    */
   public async setMultiple(
     updates: Partial<PreferenceDefaultScopeType>,
@@ -291,6 +327,8 @@ export class PreferenceService {
 
   /**
    * Optimistic batch update: Update UI immediately, then sync to database
+   * @param updates Object containing preference key-value pairs to update
+   * @returns Promise that resolves when batch update completes
    */
   private async setMultipleOptimistic(updates: Partial<PreferenceDefaultScopeType>): Promise<void> {
     const batchRequestId = this.generateRequestId()
@@ -346,6 +384,8 @@ export class PreferenceService {
 
   /**
    * Pessimistic batch update: Wait for database confirmation before updating UI
+   * @param updates Object containing preference key-value pairs to update
+   * @returns Promise that resolves when batch update completes
    */
   private async setMultiplePessimistic(updates: Partial<PreferenceDefaultScopeType>): Promise<void> {
     try {
@@ -365,7 +405,9 @@ export class PreferenceService {
   }
 
   /**
-   * Subscribe to a specific key for change notifications
+   * Subscribe to specific keys for change notifications from main process
+   * @param keys Array of preference keys to subscribe to
+   * @returns Promise that resolves when subscription is established
    */
   private async subscribeToKeyInternal(keys: PreferenceKeyType[]): Promise<void> {
     const keysToSubscribe = keys.filter((key) => !this.subscribedKeys.has(key))
@@ -382,6 +424,8 @@ export class PreferenceService {
 
   /**
    * Subscribe to global preference changes (for useSyncExternalStore)
+   * @param callback Function to call when any preference changes
+   * @returns Unsubscribe function
    */
   public subscribeAllChanges = (callback: () => void): (() => void) => {
     this.allChangesListeners.add(callback)
@@ -392,6 +436,8 @@ export class PreferenceService {
 
   /**
    * Subscribe to specific key changes (for useSyncExternalStore)
+   * @param key The preference key to watch for changes
+   * @returns Function that takes a callback and returns an unsubscribe function
    */
   public subscribeChange =
     (key: PreferenceKeyType) =>
@@ -416,6 +462,8 @@ export class PreferenceService {
 
   /**
    * Get cached value without async fetch
+   * @param key The preference key to retrieve from cache
+   * @returns The cached value or undefined if not cached
    */
   public getCachedValue<K extends PreferenceKeyType>(key: K): PreferenceDefaultScopeType[K] | undefined {
     return this.cache[key]
@@ -423,14 +471,16 @@ export class PreferenceService {
 
   /**
    * Check if a preference is cached
+   * @param key The preference key to check
+   * @returns True if the key is cached, false otherwise
    */
   public isCached(key: PreferenceKeyType): boolean {
     return key in this.cache && this.cache[key] !== undefined
   }
 
   /**
-   * Load all preferences from main process at once
-   * Provides optimal performance by loading complete preference set into memory
+   * Load all preferences from main process at once for optimal performance
+   * @returns Promise resolving to all preference values
    */
   public async preloadAll(): Promise<PreferenceDefaultScopeType> {
     try {
@@ -458,6 +508,7 @@ export class PreferenceService {
 
   /**
    * Check if all preferences are loaded in cache
+   * @returns True if full cache has been loaded, false otherwise
    */
   public isFullyCached(): boolean {
     return this.fullCacheLoaded
@@ -465,6 +516,8 @@ export class PreferenceService {
 
   /**
    * Preload specific preferences into cache
+   * @param keys Array of preference keys to preload
+   * @returns Promise that resolves when preloading completes
    */
   public async preload(keys: PreferenceKeyType[]): Promise<void> {
     const uncachedKeys = keys.filter((key) => !this.isCached(key))
@@ -480,7 +533,9 @@ export class PreferenceService {
   }
 
   /**
-   * Confirm an optimistic update (called when main process confirms the update)
+   * Confirm an optimistic update when main process confirms the update
+   * @param key The preference key that was updated
+   * @param requestId The unique identifier for the update request
    */
   private confirmOptimistic(key: PreferenceKeyType, requestId: string): void {
     const optimisticState = this.optimisticValues.get(key)
@@ -498,7 +553,9 @@ export class PreferenceService {
   }
 
   /**
-   * Rollback an optimistic update (called on failure)
+   * Rollback an optimistic update when main process update fails
+   * @param key The preference key to rollback
+   * @param requestId The unique identifier for the failed update request
    */
   private rollbackOptimistic(key: PreferenceKeyType, requestId: string): void {
     const optimisticState = this.optimisticValues.get(key)
@@ -523,7 +580,8 @@ export class PreferenceService {
   }
 
   /**
-   * Get all pending optimistic updates (for debugging)
+   * Get all pending optimistic updates for debugging purposes
+   * @returns Array of pending optimistic update information
    */
   public getPendingOptimisticUpdates(): Array<{
     key: string
@@ -545,13 +603,18 @@ export class PreferenceService {
 
   /**
    * Generate unique request ID for tracking concurrent requests
+   * @returns Unique request identifier string
    */
   private generateRequestId(): string {
     return `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
   }
 
   /**
-   * Add request to queue for a specific key
+   * Add request to queue for a specific key to prevent race conditions
+   * @param key The preference key to update
+   * @param requestId Unique identifier for this request
+   * @param value The value to set
+   * @returns Promise that resolves when the request is processed
    */
   private enqueueRequest(key: PreferenceKeyType, requestId: string, value: any): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -571,6 +634,8 @@ export class PreferenceService {
 
   /**
    * Process the next queued request for a key
+   * @param key The preference key to process requests for
+   * @returns Promise that resolves when processing completes
    */
   private async processNextQueuedRequest(key: PreferenceKeyType): Promise<void> {
     const queue = this.requestQueues.get(key)
@@ -589,6 +654,7 @@ export class PreferenceService {
 
   /**
    * Complete current request and process next in queue
+   * @param key The preference key to complete processing for
    */
   private completeQueuedRequest(key: PreferenceKeyType): void {
     const queue = this.requestQueues.get(key)
@@ -606,7 +672,7 @@ export class PreferenceService {
   }
 
   /**
-   * Clear all cached preferences (for testing/debugging)
+   * Clear all cached preferences for testing/debugging
    */
   public clearCache(): void {
     this.cache = {}
@@ -615,7 +681,7 @@ export class PreferenceService {
   }
 
   /**
-   * Cleanup service (call when shutting down)
+   * Cleanup service resources - call when shutting down
    */
   public cleanup(): void {
     if (this.changeListenerCleanup) {
