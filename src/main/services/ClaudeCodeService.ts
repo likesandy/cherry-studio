@@ -35,7 +35,7 @@ export class ClaudeCodeService {
         const config = req.body
         logger.info('Initializing claude-code provider with config', config)
 
-        this.claudeCodeProvider = createClaudeCode(config)
+        this.claudeCodeProvider = createClaudeCode()
 
         res.json({
           success: true,
