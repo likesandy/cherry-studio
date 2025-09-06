@@ -46,6 +46,7 @@ import {
   getTextFromDropEvent,
   isSendMessageKeyPressed
 } from '@renderer/utils/input'
+import { isPromptToolUse, isSupportedToolUse } from '@renderer/utils/mcp-tools'
 import { documentExts, imageExts, textExts } from '@shared/config/constant'
 import { IpcChannel } from '@shared/IpcChannel'
 import { Button, Tooltip } from 'antd'
@@ -230,7 +231,6 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
       const uploadedFiles = await FileManager.uploadFiles(files)
 
       const baseUserMessage: MessageInputBaseParams = { assistant, topic, content: text }
-      logger.info('baseUserMessage', baseUserMessage)
 
       // getUserMessage()
       if (uploadedFiles) {
@@ -780,11 +780,12 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
     ) {
       updateAssistant({ ...assistant, webSearchProviderId: undefined })
     }
-    if (!isGenerateImageModel(model) && assistant.enableGenerateImage) {
+    if (isGenerateImageModel(model)) {
+      if (isAutoEnableImageGenerationModel(model) && !assistant.enableGenerateImage) {
+        updateAssistant({ ...assistant, enableGenerateImage: true })
+      }
+    } else if (assistant.enableGenerateImage) {
       updateAssistant({ ...assistant, enableGenerateImage: false })
-    }
-    if (isAutoEnableImageGenerationModel(model) && !assistant.enableGenerateImage) {
-      updateAssistant({ ...assistant, enableGenerateImage: true })
     }
   }, [assistant, model, updateAssistant])
 
@@ -831,6 +832,7 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
 
   const isExpanded = expanded || !!textareaHeight
   const showThinkingButton = isSupportedThinkingTokenModel(model) || isSupportedReasoningEffortModel(model)
+  const showMcpTools = isSupportedToolUse(assistant) || isPromptToolUse(assistant)
 
   if (isMultiSelectMode) {
     return null
@@ -899,7 +901,8 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
               extensions={supportedExts}
               setFiles={setFiles}
               showThinkingButton={showThinkingButton}
-              showKnowledgeIcon={showKnowledgeIcon}
+              showKnowledgeIcon={showKnowledgeIcon && showMcpTools}
+              showMcpTools={showMcpTools}
               selectedKnowledgeBases={selectedKnowledgeBases}
               handleKnowledgeBaseSelect={handleKnowledgeBaseSelect}
               setText={setText}
