@@ -11,7 +11,6 @@ import { useMessageEditing } from '@renderer/context/MessageEditingContext'
 import { useChatContext } from '@renderer/hooks/useChatContext'
 import { useMessageOperations } from '@renderer/hooks/useMessageOperations'
 import { useNotesSettings } from '@renderer/hooks/useNotesSettings'
-import { useMessageStyle } from '@renderer/hooks/useSettings'
 import { useTemporaryValue } from '@renderer/hooks/useTemporaryValue'
 import useTranslate from '@renderer/hooks/useTranslate'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
@@ -111,10 +110,12 @@ const MessageMenubar: FC<Props> = (props) => {
     removeMessageBlock
   } = useMessageOperations(topic)
 
-  const { isBubbleStyle } = useMessageStyle()
+  const [messageStyle] = usePreference('chat.message.style')
   const [enableDeveloperMode] = usePreference('app.developer_mode.enabled')
   const [confirmDeleteMessage] = usePreference('chat.message.confirm_delete')
   const [confirmRegenerateMessage] = usePreference('chat.message.confirm_regenerate')
+
+  const isBubbleStyle = messageStyle === 'bubble'
 
   // const loading = useTopicLoading(topic)
 
@@ -644,7 +645,7 @@ const MessageMenubar: FC<Props> = (props) => {
               onClick={async (e) => {
                 e.stopPropagation()
                 const title = await getMessageTitle(message)
-                const markdown = messageToMarkdown(message)
+                const markdown = await messageToMarkdown(message)
                 exportMessageToNotes(title, markdown, notesPath)
               }}
               $softHoverBg={softHoverBg}>
