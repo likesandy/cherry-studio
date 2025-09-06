@@ -5,6 +5,7 @@
 ## 🎯 当前实现
 
 ✅ **已完成的功能**：
+
 - 专用的测试窗口 (DataRefactorTestWindow)
 - **双窗口启动**：应用启动时会同时打开主窗口和两个测试窗口
 - **跨窗口同步测试**：两个测试窗口可以相互验证偏好设置的实时同步
@@ -18,11 +19,13 @@
 ## 测试组件
 
 ### 1. PreferenceService 基础测试
+
 - 直接测试服务层API：get, set, getCachedValue, isCached, preload, getMultiple
 - 支持各种数据类型：字符串、数字、布尔值、JSON对象
 - 实时显示操作结果
 
-### 2. usePreference Hook 测试  
+### 2. usePreference Hook 测试
+
 - 测试单个偏好设置的React hooks
 - 支持的测试键：
   - `app.theme.mode` - 主题模式
@@ -35,6 +38,7 @@
 - **Slider联动控制**：数值类型偏好设置提供交互式滑块，支持实时拖拽调整
 
 ### 3. usePreferences 批量操作测试
+
 - 测试多个偏好设置的批量管理
 - 5种预设场景：基础设置、UI设置、用户设置、🎛️数值设置、自定义组合
 - **🎛️ 数值设置场景**：专门的Slider联动控制区域，包含缩放、字体、选择窗口透明度三个滑块
@@ -42,6 +46,7 @@
 - 快速切换操作
 
 ### 4. Hook 高级功能测试
+
 - 预加载机制测试
 - 订阅机制验证
 - 缓存管理测试
@@ -53,6 +58,7 @@
 **自动启动**：应用正常启动时会自动创建两个测试窗口，窗口会自动错位显示避免重叠
 
 **手动启动**：
+
 ```javascript
 // 在开发者控制台中执行 - 创建单个测试窗口
 const { dataRefactorMigrateService } = require('./out/main/data/migrate/dataRefactor/DataRefactorMigrateService')
@@ -71,7 +77,7 @@ dataRefactorMigrateService.closeTestWindows()
 ```
 src/renderer/src/windows/dataRefactorTest/
 ├── entryPoint.tsx                    # 窗口入口
-├── TestApp.tsx                       # 主应用组件  
+├── TestApp.tsx                       # 主应用组件
 └── components/
     ├── PreferenceServiceTests.tsx    # 服务层测试
     ├── PreferenceBasicTests.tsx      # 基础Hook测试
@@ -82,12 +88,14 @@ src/renderer/src/windows/dataRefactorTest/
 ## 跨窗口同步测试
 
 🔄 **测试场景**：
+
 1. **实时同步验证**：在窗口#1中修改某个偏好设置，立即观察窗口#2是否同步更新
 2. **并发修改测试**：在两个窗口中快速连续修改同一设置，验证数据一致性
 3. **批量操作同步**：在一个窗口中批量更新多个设置，观察另一个窗口的同步表现
 4. **Hook实例同步**：验证多个usePreference hook实例是否正确同步
 
 📋 **测试步骤**：
+
 1. 同时打开两个测试窗口（自动启动）
 2. 选择相同的偏好设置键进行测试
 3. 在窗口#1中修改值，观察窗口#2的反应
