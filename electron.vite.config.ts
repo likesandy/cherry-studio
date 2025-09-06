@@ -64,8 +64,10 @@ export default defineConfig({
           index: resolve(__dirname, 'src/preload/index.ts'),
           simplest: resolve(__dirname, 'src/preload/simplest.ts') // Minimal preload
         },
+        external: ['electron'],
         output: {
-          entryFileNames: '[name].js'
+          entryFileNames: '[name].js',
+          format: 'cjs'
         }
       }
     }
