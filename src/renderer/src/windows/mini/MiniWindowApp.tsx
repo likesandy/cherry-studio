@@ -1,7 +1,7 @@
 import '@renderer/databases'
 
-import { ErrorBoundary } from '@renderer/components/ErrorBoundary'
 import { usePreference } from '@data/hooks/usePreference'
+import { ErrorBoundary } from '@renderer/components/ErrorBoundary'
 import store, { persistor } from '@renderer/store'
 import { message } from 'antd'
 import { useEffect } from 'react'
