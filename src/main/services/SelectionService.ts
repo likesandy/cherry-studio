@@ -2,7 +2,8 @@ import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
 import { SELECTION_FINETUNED_LIST, SELECTION_PREDEFINED_BLACKLIST } from '@main/configs/SelectionConfig'
 import { isDev, isMac, isWin } from '@main/constant'
-import type { SelectionActionItem, SelectionFilterMode, SelectionTriggerMode } from '@shared/data/preferenceTypes'
+import type { SelectionActionItem } from '@shared/data/preferenceTypes'
+import { SelectionTriggerMode } from '@shared/data/preferenceTypes'
 import { IpcChannel } from '@shared/IpcChannel'
 import { app, BrowserWindow, ipcMain, screen, systemPreferences } from 'electron'
 import { join } from 'path'
@@ -41,12 +42,6 @@ type RelativeOrientation =
   | 'middleRight'
   | 'center'
 
-enum TriggerMode {
-  Selected = 'selected',
-  Ctrlkey = 'ctrlkey',
-  Shortcut = 'shortcut'
-}
-
 /** SelectionService is a singleton class that manages the selection hook and the toolbar window
  *
  * Features:
@@ -69,7 +64,7 @@ export class SelectionService {
   private initStatus: boolean = false
   private started: boolean = false
 
-  private triggerMode = TriggerMode.Selected
+  private triggerMode = SelectionTriggerMode.Selected
   private isFollowToolbar = true
   private isRemeberWinSize = false
   private filterMode = 'default'
@@ -160,7 +155,7 @@ export class SelectionService {
   }
 
   private initConfig(): void {
-    this.triggerMode = preferenceService.get('feature.selection.trigger_mode') as TriggerMode
+    this.triggerMode = preferenceService.get('feature.selection.trigger_mode')
     this.isFollowToolbar = preferenceService.get('feature.selection.follow_toolbar')
     this.isRemeberWinSize = preferenceService.get('feature.selection.remember_win_size')
     this.filterMode = preferenceService.get('feature.selection.filter_mode')
@@ -170,10 +165,10 @@ export class SelectionService {
     this.setHookFineTunedList()
 
     this.unsubscriberForChangeListeners.push(
-      preferenceService.subscribeChange('feature.selection.trigger_mode', (triggerMode: string) => {
-        const oldTriggerMode = this.triggerMode as TriggerMode
+      preferenceService.subscribeChange('feature.selection.trigger_mode', (triggerMode: SelectionTriggerMode) => {
+        const oldTriggerMode = this.triggerMode
 
-        this.triggerMode = triggerMode as TriggerMode
+        this.triggerMode = triggerMode
         this.processTriggerMode()
 
         //trigger mode changed, need to update the filter list
@@ -233,7 +228,7 @@ export class SelectionService {
     let combinedMode = mode
 
     //only the selected mode need to combine the predefined blacklist with the user-defined blacklist
-    if (this.triggerMode === TriggerMode.Selected) {
+    if (this.triggerMode === SelectionTriggerMode.Selected) {
       switch (mode) {
         case 'blacklist':
           //combine the predefined blacklist with the user-defined blacklist
@@ -753,7 +748,7 @@ export class SelectionService {
    * it's a public method used by shortcut service
    */
   public processSelectTextByShortcut(): void {
-    if (!this.selectionHook || !this.started || this.triggerMode !== TriggerMode.Shortcut) return
+    if (!this.selectionHook || !this.started || this.triggerMode !== SelectionTriggerMode.Shortcut) return
 
     const selectionData = this.selectionHook.getCurrentSelection()
 
@@ -1012,7 +1007,7 @@ export class SelectionService {
    */
   private handleKeyDownHide = (data: KeyboardEventData) => {
     //dont hide toolbar when ctrlkey is pressed
-    if (this.triggerMode === TriggerMode.Ctrlkey && this.isCtrlkey(data.vkCode)) {
+    if (this.triggerMode === SelectionTriggerMode.Ctrlkey && this.isCtrlkey(data.vkCode)) {
       return
     }
     //dont hide toolbar when shiftkey or altkey is pressed, because it's used for selection
@@ -1412,7 +1407,7 @@ export class SelectionService {
     if (!this.selectionHook) return
 
     switch (this.triggerMode) {
-      case TriggerMode.Selected:
+      case SelectionTriggerMode.Selected:
         if (this.isCtrlkeyListenerActive) {
           this.selectionHook.off('key-down', this.handleKeyDownCtrlkeyMode)
           this.selectionHook.off('key-up', this.handleKeyUpCtrlkeyMode)
@@ -1422,7 +1417,7 @@ export class SelectionService {
 
         this.selectionHook.setSelectionPassiveMode(false)
         break
-      case TriggerMode.Ctrlkey:
+      case SelectionTriggerMode.Ctrlkey:
         if (!this.isCtrlkeyListenerActive) {
           this.selectionHook.on('key-down', this.handleKeyDownCtrlkeyMode)
           this.selectionHook.on('key-up', this.handleKeyUpCtrlkeyMode)
@@ -1432,7 +1427,7 @@ export class SelectionService {
 
         this.selectionHook.setSelectionPassiveMode(true)
         break
-      case TriggerMode.Shortcut:
+      case SelectionTriggerMode.Shortcut:
         //remove the ctrlkey listener, don't need any key listener for shortcut mode
         if (this.isCtrlkeyListenerActive) {
           this.selectionHook.off('key-down', this.handleKeyDownCtrlkeyMode)
@@ -1468,30 +1463,6 @@ export class SelectionService {
 
     ipcMain.handle(IpcChannel.Selection_ToolbarDetermineSize, (_, width: number, height: number) => {
       selectionService?.determineToolbarSize(width, height)
-    })
-
-    ipcMain.handle(IpcChannel.Selection_SetEnabled, (_, enabled: boolean) => {
-      preferenceService.set('feature.selection.enabled', enabled)
-    })
-
-    ipcMain.handle(IpcChannel.Selection_SetTriggerMode, (_, triggerMode: SelectionTriggerMode) => {
-      preferenceService.set('feature.selection.trigger_mode', triggerMode)
-    })
-
-    ipcMain.handle(IpcChannel.Selection_SetFollowToolbar, (_, isFollowToolbar: boolean) => {
-      preferenceService.set('feature.selection.follow_toolbar', isFollowToolbar)
-    })
-
-    ipcMain.handle(IpcChannel.Selection_SetRemeberWinSize, (_, isRemeberWinSize: boolean) => {
-      preferenceService.set('feature.selection.remember_win_size', isRemeberWinSize)
-    })
-
-    ipcMain.handle(IpcChannel.Selection_SetFilterMode, (_, filterMode: SelectionFilterMode) => {
-      preferenceService.set('feature.selection.filter_mode', filterMode)
-    })
-
-    ipcMain.handle(IpcChannel.Selection_SetFilterList, (_, filterList: string[]) => {
-      preferenceService.set('feature.selection.filter_list', filterList)
     })
 
     // [macOS] only macOS has the available isFullscreen mode

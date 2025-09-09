@@ -1,5 +1,9 @@
+/**
+ * @deprecated The whole file will be removed after data refactoring
+ */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import type { SelectionActionItem, SelectionFilterMode, SelectionTriggerMode } from '@shared/data/preferenceTypes'
+import type { SelectionActionItem } from '@shared/data/preferenceTypes'
+import { SelectionFilterMode, SelectionTriggerMode } from '@shared/data/preferenceTypes'
 
 export interface SelectionState {
   selectionEnabled: boolean
@@ -34,13 +38,13 @@ export const defaultActionItems: SelectionActionItem[] = [
 
 export const initialState: SelectionState = {
   selectionEnabled: false,
-  triggerMode: 'selected',
+  triggerMode: SelectionTriggerMode.Selected,
   isCompact: false,
   isAutoClose: false,
   isAutoPin: false,
   isFollowToolbar: true,
   isRemeberWinSize: false,
-  filterMode: 'default',
+  filterMode: SelectionFilterMode.Default,
   filterList: [],
   actionWindowOpacity: 100,
   actionItems: defaultActionItems

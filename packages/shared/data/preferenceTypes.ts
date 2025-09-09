@@ -14,8 +14,18 @@ export type PreferenceShortcutType = {
   system: boolean
 }
 
-export type SelectionTriggerMode = 'selected' | 'ctrlkey' | 'shortcut'
-export type SelectionFilterMode = 'default' | 'whitelist' | 'blacklist'
+export enum SelectionTriggerMode {
+  Selected = 'selected',
+  Ctrlkey = 'ctrlkey',
+  Shortcut = 'shortcut'
+}
+
+export enum SelectionFilterMode {
+  Default = 'default',
+  Whitelist = 'whitelist',
+  Blacklist = 'blacklist'
+}
+
 export type SelectionActionItem = {
   id: string
   name: string
