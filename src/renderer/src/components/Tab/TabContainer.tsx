@@ -39,6 +39,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import MinAppIcon from '../Icons/MinAppIcon'
+import MinAppTabsPool from '../MinApp/MinAppTabsPool'
 
 interface TabsContainerProps {
   children: React.ReactNode
@@ -270,7 +271,11 @@ const TabsContainer: React.FC<TabsContainerProps> = ({ children }) => {
           </SettingsButton>
         </RightButtonsContainer>
       </TabsBar>
-      <TabContent>{children}</TabContent>
+      <TabContent>
+        {/* MiniApp WebView 池（Tab 模式保活） */}
+        <MinAppTabsPool />
+        {children}
+      </TabContent>
     </Container>
   )
 }
@@ -469,6 +474,7 @@ const TabContent = styled.div`
   margin-top: 0;
   border-radius: 8px;
   overflow: hidden;
+  position: relative; /* 约束 MinAppTabsPool 绝对定位范围 */
 `
 
 export default TabsContainer
