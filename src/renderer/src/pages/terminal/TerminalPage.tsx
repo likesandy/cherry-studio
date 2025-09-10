@@ -13,6 +13,7 @@ export const TerminalPage: FC = () => {
       <Navbar>
         <NavbarCenter style={{ borderRight: 'none' }}>{t('title.terminal')}</NavbarCenter>
       </Navbar>
+      <div>🥲 Not Implemented</div>
     </div>
   )
 }
