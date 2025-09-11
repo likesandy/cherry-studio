@@ -631,6 +631,8 @@ const NotesPage: FC = () => {
             notesTree={notesTree}
             getCurrentNoteContent={getCurrentNoteContent}
             onToggleStar={handleToggleStar}
+            editorRef={editorRef}
+            currentContent={currentContent}
           />
           <NotesEditor
             activeNodeId={activeNode?.id}

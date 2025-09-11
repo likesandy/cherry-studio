@@ -1711,6 +1711,7 @@
     "drop_markdown_hint": "拖拽 Markdown 文件或資料夾到此處導入",
     "empty": "暫無筆記",
     "expand": "展開",
+    "exportPDF": "匯出為PDF",
     "export_failed": "匯出至知識庫失敗",
     "export_knowledge": "匯出筆記至知識庫",
     "export_success": "成功匯出至知識庫",

@@ -1711,6 +1711,7 @@
     "drop_markdown_hint": "Drop markdown files or folders here to import",
     "empty": "No notes available yet",
     "expand": "unfold",
+    "exportPDF": "Export to PDF",
     "export_failed": "Failed to export to knowledge base",
     "export_knowledge": "Export notes to knowledge base",
     "export_success": "Successfully exported to the knowledge base",

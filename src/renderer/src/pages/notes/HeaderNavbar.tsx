@@ -11,11 +11,11 @@ import { MoreHorizontal, PanelLeftClose, PanelRightClose, Star } from 'lucide-re
 import { useCallback, useEffect, useState } from 'react'
 import styled from 'styled-components'
 
-import { menuItems } from './MenuConfig'
+import { handleExportPDF, MenuContext, menuItems } from './MenuConfig'
 
 const logger = loggerService.withContext('HeaderNavbar')
 
-const HeaderNavbar = ({ notesTree, getCurrentNoteContent, onToggleStar }) => {
+const HeaderNavbar = ({ notesTree, getCurrentNoteContent, onToggleStar, editorRef, currentContent }) => {
   const { showWorkspace, toggleShowWorkspace } = useShowWorkspace()
   const { activeNode } = useActiveNode(notesTree)
   const [breadcrumbItems, setBreadcrumbItems] = useState<Required<BreadcrumbProps>['items']>([])
@@ -46,6 +46,15 @@ const HeaderNavbar = ({ notesTree, getCurrentNoteContent, onToggleStar }) => {
       window.toast.error(t('common.copy_failed'))
     }
   }, [getCurrentNoteContent])
+
+  const handleExportPDFAction = useCallback(async () => {
+    const menuContext: MenuContext = {
+      editorRef,
+      currentContent,
+      fileName: activeNode?.name || t('notes.title')
+    }
+    await handleExportPDF(menuContext)
+  }, [editorRef, currentContent, activeNode])
 
   const buildMenuItem = (item: any) => {
     if (item.type === 'divider') {
@@ -88,6 +97,8 @@ const HeaderNavbar = ({ notesTree, getCurrentNoteContent, onToggleStar }) => {
       onClick: () => {
         if (item.copyAction) {
           handleCopyContent()
+        } else if (item.exportPdfAction) {
+          handleExportPDFAction()
         } else if (item.action) {
           item.action(settings, updateSettings)
         }

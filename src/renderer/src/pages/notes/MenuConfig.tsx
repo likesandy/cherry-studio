@@ -1,17 +1,52 @@
+import { loggerService } from '@logger'
+import { RichEditorRef } from '@renderer/components/RichEditor/types'
 import { NotesSettings } from '@renderer/store/note'
-import { Copy, MonitorSpeaker, Type } from 'lucide-react'
-import { ReactNode } from 'react'
+import { Copy, Download, MonitorSpeaker, Type } from 'lucide-react'
+import { ReactNode, RefObject } from 'react'
+
+const logger = loggerService.withContext('MenuConfig')
+export interface MenuContext {
+  editorRef: RefObject<RichEditorRef>
+  currentContent: string
+  fileName: string
+}
 
 export interface MenuItem {
   key: string
   type?: 'divider' | 'component'
   labelKey: string
   icon?: React.ComponentType<any>
-  action?: (settings: NotesSettings, updateSettings: (newSettings: Partial<NotesSettings>) => void) => void
+  action?: (
+    settings: NotesSettings,
+    updateSettings: (newSettings: Partial<NotesSettings>) => void,
+    context?: MenuContext
+  ) => void
   children?: MenuItem[]
   isActive?: (settings: NotesSettings) => boolean
   component?: (settings: NotesSettings, updateSettings: (newSettings: Partial<NotesSettings>) => void) => ReactNode
   copyAction?: boolean
+  exportPdfAction?: boolean
+}
+
+export const handleExportPDF = async (context: MenuContext) => {
+  if (!context.editorRef?.current || !context.currentContent?.trim()) {
+    return
+  }
+
+  try {
+    // Use Tiptap's getHTML API to get HTML content
+    const htmlContent = context.editorRef.current.getHtml()
+    const filename = context.fileName ? `${context.fileName}.pdf` : 'note.pdf'
+    const result = await window.api.export.toPDF(htmlContent, filename)
+
+    if (result.success) {
+      logger.info('PDF exported successfully to:', result.filePath)
+    } else {
+      logger.error('PDF export failed:', result.message)
+    }
+  } catch (error: any) {
+    logger.error('PDF export error:', error)
+  }
 }
 
 export const menuItems: MenuItem[] = [
@@ -20,6 +55,12 @@ export const menuItems: MenuItem[] = [
     labelKey: 'notes.copyContent',
     icon: Copy,
     copyAction: true
+  },
+  {
+    key: 'export-pdf',
+    labelKey: 'notes.exportPDF',
+    icon: Download,
+    exportPdfAction: true
   },
   {
     key: 'divider0',

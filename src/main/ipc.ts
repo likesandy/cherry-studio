@@ -89,6 +89,9 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   // Initialize Python service with main window
   pythonService.setMainWindow(mainWindow)
 
+  // Initialize export service with main window
+  exportService.setMainWindow(mainWindow)
+
   const checkMainWindow = () => {
     if (!mainWindow || mainWindow.isDestroyed()) {
       throw new Error('Main window does not exist or has been destroyed')
@@ -511,6 +514,9 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
 
   // export
   ipcMain.handle(IpcChannel.Export_Word, exportService.exportToWord.bind(exportService))
+
+  // PDF export
+  ipcMain.handle(IpcChannel.Export_PDF, exportService.exportToPDF.bind(exportService))
 
   // open path
   ipcMain.handle(IpcChannel.Open_Path, async (_, path: string) => {
