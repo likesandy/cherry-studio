@@ -1,15 +1,8 @@
-import { loggerService } from '@logger'
-import { RichEditorRef } from '@renderer/components/RichEditor/types'
 import { NotesSettings } from '@renderer/store/note'
 import { Copy, Download, MonitorSpeaker, Type } from 'lucide-react'
-import { ReactNode, RefObject } from 'react'
+import { ReactNode } from 'react'
 
-const logger = loggerService.withContext('MenuConfig')
-export interface MenuContext {
-  editorRef: RefObject<RichEditorRef>
-  currentContent: string
-  fileName: string
-}
+import { ExportContext } from './utils/exportUtils'
 
 export interface MenuItem {
   key: string
@@ -19,34 +12,13 @@ export interface MenuItem {
   action?: (
     settings: NotesSettings,
     updateSettings: (newSettings: Partial<NotesSettings>) => void,
-    context?: MenuContext
+    context?: ExportContext
   ) => void
   children?: MenuItem[]
   isActive?: (settings: NotesSettings) => boolean
   component?: (settings: NotesSettings, updateSettings: (newSettings: Partial<NotesSettings>) => void) => ReactNode
   copyAction?: boolean
   exportPdfAction?: boolean
-}
-
-export const handleExportPDF = async (context: MenuContext) => {
-  if (!context.editorRef?.current || !context.currentContent?.trim()) {
-    return
-  }
-
-  try {
-    // Use Tiptap's getHTML API to get HTML content
-    const htmlContent = context.editorRef.current.getHtml()
-    const filename = context.fileName ? `${context.fileName}.pdf` : 'note.pdf'
-    const result = await window.api.export.toPDF(htmlContent, filename)
-
-    if (result.success) {
-      logger.info('PDF exported successfully to:', result.filePath)
-    } else {
-      logger.error('PDF export failed:', result.message)
-    }
-  } catch (error: any) {
-    logger.error('PDF export error:', error)
-  }
 }
 
 export const menuItems: MenuItem[] = [

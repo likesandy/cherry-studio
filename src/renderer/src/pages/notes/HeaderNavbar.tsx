@@ -11,7 +11,8 @@ import { MoreHorizontal, PanelLeftClose, PanelRightClose, Star } from 'lucide-re
 import { useCallback, useEffect, useState } from 'react'
 import styled from 'styled-components'
 
-import { handleExportPDF, MenuContext, menuItems } from './MenuConfig'
+import { menuItems } from './MenuConfig'
+import { ExportContext, handleExportPDF } from './utils/exportUtils'
 
 const logger = loggerService.withContext('HeaderNavbar')
 
@@ -48,7 +49,7 @@ const HeaderNavbar = ({ notesTree, getCurrentNoteContent, onToggleStar, editorRe
   }, [getCurrentNoteContent])
 
   const handleExportPDFAction = useCallback(async () => {
-    const menuContext: MenuContext = {
+    const menuContext: ExportContext = {
       editorRef,
       currentContent,
       fileName: activeNode?.name || t('notes.title')
