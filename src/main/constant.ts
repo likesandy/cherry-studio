@@ -29,8 +29,8 @@ export const PRINT_HTML_TEMPLATE = `
             {{richtextCss}}
           </style>
         </head>
-        <body>
-          <div id="root" theme-mode="light" os=${isMac ? 'mac' : isWin ? 'windows' : 'linux'}>
+        <body theme-mode="light" os=${isMac ? 'mac' : isWin ? 'windows' : 'linux'}>
+          <div id="root">
             <div class="tiptap">{{content}}</div>
           </div>
         </body>
