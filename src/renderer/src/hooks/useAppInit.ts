@@ -20,7 +20,7 @@ import { useEffect } from 'react'
 import { useDefaultModel } from './useAssistant'
 import useFullScreenNotice from './useFullScreenNotice'
 import { useRuntime } from './useRuntime'
-import { useSettings } from './useSettings'
+import { useNavbarPosition, useSettings } from './useSettings'
 import useUpdateHandler from './useUpdateHandler'
 
 const logger = loggerService.withContext('useAppInit')
@@ -37,6 +37,7 @@ export function useAppInit() {
     customCss,
     enableDataCollection
   } = useSettings()
+  const { isLeftNavbar } = useNavbarPosition()
   const { minappShow } = useRuntime()
   const { setDefaultModel, setQuickModel, setTranslateModel } = useDefaultModel()
   const avatar = useLiveQuery(() => db.settings.get('image://avatar'))
@@ -100,16 +101,15 @@ export function useAppInit() {
   }, [language])
 
   useEffect(() => {
-    const transparentWindow = windowStyle === 'transparent' && isMac && !minappShow
+    const isMacTransparentWindow = windowStyle === 'transparent' && isMac
 
-    if (minappShow) {
-      window.root.style.background =
-        windowStyle === 'transparent' && isMac ? 'var(--color-background)' : 'var(--navbar-background)'
+    if (minappShow && isLeftNavbar) {
+      window.root.style.background = isMacTransparentWindow ? 'var(--color-background)' : 'var(--navbar-background)'
       return
     }
 
-    window.root.style.background = transparentWindow ? 'var(--navbar-background-mac)' : 'var(--navbar-background)'
-  }, [windowStyle, minappShow, theme])
+    window.root.style.background = isMacTransparentWindow ? 'var(--navbar-background-mac)' : 'var(--navbar-background)'
+  }, [windowStyle, minappShow, theme, isLeftNavbar])
 
   useEffect(() => {
     if (isLocalAi) {
