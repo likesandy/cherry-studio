@@ -27,11 +27,11 @@ import { app, BrowserWindow, dialog } from 'electron'
 import MarkdownIt from 'markdown-it'
 
 import { fileStorage } from './FileStorage'
+import { windowService } from './WindowService'
 
 const logger = loggerService.withContext('ExportService')
 export class ExportService {
   private md: MarkdownIt
-  private mainWindow: BrowserWindow | null = null
 
   constructor() {
     this.md = new MarkdownIt()
@@ -413,7 +413,8 @@ export class ExportService {
   }
 
   public exportToPDF = async (_: Electron.IpcMainInvokeEvent, content: string, filename: string): Promise<any> => {
-    if (!this.mainWindow) {
+    const mainWindow = windowService.getMainWindow()
+    if (!mainWindow) {
       throw new Error('Main window not set')
     }
 
@@ -460,7 +461,7 @@ export class ExportService {
       await printWindow.loadFile(tempHtmlPath)
 
       // Show save dialog for PDF
-      const result = await dialog.showSaveDialog(this.mainWindow, {
+      const result = await dialog.showSaveDialog(mainWindow, {
         defaultPath: filename,
         filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
       })
