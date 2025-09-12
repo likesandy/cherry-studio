@@ -11,10 +11,6 @@ export const PRINT_HTML_TEMPLATE = `
           <meta charset="utf-8">
           <title>{{filename}}</title>
           <style>
-            @page {
-              margin: 1cm;
-              size: A4;
-            }
             @media print {
               body {
                 -webkit-print-color-adjust: exact;

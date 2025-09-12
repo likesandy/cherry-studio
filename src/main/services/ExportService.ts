@@ -438,12 +438,36 @@ export class ExportService {
       const fontCss = await loadCssFile('font.css')
       const richtextCss = await loadCssFile('richtext.css')
 
+      // PDF专用样式，解决代码块溢出问题
+      const pdfSpecificCss = `
+        @media print {
+          .tiptap pre {
+            white-space: pre-wrap !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+          }
+
+          .tiptap pre code {
+            white-space: pre-wrap !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+          }
+
+          .tiptap {
+            max-width: 100% !important;
+            overflow: hidden !important;
+          }
+        }
+      `
+
       const tempHtmlPath = path.join(os.tmpdir(), `temp_${Date.now()}.html`)
       await fs.promises.writeFile(
         tempHtmlPath,
         PRINT_HTML_TEMPLATE.replace('{{filename}}', filename.replace('.pdf', ''))
           .replace('{{colorCss}}', colorCss)
-          .replace('{{richtextCss}}', richtextCss)
+          .replace('{{richtextCss}}', richtextCss + pdfSpecificCss)
           .replace('{{fontCss}}', fontCss)
           .replace('{{content}}', content)
       )

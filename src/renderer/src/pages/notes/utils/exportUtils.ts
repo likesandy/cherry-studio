@@ -55,7 +55,32 @@ const addSyntaxHighlighting = async (html: string): Promise<string> => {
           const highlightedCode = tempDoc.querySelector('code')
 
           if (highlightedCode) {
+            // 保留原有的类名和属性
+            const originalClasses = codeElement.className
+            const originalAttributes = Array.from(codeElement.attributes)
+
+            // 替换内容
             codeElement.innerHTML = highlightedCode.innerHTML
+
+            // 合并类名
+            const highlightedClasses = highlightedCode.className
+            const mergedClasses = [originalClasses, highlightedClasses]
+              .filter((cls) => cls && cls.trim())
+              .join(' ')
+              .split(' ')
+              .filter((cls, index, arr) => cls && arr.indexOf(cls) === index) // 去重
+              .join(' ')
+
+            if (mergedClasses) {
+              codeElement.className = mergedClasses
+            }
+
+            // 保留原有的其他属性（除了class）
+            originalAttributes.forEach((attr) => {
+              if (attr.name !== 'class' && !codeElement.hasAttribute(attr.name)) {
+                codeElement.setAttribute(attr.name, attr.value)
+              }
+            })
           }
         }
       } catch (error) {
