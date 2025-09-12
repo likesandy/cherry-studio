@@ -125,21 +125,6 @@ afterSign: scripts/notarize.js
 artifactBuildCompleted: scripts/artifact-build-completed.js
 releaseInfo:
   releaseNotes: |
-    ✨ 重要更新：
-    - 新增标签页拖拽重新排序功能
-    - 增强笔记编辑器同步功能
-    - 知识库支持文件选择和上传
-    - 链接预览支持解析 OG 数据
-    - 新增"重试失败消息"按钮
-
-    🔧 性能优化：
-    - 优化 MCP 服务日志和错误处理
-    - 改进构建配置和依赖管理
-    - 增强 Linux 系统 OCR 构建支持
-
-    🐛 修复问题：
-    - 修复翻译功能相关问题
-    - 修复 MCP 服务相关问题
-    - 修复导航和标签页显示问题
-    - 修复 Obsidian 集成检测
-    - 其他界面和稳定性改进
+    Top navigation bar mode will display the mini-program using tabs
+    Fixed the issue with Google mini-program login
+    Notes support drag and drop sorting
