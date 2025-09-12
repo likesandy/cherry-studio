@@ -3,8 +3,6 @@ import { CodeInspectorPlugin } from 'code-inspector-plugin'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import { resolve } from 'path'
 import { visualizer } from 'rollup-plugin-visualizer'
-import { normalizePath } from 'vite'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 import pkg from './package.json' assert { type: 'json' }
 
@@ -75,22 +73,6 @@ export default defineConfig({
               ssr: false // 不需要服务端渲染
             }
           ]
-        ]
-      }),
-      viteStaticCopy({
-        targets: [
-          {
-            src: normalizePath(resolve(__dirname, 'src/renderer/src/assets/styles/color.css')),
-            dest: normalizePath(resolve(__dirname, 'resources/styles'))
-          },
-          {
-            src: normalizePath(resolve(__dirname, 'src/renderer/src/assets/styles/font.css')),
-            dest: normalizePath(resolve(__dirname, 'resources/styles'))
-          },
-          {
-            src: normalizePath(resolve(__dirname, 'src/renderer/src/assets/styles/richtext.css')),
-            dest: normalizePath(resolve(__dirname, 'resources/styles'))
-          }
         ]
       }),
       ...(isDev ? [CodeInspectorPlugin({ bundler: 'vite' })] : []), // 只在开发环境下启用 CodeInspectorPlugin

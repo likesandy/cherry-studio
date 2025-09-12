@@ -89,9 +89,6 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   // Initialize Python service with main window
   pythonService.setMainWindow(mainWindow)
 
-  // Initialize export service with main window
-  exportService.setMainWindow(mainWindow)
-
   const checkMainWindow = () => {
     if (!mainWindow || mainWindow.isDestroyed()) {
       throw new Error('Main window does not exist or has been destroyed')

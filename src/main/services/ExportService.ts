@@ -37,10 +37,6 @@ export class ExportService {
     this.md = new MarkdownIt()
   }
 
-  public setMainWindow(window: BrowserWindow) {
-    this.mainWindow = window
-  }
-
   private convertMarkdownToDocxElements(markdown: string) {
     const tokens = this.md.parse(markdown, {})
     const elements: any[] = []
