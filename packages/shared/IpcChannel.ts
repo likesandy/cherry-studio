@@ -307,6 +307,15 @@ export enum IpcChannel {
   Preference_Subscribe = 'preference:subscribe',
   Preference_Changed = 'preference:changed',
 
+  // Data API channels
+  DataApi_Request = 'data-api:request',
+  DataApi_Response = 'data-api:response',
+  DataApi_Batch = 'data-api:batch',
+  DataApi_Transaction = 'data-api:transaction',
+  DataApi_Subscribe = 'data-api:subscribe',
+  DataApi_Unsubscribe = 'data-api:unsubscribe',
+  DataApi_Stream = 'data-api:stream',
+
   // TRACE
   TRACE_SAVE_DATA = 'trace:saveData',
   TRACE_GET_DATA = 'trace:getData',

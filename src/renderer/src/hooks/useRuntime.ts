@@ -1,3 +1,7 @@
+/**
+ * Data Refactor, notes by fullex
+ * //TODO @deprecated this file will be removed
+ */
 import i18n from '@renderer/i18n'
 import store, { useAppSelector } from '@renderer/store'
 

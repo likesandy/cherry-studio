@@ -3,10 +3,14 @@ import { usePreference } from '@renderer/data/hooks/usePreference'
 import { loggerService } from '@renderer/services/LoggerService'
 import { ThemeMode } from '@shared/data/preferenceTypes'
 import { Button, Card, Col, Divider, Layout, Row, Space, Typography } from 'antd'
-import { Database, FlaskConical, Settings, TestTube } from 'lucide-react'
+import { Activity, AlertTriangle, Database, FlaskConical, Settings, TestTube, TrendingUp, Zap } from 'lucide-react'
 import React from 'react'
 import styled from 'styled-components'
 
+import DataApiAdvancedTests from './components/DataApiAdvancedTests'
+import DataApiBasicTests from './components/DataApiBasicTests'
+import DataApiHookTests from './components/DataApiHookTests'
+import DataApiStressTests from './components/DataApiStressTests'
 import PreferenceBasicTests from './components/PreferenceBasicTests'
 import PreferenceHookTests from './components/PreferenceHookTests'
 import PreferenceMultipleTests from './components/PreferenceMultipleTests'
@@ -92,18 +96,21 @@ const TestApp: React.FC = () => {
                   <Space align="center">
                     <TestTube size={24} color="var(--color-primary)" />
                     <Title level={3} style={{ margin: 0, color: textColor }}>
-                      PreferenceService 功能测试 (窗口 #{windowNumber})
+                      数据重构项目测试套件 (窗口 #{windowNumber})
                     </Title>
                   </Space>
                   <Text style={{ color: isDarkTheme ? '#d9d9d9' : 'rgba(0, 0, 0, 0.45)' }}>
-                    此测试窗口用于验证 PreferenceService 和 usePreference hooks
-                    的各项功能，包括单个偏好设置的读写、多个偏好设置的批量操作、跨窗口数据同步等。
+                    此测试窗口用于验证数据重构项目的各项功能，包括 PreferenceService、DataApiService 和相关 React hooks
+                    的完整测试套件。
                   </Text>
                   <Text style={{ color: isDarkTheme ? '#d9d9d9' : 'rgba(0, 0, 0, 0.45)' }}>
-                    测试使用的都是真实的偏好设置系统，所有操作都会影响实际的数据库存储。
+                    PreferenceService 测试使用真实的偏好设置系统，DataApiService 测试使用专用的测试路由和假数据。
                   </Text>
                   <Text style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>
                     📋 跨窗口测试指南：在一个窗口中修改偏好设置，观察其他窗口是否实时同步更新。
+                  </Text>
+                  <Text style={{ color: 'var(--color-secondary)', fontWeight: 'bold' }}>
+                    🚀 数据API测试：包含基础CRUD、高级功能、React hooks和压力测试，全面验证数据请求架构。
                   </Text>
                 </Space>
               </Card>
@@ -166,6 +173,75 @@ const TestApp: React.FC = () => {
                 size="small"
                 style={{ backgroundColor: isDarkTheme ? '#1f1f1f' : '#fff', borderColor: borderColor }}>
                 <PreferenceMultipleTests />
+              </Card>
+            </Col>
+          </Row>
+
+          <Divider orientation="left" style={{ color: textColor }}>
+            <Space>
+              <Zap size={20} color="var(--color-primary)" />
+              <Text style={{ color: textColor, fontSize: 16, fontWeight: 600 }}>DataApiService 功能测试</Text>
+            </Space>
+          </Divider>
+
+          <Row gutter={[24, 24]}>
+            {/* DataApi Basic Tests */}
+            <Col span={24}>
+              <Card
+                title={
+                  <Space>
+                    <Database size={18} color={isDarkTheme ? '#fff' : '#000'} />
+                    <span style={{ color: textColor }}>DataApi 基础功能测试 (CRUD操作)</span>
+                  </Space>
+                }
+                size="small"
+                style={{ backgroundColor: isDarkTheme ? '#1f1f1f' : '#fff', borderColor: borderColor }}>
+                <DataApiBasicTests />
+              </Card>
+            </Col>
+
+            {/* DataApi Advanced Tests */}
+            <Col span={24}>
+              <Card
+                title={
+                  <Space>
+                    <Activity size={18} color={isDarkTheme ? '#fff' : '#000'} />
+                    <span style={{ color: textColor }}>DataApi 高级功能测试 (取消、重试、批量)</span>
+                  </Space>
+                }
+                size="small"
+                style={{ backgroundColor: isDarkTheme ? '#1f1f1f' : '#fff', borderColor: borderColor }}>
+                <DataApiAdvancedTests />
+              </Card>
+            </Col>
+
+            {/* DataApi Hook Tests */}
+            <Col span={24}>
+              <Card
+                title={
+                  <Space>
+                    <TrendingUp size={18} color={isDarkTheme ? '#fff' : '#000'} />
+                    <span style={{ color: textColor }}>DataApi React Hooks 测试</span>
+                  </Space>
+                }
+                size="small"
+                style={{ backgroundColor: isDarkTheme ? '#1f1f1f' : '#fff', borderColor: borderColor }}>
+                <DataApiHookTests />
+              </Card>
+            </Col>
+
+            {/* DataApi Stress Tests */}
+            <Col span={24}>
+              <Card
+                title={
+                  <Space>
+                    <AlertTriangle size={18} color={isDarkTheme ? '#fff' : '#000'} />
+                    <span style={{ color: textColor }}>DataApi 压力测试 (性能与错误处理)</span>
+                  </Space>
+                }
+                size="small"
+                style={{ backgroundColor: isDarkTheme ? '#1f1f1f' : '#fff', borderColor: borderColor }}>
+                <DataApiStressTests />
               </Card>
             </Col>
           </Row>

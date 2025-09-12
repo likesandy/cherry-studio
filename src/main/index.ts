@@ -9,6 +9,7 @@ import { loggerService } from '@logger'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { dbService } from '@data/db/DbService'
 import { preferenceService } from '@data/PreferenceService'
+import { dataApiService } from '@data/DataApiService'
 import { replaceDevtoolsFont } from '@main/utils/windowUtil'
 import { app, dialog } from 'electron'
 import installExtension, { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer'
@@ -163,16 +164,19 @@ if (!app.requestSingleInstanceLock()) {
 
     await preferenceService.initialize()
 
-    // // Create two test windows for cross-window preference sync testing
-    // logger.info('Creating test windows for PreferenceService cross-window sync testing')
-    // const testWindow1 = dataRefactorMigrateService.createTestWindow()
-    // const testWindow2 = dataRefactorMigrateService.createTestWindow()
+    // Initialize DataApiService
+    await dataApiService.initialize()
 
-    // // Position windows to avoid overlap
-    // testWindow1.once('ready-to-show', () => {
-    //   const [x, y] = testWindow1.getPosition()
-    //   testWindow2.setPosition(x + 50, y + 50)
-    // })
+    // Create two test windows for cross-window preference sync testing
+    logger.info('Creating test windows for PreferenceService cross-window sync testing')
+    const testWindow1 = dataRefactorMigrateService.createTestWindow()
+    const testWindow2 = dataRefactorMigrateService.createTestWindow()
+
+    // Position windows to avoid overlap
+    testWindow1.once('ready-to-show', () => {
+      const [x, y] = testWindow1.getPosition()
+      testWindow2.setPosition(x + 50, y + 50)
+    })
     /************FOR TESTING ONLY END****************/
 
     // Set app user model id for windows

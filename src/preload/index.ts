@@ -451,6 +451,8 @@ const api = {
       }
     }
   },
+  // PreferenceService related APIs
+  // DO NOT MODIFY THIS SECTION
   preference: {
     get: <K extends PreferenceKeyType>(key: K): Promise<PreferenceDefaultScopeType[K]> =>
       ipcRenderer.invoke(IpcChannel.Preference_Get, key),
@@ -466,6 +468,23 @@ const api = {
       const listener = (_: any, key: PreferenceKeyType, value: any) => callback(key, value)
       ipcRenderer.on(IpcChannel.Preference_Changed, listener)
       return () => ipcRenderer.off(IpcChannel.Preference_Changed, listener)
+    }
+  },
+  // Data API related APIs
+  dataApi: {
+    request: (req: any) => ipcRenderer.invoke(IpcChannel.DataApi_Request, req),
+    batch: (req: any) => ipcRenderer.invoke(IpcChannel.DataApi_Batch, req),
+    transaction: (req: any) => ipcRenderer.invoke(IpcChannel.DataApi_Transaction, req),
+    subscribe: (path: string, callback: (data: any, event: string) => void) => {
+      const channel = `${IpcChannel.DataApi_Stream}:${path}`
+      const listener = (_: any, data: any, event: string) => callback(data, event)
+      ipcRenderer.on(channel, listener)
+      return () => ipcRenderer.off(channel, listener)
+    },
+    onResponse: (callback: (response: any) => void) => {
+      const listener = (_: any, response: any) => callback(response)
+      ipcRenderer.on(IpcChannel.DataApi_Response, listener)
+      return () => ipcRenderer.off(IpcChannel.DataApi_Response, listener)
     }
   }
 }

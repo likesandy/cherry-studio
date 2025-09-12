@@ -1,5 +1,7 @@
-//TODO data refactor
-// this file will be removed
+/**
+ * Data Refactor, notes by fullex
+ * //TODO @deprecated this file will be removed
+ */
 
 import { usePreference } from '@data/hooks/usePreference'
 import { useAppSelector } from '@renderer/store'
