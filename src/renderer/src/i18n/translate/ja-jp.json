@@ -539,8 +539,8 @@
         "title": "コード実行"
       },
       "code_fancy_block": {
-        "label": "スタイルコードブロック",
-        "tip": "より美しいコードブロックスタイル、例えばHTMLカードを使用する"
+        "label": "装飾的なコードブロック",
+        "tip": "より見栄えの良いコードブロックスタイルを使用する、例えばHTMLカード"
       },
       "code_image_tools": {
         "label": "プレビューツールを有効にする",
@@ -1752,7 +1752,7 @@
         "font_size_small": "小",
         "font_title": "フォント設定",
         "serif_font": "セリフフォント",
-        "show_table_of_contents": "目次の表示",
+        "show_table_of_contents": "目次アウトラインを表示",
         "show_table_of_contents_description": "目次アウトラインサイドバーを表示し、文書内のナビゲーションを容易にする",
         "title": "見せる"
       },

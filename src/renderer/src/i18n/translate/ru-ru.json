@@ -1749,11 +1749,11 @@
         "font_size_description": "Отрегулируйте размер шрифта для лучшего чтения (10–30 пикселей)",
         "font_size_large": "Большой",
         "font_size_medium": "中",
-        "font_size_small": "маленький",
+        "font_size_small": "<translate_input>\nмаленький\n</translate_input>",
         "font_title": "Настройки шрифта",
         "serif_font": "Serif Font",
-        "show_table_of_contents": "Отобразить оглавление",
-        "show_table_of_contents_description": "Показать боковую панель оглавления для удобной навигации по документу",
+        "show_table_of_contents": "Показать оглавление",
+        "show_table_of_contents_description": "显示目录大纲侧边栏，方便文档内导航",
         "title": "показывать"
       },
       "editor": {

@@ -540,7 +540,7 @@
       },
       "code_fancy_block": {
         "label": "Bloco de código estilizado",
-        "tip": "Use estilos de bloco de código mais agradáveis, como cartões HTML"
+        "tip": "Use um estilo de bloco de código mais agradável, como cartões HTML"
       },
       "code_image_tools": {
         "label": "Habilitar ferramenta de visualização",
@@ -1752,8 +1752,8 @@
         "font_size_small": "pequeno",
         "font_title": "configuração de fonte",
         "serif_font": "fonte com serifa",
-        "show_table_of_contents": "Mostrar esboço do índice",
-        "show_table_of_contents_description": "Mostrar a barra lateral do índice para facilitar a navegação dentro do documento",
+        "show_table_of_contents": "Mostrar esboço do diretório",
+        "show_table_of_contents_description": "Mostrar barra lateral do índice, facilitando a navegação dentro do documento",
         "title": "configurações de exibição"
       },
       "editor": {
