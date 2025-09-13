@@ -33,15 +33,6 @@ interface RetryOptions {
 export class DataApiService implements ApiClient {
   private static instance: DataApiService
   private requestId = 0
-  private pendingRequests = new Map<
-    string,
-    {
-      resolve: (value: DataResponse) => void
-      reject: (error: Error) => void
-      timeout?: NodeJS.Timeout
-      abortController?: AbortController
-    }
-  >()
 
   // Subscriptions
   private subscriptions = new Map<
@@ -72,7 +63,7 @@ export class DataApiService implements ApiClient {
   }
 
   private constructor() {
-    this.setupResponseHandler()
+    // Initialization completed
   }
 
   /**
@@ -86,55 +77,10 @@ export class DataApiService implements ApiClient {
   }
 
   /**
-   * Setup IPC response handler
-   */
-  private setupResponseHandler() {
-    if (!window.api.dataApi?.onResponse) {
-      logger.error('Data API not available in preload context')
-      return
-    }
-
-    window.api.dataApi.onResponse((response: DataResponse) => {
-      const pending = this.pendingRequests.get(response.id)
-      if (pending) {
-        clearTimeout(pending.timeout)
-        this.pendingRequests.delete(response.id)
-
-        if (response.error) {
-          pending.reject(new Error(response.error.message))
-        } else {
-          pending.resolve(response)
-        }
-      }
-    })
-  }
-
-  /**
    * Generate unique request ID
    */
   private generateRequestId(): string {
     return `req_${Date.now()}_${++this.requestId}`
-  }
-
-  /**
-   * Cancel request by ID
-   */
-  cancelRequest(requestId: string): void {
-    const pending = this.pendingRequests.get(requestId)
-    if (pending) {
-      pending.abortController?.abort()
-      clearTimeout(pending.timeout)
-      this.pendingRequests.delete(requestId)
-      pending.reject(new Error('Request cancelled'))
-    }
-  }
-
-  /**
-   * Cancel all pending requests
-   */
-  cancelAllRequests(): void {
-    const requestIds = Array.from(this.pendingRequests.keys())
-    requestIds.forEach((id) => this.cancelRequest(id))
   }
 
   /**
@@ -158,106 +104,56 @@ export class DataApiService implements ApiClient {
   }
 
   /**
-   * Send request via IPC with AbortController support and retry logic
+   * Send request via IPC with direct return and retry logic
    */
   private async sendRequest<T>(request: DataRequest, retryCount = 0): Promise<T> {
-    return new Promise((resolve, reject) => {
-      if (!window.api.dataApi.request) {
-        reject(new Error('Data API not available'))
-        return
+    if (!window.api.dataApi.request) {
+      throw new Error('Data API not available')
+    }
+
+    try {
+      logger.debug(`Making ${request.method} request to ${request.path}`, { request })
+
+      // Direct IPC call with timeout
+      const response = await Promise.race([
+        window.api.dataApi.request(request),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`Request timeout: ${request.path}`)), 3000))
+      ])
+
+      if (response.error) {
+        throw new Error(response.error.message)
       }
 
-      // Create abort controller for cancellation
-      const abortController = new AbortController()
-
-      // Set up timeout
-      const timeout = setTimeout(() => {
-        this.pendingRequests.delete(request.id)
-        const timeoutError = new Error(`Request timeout: ${request.path}`)
-
-        // Check if should retry
-        if (retryCount < this.defaultRetryOptions.maxRetries && this.defaultRetryOptions.retryCondition(timeoutError)) {
-          logger.debug(
-            `Request timeout, retrying attempt ${retryCount + 1}/${this.defaultRetryOptions.maxRetries}: ${request.path}`
-          )
-
-          // Calculate delay with exponential backoff
-          const delay =
-            this.defaultRetryOptions.retryDelay * Math.pow(this.defaultRetryOptions.backoffMultiplier, retryCount)
-
-          setTimeout(() => {
-            // Create new request with new ID for retry
-            const retryRequest = { ...request, id: this.generateRequestId() }
-            this.sendRequest<T>(retryRequest, retryCount + 1)
-              .then(resolve)
-              .catch(reject)
-          }, delay)
-        } else {
-          reject(timeoutError)
-        }
-      }, 30000) // 30 second timeout
-
-      // Store pending request with abort controller
-      this.pendingRequests.set(request.id, {
-        resolve: (response: DataResponse) => resolve(response.data),
-        reject: (error: Error) => {
-          // Check if should retry on error
-          if (retryCount < this.defaultRetryOptions.maxRetries && this.defaultRetryOptions.retryCondition(error)) {
-            logger.debug(
-              `Request failed, retrying attempt ${retryCount + 1}/${this.defaultRetryOptions.maxRetries}: ${request.path}`,
-              error
-            )
-
-            const delay =
-              this.defaultRetryOptions.retryDelay * Math.pow(this.defaultRetryOptions.backoffMultiplier, retryCount)
-
-            setTimeout(() => {
-              const retryRequest = { ...request, id: this.generateRequestId() }
-              this.sendRequest<T>(retryRequest, retryCount + 1)
-                .then(resolve)
-                .catch(reject)
-            }, delay)
-          } else {
-            reject(error)
-          }
-        },
-        timeout,
-        abortController
+      logger.debug(`Request succeeded: ${request.method} ${request.path}`, {
+        status: response.status,
+        hasData: !!response.data
       })
 
-      // Handle abort signal
-      abortController.signal.addEventListener('abort', () => {
-        clearTimeout(timeout)
-        this.pendingRequests.delete(request.id)
-        reject(new Error('Request cancelled'))
-      })
+      return response.data as T
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      logger.debug(`Request failed: ${request.method} ${request.path}`, error as Error)
 
-      // Send request
-      window.api.dataApi.request(request).catch((error) => {
-        clearTimeout(timeout)
-        this.pendingRequests.delete(request.id)
+      // Check if should retry
+      if (retryCount < this.defaultRetryOptions.maxRetries && this.defaultRetryOptions.retryCondition(error as Error)) {
+        logger.debug(
+          `Retrying request attempt ${retryCount + 1}/${this.defaultRetryOptions.maxRetries}: ${request.path}`,
+          { error: errorMessage }
+        )
 
-        // Check if should retry
-        if (retryCount < this.defaultRetryOptions.maxRetries && this.defaultRetryOptions.retryCondition(error)) {
-          logger.debug(
-            `Request failed, retrying attempt ${retryCount + 1}/${this.defaultRetryOptions.maxRetries}: ${request.path}`,
-            error
-          )
+        // Calculate delay with exponential backoff
+        const delay =
+          this.defaultRetryOptions.retryDelay * Math.pow(this.defaultRetryOptions.backoffMultiplier, retryCount)
 
-          const delay =
-            this.defaultRetryOptions.retryDelay * Math.pow(this.defaultRetryOptions.backoffMultiplier, retryCount)
+        await new Promise((resolve) => setTimeout(resolve, delay))
 
-          setTimeout(() => {
-            const retryRequest = { ...request, id: this.generateRequestId() }
-            this.sendRequest<T>(retryRequest, retryCount + 1)
-              .then(resolve)
-              .catch(reject)
-          }, delay)
-        } else {
-          reject(error)
-        }
-      })
-    })
+        // Create new request with new ID for retry
+        const retryRequest = { ...request, id: this.generateRequestId() }
+        return this.sendRequest<T>(retryRequest, retryCount + 1)
+      }
+
+      throw error
+    }
   }
 
   /**
@@ -271,15 +167,9 @@ export class DataApiService implements ApiClient {
       body?: any
       headers?: Record<string, string>
       metadata?: Record<string, any>
-      signal?: AbortSignal
     } = {}
   ): Promise<T> {
-    const { params, body, headers, metadata, signal } = options
-
-    // Check if already aborted
-    if (signal?.aborted) {
-      throw new Error('Request cancelled')
-    }
+    const { params, body, headers, metadata } = options
 
     // Create request
     const request: DataRequest = {
@@ -297,23 +187,7 @@ export class DataApiService implements ApiClient {
 
     logger.debug(`Making ${method} request to ${path}`, { request })
 
-    // Set up external abort signal handling
-    const requestPromise = this.sendRequest<T>(request)
-
-    if (signal) {
-      // If external signal is aborted during request, cancel our internal request
-      const abortListener = () => {
-        this.cancelRequest(request.id)
-      }
-      signal.addEventListener('abort', abortListener)
-
-      // Clean up listener when request completes
-      requestPromise.finally(() => {
-        signal.removeEventListener('abort', abortListener)
-      })
-    }
-
-    return requestPromise.catch((error) => {
+    return this.sendRequest<T>(request).catch((error) => {
       logger.error(`Request failed: ${method} ${path}`, error)
       throw toDataApiError(error, `${method} ${path}`)
     })
@@ -327,13 +201,11 @@ export class DataApiService implements ApiClient {
     options?: {
       query?: any
       headers?: Record<string, string>
-      signal?: AbortSignal
     }
   ): Promise<any> {
     return this.makeRequest<any>('GET', path as string, {
       params: options?.query,
-      headers: options?.headers,
-      signal: options?.signal
+      headers: options?.headers
     })
   }
 
@@ -346,14 +218,12 @@ export class DataApiService implements ApiClient {
       body?: any
       query?: Record<string, any>
       headers?: Record<string, string>
-      signal?: AbortSignal
     }
   ): Promise<any> {
     return this.makeRequest<any>('POST', path as string, {
       params: options.query,
       body: options.body,
-      headers: options.headers,
-      signal: options.signal
+      headers: options.headers
     })
   }
 
@@ -366,14 +236,12 @@ export class DataApiService implements ApiClient {
       body: any
       query?: Record<string, any>
       headers?: Record<string, string>
-      signal?: AbortSignal
     }
   ): Promise<any> {
     return this.makeRequest<any>('PUT', path as string, {
       params: options.query,
       body: options.body,
-      headers: options.headers,
-      signal: options.signal
+      headers: options.headers
     })
   }
 
@@ -385,13 +253,11 @@ export class DataApiService implements ApiClient {
     options?: {
       query?: Record<string, any>
       headers?: Record<string, string>
-      signal?: AbortSignal
     }
   ): Promise<any> {
     return this.makeRequest<any>('DELETE', path as string, {
       params: options?.query,
-      headers: options?.headers,
-      signal: options?.signal
+      headers: options?.headers
     })
   }
 
@@ -404,14 +270,12 @@ export class DataApiService implements ApiClient {
       body?: any
       query?: Record<string, any>
       headers?: Record<string, string>
-      signal?: AbortSignal
     }
   ): Promise<any> {
     return this.makeRequest<any>('PATCH', path as string, {
       params: options.query,
       body: options.body,
-      headers: options.headers,
-      signal: options.signal
+      headers: options.headers
     })
   }
 
@@ -471,28 +335,21 @@ export class DataApiService implements ApiClient {
   }
 
   /**
-   * Create an AbortController for request cancellation
-   * @returns Object with AbortController and convenience methods
-   *
-   * @example
-   * ```typescript
-   * const { signal, cancel } = requestService.createAbortController()
-   *
-   * // Use signal in requests
-   * const dataPromise = requestService.get('/topics', { signal })
-   *
-   * // Cancel if needed
-   * setTimeout(() => cancel(), 5000) // Cancel after 5 seconds
-   * ```
+   * Cancel request by ID
+   * Note: Direct IPC requests cannot be cancelled once sent
+   * @deprecated This method has no effect with direct IPC
    */
-  createAbortController() {
-    const controller = new AbortController()
+  cancelRequest(requestId: string): void {
+    logger.warn('Request cancellation not supported with direct IPC', { requestId })
+  }
 
-    return {
-      signal: controller.signal,
-      cancel: () => controller.abort(),
-      aborted: () => controller.signal.aborted
-    }
+  /**
+   * Cancel all pending requests
+   * Note: Direct IPC requests cannot be cancelled once sent
+   * @deprecated This method has no effect with direct IPC
+   */
+  cancelAllRequests(): void {
+    logger.warn('Request cancellation not supported with direct IPC')
   }
 
   /**
@@ -500,7 +357,7 @@ export class DataApiService implements ApiClient {
    */
   getRequestStats() {
     return {
-      pendingRequests: this.pendingRequests.size,
+      pendingRequests: 0, // No longer tracked with direct IPC
       activeSubscriptions: this.subscriptions.size
     }
   }
@@ -508,10 +365,3 @@ export class DataApiService implements ApiClient {
 
 // Export singleton instance
 export const dataApiService = DataApiService.getInstance()
-
-// Clean up on window unload
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
-    dataApiService.cancelAllRequests()
-  })
-}

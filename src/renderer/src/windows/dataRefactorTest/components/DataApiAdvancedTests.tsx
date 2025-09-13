@@ -147,52 +147,28 @@ const DataApiAdvancedTests: React.FC = () => {
     setIsRunning(true)
 
     try {
-      // Test 1: Cancel a slow request
-      const slowTestPromise = runAdvancedTest('cancel-slow', 'Cancel Slow Request (5s)', 'cancellation', (signal) =>
-        dataApiService.post('/test/slow', { body: { delay: 5000 }, signal })
-      )
+      // Note: Request cancellation is not supported with direct IPC
+      // These tests demonstrate that cancellation attempts have no effect
 
-      // Wait a bit then cancel
-      setTimeout(() => cancelTest('cancel-slow'), 2000)
+      // Test 1: Attempt to "cancel" a slow request (will complete normally)
+      await runAdvancedTest('cancel-slow', 'Slow Request (No Cancel Support)', 'cancellation', async () => {
+        // Note: This will complete normally since cancellation is not supported
+        return await dataApiService.post('/test/slow', { body: { delay: 1000 } })
+      })
 
-      try {
-        await slowTestPromise
-      } catch {
-        // Expected to be cancelled
-      }
+      // Test 2: Quick request (normal completion)
+      await runAdvancedTest('cancel-quick', 'Quick Request Test', 'cancellation', async () => {
+        return await dataApiService.get('/test/items')
+      })
 
-      // Test 2: Cancel a request that should succeed
-      const quickTestPromise = runAdvancedTest('cancel-quick', 'Cancel Quick Request', 'cancellation', (signal) =>
-        dataApiService.get('/test/items', { signal })
-      )
+      // Test 3: Demonstrate that cancel methods exist but have no effect
+      await runAdvancedTest('service-cancel', 'Cancel Method Test (No Effect)', 'cancellation', async () => {
+        // These methods exist but log warnings and have no effect
+        dataApiService.cancelRequest('dummy-id')
+        dataApiService.cancelAllRequests()
 
-      // Cancel immediately
-      setTimeout(() => cancelTest('cancel-quick'), 100)
-
-      try {
-        await quickTestPromise
-      } catch {
-        // Expected to be cancelled
-      }
-
-      // Test 3: Test using DataApiService's built-in cancellation
-      await runAdvancedTest('service-cancel', 'DataApiService Built-in Cancellation', 'cancellation', async () => {
-        const { signal, cancel } = dataApiService.createAbortController()
-
-        // Start a slow request
-        const requestPromise = dataApiService.post('/test/slow', { body: { delay: 3000 }, signal })
-
-        // Cancel after 1 second
-        setTimeout(() => cancel(), 1000)
-
-        try {
-          return await requestPromise
-        } catch (error) {
-          if (error instanceof Error && error.message.includes('cancelled')) {
-            return { cancelled: true, message: 'Successfully cancelled using DataApiService' }
-          }
-          throw error
-        }
+        // Return successful test data
+        return { cancelled: false, message: 'Cancel methods called but have no effect with direct IPC' }
       })
     } finally {
       setIsRunning(false)

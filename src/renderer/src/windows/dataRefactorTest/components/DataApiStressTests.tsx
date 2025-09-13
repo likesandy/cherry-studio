@@ -138,10 +138,7 @@ const DataApiStressTests: React.FC = () => {
     }
   }, [isRunning, updateRealtimeStats])
 
-  const executeStressTest = async (
-    testName: string,
-    testFn: (requestId: number, signal: AbortSignal) => Promise<any>
-  ) => {
+  const executeStressTest = async (testName: string, testFn: (requestId: number) => Promise<any>) => {
     setIsRunning(true)
     setCurrentTest(testName)
     setResults([])
@@ -188,7 +185,7 @@ const DataApiStressTests: React.FC = () => {
         setResults([...testResults])
 
         try {
-          const response = await testFn(requestId, signal)
+          const response = await testFn(requestId)
           const endTime = Date.now()
           const duration = endTime - startTime
           const memoryAfter = getMemoryUsage()
@@ -321,37 +318,30 @@ const DataApiStressTests: React.FC = () => {
   }
 
   const runConcurrentRequestsTest = async () => {
-    await executeStressTest('Concurrent Requests Test', async (requestId, signal) => {
+    await executeStressTest('Concurrent Requests Test', async (requestId) => {
       // Alternate between different endpoints to simulate real usage
       const endpoints = ['/test/items', '/test/stats'] as const
       const endpoint = endpoints[requestId % endpoints.length]
 
-      return await dataApiService.get(endpoint, { signal })
+      return await dataApiService.get(endpoint)
     })
   }
 
   const runMemoryLeakTest = async () => {
-    await executeStressTest('Memory Leak Test', async (requestId, signal) => {
-      // Create and immediately cancel some requests to test cleanup
+    await executeStressTest('Memory Leak Test', async (requestId) => {
+      // Test different types of requests to ensure no memory leaks
       if (requestId % 5 === 0) {
-        const { signal: cancelSignal, cancel } = dataApiService.createAbortController()
-        const requestPromise = dataApiService.post('/test/slow', { body: { delay: 2000 }, signal: cancelSignal })
-        setTimeout(() => cancel(), 100)
-
-        try {
-          return await requestPromise
-        } catch (error) {
-          return { cancelled: true, error: error instanceof Error ? error.message : 'Unknown error' }
-        }
+        // Test slower requests
+        return await dataApiService.post('/test/slow', { body: { delay: 500 } })
       } else {
         // Normal request
-        return await dataApiService.get('/test/items', { signal })
+        return await dataApiService.get('/test/items')
       }
     })
   }
 
   const runErrorHandlingTest = async () => {
-    await executeStressTest('Error Handling Stress Test', async (requestId, signal) => {
+    await executeStressTest('Error Handling Stress Test', async (requestId) => {
       // Mix of successful and error requests
       const errorTypes = ['network', 'server', 'timeout', 'notfound', 'validation']
       const shouldError = Math.random() * 100 < config.errorRate
@@ -359,24 +349,24 @@ const DataApiStressTests: React.FC = () => {
       if (shouldError) {
         const errorType = errorTypes[requestId % errorTypes.length]
         try {
-          return await dataApiService.post('/test/error', { body: { errorType: errorType as any }, signal })
+          return await dataApiService.post('/test/error', { body: { errorType: errorType as any } })
         } catch (error) {
           return { expectedError: true, error: error instanceof Error ? error.message : 'Unknown error' }
         }
       } else {
-        return await dataApiService.get('/test/items', { signal })
+        return await dataApiService.get('/test/items')
       }
     })
   }
 
   const runMixedOperationsTest = async () => {
-    await executeStressTest('Mixed Operations Stress Test', async (requestId, signal) => {
+    await executeStressTest('Mixed Operations Stress Test', async (requestId) => {
       const operations = ['GET', 'POST', 'PUT', 'DELETE']
       const operation = operations[requestId % operations.length]
 
       switch (operation) {
         case 'GET':
-          return await dataApiService.get('/test/items', { signal })
+          return await dataApiService.get('/test/items')
 
         case 'POST':
           return await dataApiService.post('/test/items', {
@@ -384,21 +374,19 @@ const DataApiStressTests: React.FC = () => {
               title: `Stress Test Topic ${requestId}`,
               description: `Created during stress test #${requestId}`,
               type: 'stress-test'
-            },
-            signal
+            }
           })
 
         case 'PUT':
           // First get an item, then update it
           try {
-            const items = await dataApiService.get('/test/items', { signal })
+            const items = await dataApiService.get('/test/items')
             if ((items as any).items && (items as any).items.length > 0) {
               const itemId = (items as any).items[0].id
               return await dataApiService.put(`/test/items/${itemId}`, {
                 body: {
                   title: `Updated by stress test ${requestId}`
-                },
-                signal
+                }
               })
             }
           } catch (error) {
@@ -407,7 +395,7 @@ const DataApiStressTests: React.FC = () => {
           return { updateFailed: true, message: 'No items found to update' }
 
         default:
-          return await dataApiService.get('/test/items', { signal })
+          return await dataApiService.get('/test/items')
       }
     })
   }

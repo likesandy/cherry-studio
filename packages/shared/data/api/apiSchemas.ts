@@ -395,7 +395,6 @@ export interface ApiClient {
     options?: {
       query?: QueryParamsForPath<TPath>
       headers?: Record<string, string>
-      signal?: AbortSignal
     }
   ): Promise<ResponseForPath<TPath, 'GET'>>
 
@@ -405,7 +404,6 @@ export interface ApiClient {
       body?: BodyForPath<TPath, 'POST'>
       query?: Record<string, any>
       headers?: Record<string, string>
-      signal?: AbortSignal
     }
   ): Promise<ResponseForPath<TPath, 'POST'>>
 
@@ -415,7 +413,6 @@ export interface ApiClient {
       body: BodyForPath<TPath, 'PUT'>
       query?: Record<string, any>
       headers?: Record<string, string>
-      signal?: AbortSignal
     }
   ): Promise<ResponseForPath<TPath, 'PUT'>>
 
@@ -424,7 +421,6 @@ export interface ApiClient {
     options?: {
       query?: Record<string, any>
       headers?: Record<string, string>
-      signal?: AbortSignal
     }
   ): Promise<ResponseForPath<TPath, 'DELETE'>>
 
@@ -434,7 +430,6 @@ export interface ApiClient {
       body?: BodyForPath<TPath, 'PATCH'>
       query?: Record<string, any>
       headers?: Record<string, string>
-      signal?: AbortSignal
     }
   ): Promise<ResponseForPath<TPath, 'PATCH'>>
 }

@@ -29,7 +29,7 @@ export class IpcAdapter {
     logger.debug('Setting up IPC handlers...')
 
     // Main data request handler
-    ipcMain.handle(IpcChannel.DataApi_Request, async (event, request: DataRequest): Promise<DataResponse> => {
+    ipcMain.handle(IpcChannel.DataApi_Request, async (_event, request: DataRequest): Promise<DataResponse> => {
       try {
         logger.debug(`Handling data request: ${request.method} ${request.path}`, {
           id: request.id,
@@ -37,9 +37,6 @@ export class IpcAdapter {
         })
 
         const response = await this.apiServer.handleRequest(request)
-
-        // Send response back via Data_Response channel for async handling
-        event.sender.send(IpcChannel.DataApi_Response, response)
 
         return response
       } catch (error) {
@@ -55,9 +52,6 @@ export class IpcAdapter {
             timestamp: Date.now()
           }
         }
-
-        // Send error response
-        event.sender.send(IpcChannel.DataApi_Response, errorResponse)
 
         return errorResponse
       }

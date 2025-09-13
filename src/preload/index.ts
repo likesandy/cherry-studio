@@ -480,11 +480,6 @@ const api = {
       const listener = (_: any, data: any, event: string) => callback(data, event)
       ipcRenderer.on(channel, listener)
       return () => ipcRenderer.off(channel, listener)
-    },
-    onResponse: (callback: (response: any) => void) => {
-      const listener = (_: any, response: any) => callback(response)
-      ipcRenderer.on(IpcChannel.DataApi_Response, listener)
-      return () => ipcRenderer.off(IpcChannel.DataApi_Response, listener)
     }
   }
 }
