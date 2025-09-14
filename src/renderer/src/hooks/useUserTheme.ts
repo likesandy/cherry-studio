@@ -6,6 +6,8 @@ import Color from 'color'
 
 export default function useUserTheme() {
   const [colorPrimary, setColorPrimary] = usePreference('ui.theme_user.color_primary')
+  const [userFontFamily, setUserFontFamily] = usePreference('ui.theme_user.font_family')
+  const [userCodeFontFamily, setUserCodeFontFamily] = usePreference('ui.theme_user.code_font_family')
 
   const initUserTheme = (theme: { colorPrimary: string } = { colorPrimary }) => {
     const colorPrimary = Color(theme.colorPrimary)
@@ -17,8 +19,8 @@ export default function useUserTheme() {
     document.body.style.setProperty('--color-primary-mute', colorPrimary.alpha(0.3).toString())
 
     // Set font family CSS variables
-    document.documentElement.style.setProperty('--user-font-family', `'${theme.userFontFamily}'`)
-    document.documentElement.style.setProperty('--user-code-font-family', `'${theme.userCodeFontFamily}'`)
+    document.documentElement.style.setProperty('--user-font-family', `'${userFontFamily}'`)
+    document.documentElement.style.setProperty('--user-code-font-family', `'${userCodeFontFamily}'`)
   }
 
   return {
@@ -26,10 +28,12 @@ export default function useUserTheme() {
 
     initUserTheme,
 
-    userTheme: { colorPrimary },
+    userTheme: { colorPrimary, userFontFamily, userCodeFontFamily },
 
-    setUserTheme(userTheme: { colorPrimary: string }) {
+    setUserTheme(userTheme: { colorPrimary: string; userFontFamily: string; userCodeFontFamily: string }) {
       setColorPrimary(userTheme.colorPrimary)
+      setUserFontFamily(userTheme.userFontFamily)
+      setUserCodeFontFamily(userTheme.userCodeFontFamily)
       initUserTheme(userTheme)
     }
   }
