@@ -305,10 +305,7 @@ function getMenuItems({
         agent.id = uuid()
         agent.type = 'agent'
         addAgent(agent)
-        window.message.success({
-          content: t('assistants.save.success'),
-          key: 'save-to-agent'
-        })
+        window.toast.success(t('assistants.save.success'))
       }
     },
     {
@@ -393,6 +390,7 @@ const Container = styled.div`
   border-radius: var(--list-item-border-radius);
   border: 0.5px solid transparent;
   width: calc(var(--assistants-width) - 20px);
+
   &:hover {
     background-color: var(--color-list-item-hover);
   }

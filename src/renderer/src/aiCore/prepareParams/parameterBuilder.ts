@@ -3,23 +3,28 @@
  * 构建AI SDK的流式和非流式参数
  */
 
+import { vertexAnthropic } from '@ai-sdk/google-vertex/anthropic/edge'
+import { vertex } from '@ai-sdk/google-vertex/edge'
 import { loggerService } from '@logger'
 import {
   isGenerateImageModel,
   isOpenRouterBuiltInWebSearchModel,
   isReasoningModel,
   isSupportedReasoningEffortModel,
+  isSupportedThinkingTokenClaudeModel,
   isSupportedThinkingTokenModel,
   isWebSearchModel
 } from '@renderer/config/models'
 import { getAssistantSettings, getDefaultModel } from '@renderer/services/AssistantService'
-import type { Assistant, MCPTool, Provider } from '@renderer/types'
+import { type Assistant, type MCPTool, type Provider } from '@renderer/types'
 import type { StreamTextParams } from '@renderer/types/aiCoreTypes'
 import type { ModelMessage } from 'ai'
 import { stepCountIs } from 'ai'
 
+import { getAiSdkProviderId } from '../provider/factory'
 import { setupToolsConfig } from '../utils/mcp'
 import { buildProviderOptions } from '../utils/options'
+import { getAnthropicThinkingBudget } from '../utils/reasoning'
 import { getTemperature, getTopP } from './modelParameters'
 
 const logger = loggerService.withContext('parameterBuilder')
@@ -54,8 +59,9 @@ export async function buildStreamTextParams(
   const { mcpTools } = options
 
   const model = assistant.model || getDefaultModel()
+  const aiSdkProviderId = getAiSdkProviderId(provider)
 
-  const { maxTokens } = getAssistantSettings(assistant)
+  let { maxTokens } = getAssistantSettings(assistant)
 
   // 这三个变量透传出来，交给下面启用插件/中间件
   // 也可以在外部构建好再传入buildStreamTextParams
@@ -65,17 +71,20 @@ export async function buildStreamTextParams(
       assistant.settings?.reasoning_effort !== undefined) ||
     (isReasoningModel(model) && (!isSupportedThinkingTokenModel(model) || !isSupportedReasoningEffortModel(model)))
 
+  // 判断是否使用内置搜索
+  // 条件：没有外部搜索提供商 && (用户开启了内置搜索 || 模型强制使用内置搜索)
+  const hasExternalSearch = !!options.webSearchProviderId
   const enableWebSearch =
-    (assistant.enableWebSearch && isWebSearchModel(model)) ||
-    isOpenRouterBuiltInWebSearchModel(model) ||
-    model.id.includes('sonar') ||
-    false
+    !hasExternalSearch &&
+    ((assistant.enableWebSearch && isWebSearchModel(model)) ||
+      isOpenRouterBuiltInWebSearchModel(model) ||
+      model.id.includes('sonar'))
 
   const enableUrlContext = assistant.enableUrlContext || false
 
   const enableGenerateImage = !!(isGenerateImageModel(model) && assistant.enableGenerateImage)
 
-  const tools = setupToolsConfig(mcpTools)
+  let tools = setupToolsConfig(mcpTools)
 
   // if (webSearchProviderId) {
   //   tools['builtin_web_search'] = webSearchTool(webSearchProviderId)
@@ -88,6 +97,36 @@ export async function buildStreamTextParams(
     enableGenerateImage
   })
 
+  // NOTE: ai-sdk会把maxToken和budgetToken加起来
+  if (
+    enableReasoning &&
+    maxTokens !== undefined &&
+    isSupportedThinkingTokenClaudeModel(model) &&
+    (provider.type === 'anthropic' || provider.type === 'aws-bedrock')
+  ) {
+    maxTokens -= getAnthropicThinkingBudget(assistant, model)
+  }
+
+  // google-vertex | google-vertex-anthropic
+  if (enableWebSearch) {
+    if (!tools) {
+      tools = {}
+    }
+    if (aiSdkProviderId === 'google-vertex') {
+      tools.google_search = vertex.tools.googleSearch({})
+    } else if (aiSdkProviderId === 'google-vertex-anthropic') {
+      tools.web_search = vertexAnthropic.tools.webSearch_20250305({})
+    }
+  }
+
+  // google-vertex
+  if (enableUrlContext && aiSdkProviderId === 'google-vertex') {
+    if (!tools) {
+      tools = {}
+    }
+    tools.url_context = vertex.tools.urlContext({})
+  }
+
   // 构建基础参数
   const params: StreamTextParams = {
     messages: sdkMessages,
@@ -97,9 +136,11 @@ export async function buildStreamTextParams(
     abortSignal: options.requestOptions?.signal,
     headers: options.requestOptions?.headers,
     providerOptions,
-    tools,
     stopWhen: stepCountIs(10),
     maxRetries: 0
+  }
+  if (tools) {
+    params.tools = tools
   }
   if (assistant.prompt) {
     params.system = assistant.prompt

@@ -72,7 +72,7 @@ export async function backup(skipBackupFile: boolean) {
   const selectFolder = await window.api.file.selectFolder()
   if (selectFolder) {
     await window.api.backup.backup(filename, fileContnet, selectFolder, skipBackupFile)
-    window.message.success({ content: i18n.t('message.backup.success'), key: 'backup' })
+    window.toast.success(i18n.t('message.backup.success'))
   }
 }
 
@@ -105,7 +105,7 @@ export async function restore() {
       })
     } catch (error) {
       logger.error('restore: Error restoring backup file:', error as Error)
-      window.message.error({ content: i18n.t('error.backup.file_format'), key: 'restore' })
+      window.toast.error(i18n.t('error.backup.file_format'))
     }
   }
 }
@@ -218,7 +218,7 @@ export async function backupToWebdav({
         source: 'backup',
         channel: 'system'
       })
-      showMessage && window.message.success({ content: i18n.t('message.backup.success'), key: 'backup' })
+      showMessage && window.toast.success(i18n.t('message.backup.success'))
 
       // 清理旧备份文件
       if (webdavMaxBackups > 0) {
@@ -271,7 +271,7 @@ export async function backupToWebdav({
       }
 
       store.dispatch(setWebDAVSyncState({ lastSyncError: 'Backup failed' }))
-      showMessage && window.message.error({ content: i18n.t('message.backup.failed'), key: 'backup' })
+      showMessage && window.toast.error(i18n.t('message.backup.failed'))
     }
   } catch (error: any) {
     // if auto backup process, throw error
@@ -289,7 +289,7 @@ export async function backupToWebdav({
       channel: 'system'
     })
     store.dispatch(setWebDAVSyncState({ lastSyncError: error.message }))
-    showMessage && window.message.error({ content: i18n.t('message.backup.failed'), key: 'backup' })
+    showMessage && window.toast.error(i18n.t('message.backup.failed'))
     logger.error('[Backup] backupToWebdav: Error uploading file to WebDAV:', error)
     throw error
   } finally {
@@ -329,7 +329,7 @@ export async function restoreFromWebdav(fileName?: string) {
     await handleData(JSON.parse(data))
   } catch (error) {
     logger.error('[Backup] Error downloading file from WebDAV:', error as Error)
-    window.message.error({ content: i18n.t('error.backup.file_format'), key: 'restore' })
+    window.toast.error(i18n.t('error.backup.file_format'))
   }
 }
 
@@ -401,7 +401,7 @@ export async function backupToS3({
         source: 'backup',
         channel: 'system'
       })
-      showMessage && window.message.success({ content: i18n.t('message.backup.success'), key: 'backup' })
+      showMessage && window.toast.success(i18n.t('message.backup.success'))
 
       // 清理旧备份文件
       if (s3Config.maxBackups > 0) {
@@ -439,7 +439,7 @@ export async function backupToS3({
       }
 
       store.dispatch(setS3SyncState({ lastSyncError: 'Backup failed' }))
-      showMessage && window.message.error({ content: i18n.t('message.backup.failed'), key: 'backup' })
+      showMessage && window.toast.error(i18n.t('message.backup.failed'))
     }
   } catch (error: any) {
     if (autoBackupProcess) {
@@ -457,7 +457,7 @@ export async function backupToS3({
     })
     store.dispatch(setS3SyncState({ lastSyncError: error.message }))
     logger.error('backupToS3: Error uploading file to S3:', error)
-    showMessage && window.message.error({ content: i18n.t('message.backup.failed'), key: 'backup' })
+    showMessage && window.toast.error(i18n.t('message.backup.failed'))
     throw error
   } finally {
     if (!autoBackupProcess) {
@@ -893,7 +893,7 @@ export async function handleData(data: Record<string, any>) {
     }
 
     await localStorage.setItem('persist:cherry-studio', data.localStorage['persist:cherry-studio'])
-    window.message.success({ content: i18n.t('message.restore.success'), key: 'restore' })
+    window.toast.success(i18n.t('message.restore.success'))
     setTimeout(() => window.api.reload(), 1000)
     return
   }
@@ -915,12 +915,12 @@ export async function handleData(data: Record<string, any>) {
       })
     }
 
-    window.message.success({ content: i18n.t('message.restore.success'), key: 'restore' })
+    window.toast.success(i18n.t('message.restore.success'))
     setTimeout(() => window.api.reload(), 1000)
     return
   }
 
-  window.message.error({ content: i18n.t('error.backup.file_format'), key: 'restore' })
+  window.toast.error(i18n.t('error.backup.file_format'))
 }
 
 async function backupDatabase() {
@@ -1117,7 +1117,7 @@ export async function restoreFromLocal(fileName: string) {
     return true
   } catch (error) {
     logger.error('[LocalBackup] Restore failed:', error as Error)
-    window.message.error({ content: i18n.t('error.backup.file_format'), key: 'restore' })
+    window.toast.error(i18n.t('error.backup.file_format'))
     throw error
   }
 }

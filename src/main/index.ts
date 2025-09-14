@@ -31,6 +31,7 @@ import { TrayService } from './services/TrayService'
 import { windowService } from './services/WindowService'
 import { dataRefactorMigrateService } from './data/migrate/dataRefactor/DataRefactorMigrateService'
 import process from 'node:process'
+import { apiServerService } from './services/ApiServerService'
 
 const logger = loggerService.withContext('MainEntry')
 
@@ -219,6 +220,17 @@ if (!app.requestSingleInstanceLock()) {
 
     //start selection assistant service
     initSelectionService()
+
+    // Start API server if enabled
+    try {
+      const config = await apiServerService.getCurrentConfig()
+      logger.info('API server config:', config)
+      if (config.enabled) {
+        await apiServerService.start()
+      }
+    } catch (error: any) {
+      logger.error('Failed to check/start API server:', error)
+    }
   })
 
   registerProtocolClient(app)
@@ -264,6 +276,7 @@ if (!app.requestSingleInstanceLock()) {
     // 简单的资源清理，不阻塞退出流程
     try {
       await mcpService.cleanup()
+      await apiServerService.stop()
     } catch (error) {
       logger.warn('Error cleaning up MCP service:', error as Error)
     }

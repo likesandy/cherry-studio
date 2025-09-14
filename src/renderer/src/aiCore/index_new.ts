@@ -265,15 +265,15 @@ export default class ModernAiProvider {
     params: StreamTextParams,
     config: ModernAiProviderConfig
   ): Promise<CompletionsResult> {
-    const modelId = this.model!.id
-    logger.info('Starting modernCompletions', {
-      modelId,
-      providerId: this.config!.providerId,
-      topicId: config.topicId,
-      hasOnChunk: !!config.onChunk,
-      hasTools: !!params.tools && Object.keys(params.tools).length > 0,
-      toolCount: params.tools ? Object.keys(params.tools).length : 0
-    })
+    // const modelId = this.model!.id
+    // logger.info('Starting modernCompletions', {
+    //   modelId,
+    //   providerId: this.config!.providerId,
+    //   topicId: config.topicId,
+    //   hasOnChunk: !!config.onChunk,
+    //   hasTools: !!params.tools && Object.keys(params.tools).length > 0,
+    //   toolCount: params.tools ? Object.keys(params.tools).length : 0
+    // })
 
     // 根据条件构建插件数组
     const plugins = await buildPlugins(config)
@@ -284,7 +284,7 @@ export default class ModernAiProvider {
     // 创建带有中间件的执行器
     if (config.onChunk) {
       const accumulate = this.model!.supported_text_delta !== false // true and undefined
-      const adapter = new AiSdkToChunkAdapter(config.onChunk, config.mcpTools, accumulate)
+      const adapter = new AiSdkToChunkAdapter(config.onChunk, config.mcpTools, accumulate, config.enableWebSearch)
 
       const streamResult = await executor.streamText({
         ...params,

@@ -194,21 +194,21 @@ const ChatNavigation: FC<ChatNavigationProps> = ({ containerId }) => {
     const assistantMessages = findAssistantMessages()
 
     if (userMessages.length === 0 && assistantMessages.length === 0) {
-      // window.message.info({ content: t('chat.navigation.last'), key: 'navigation-info' })
+      // window.toast.info(t('chat.navigation.last'))
       return scrollToBottom()
     }
 
     const visibleIndex = getCurrentVisibleIndex('down')
 
     if (visibleIndex === -1) {
-      // window.message.info({ content: t('chat.navigation.last'), key: 'navigation-info' })
+      // window.toast.info(t('chat.navigation.last'))
       return scrollToBottom()
     }
 
     const targetIndex = visibleIndex - 1
 
     if (targetIndex < 0) {
-      // window.message.info({ content: t('chat.navigation.last'), key: 'navigation-info' })
+      // window.toast.info(t('chat.navigation.last'))
       return scrollToBottom()
     }
 
@@ -220,21 +220,21 @@ const ChatNavigation: FC<ChatNavigationProps> = ({ containerId }) => {
     const userMessages = findUserMessages()
     const assistantMessages = findAssistantMessages()
     if (userMessages.length === 0 && assistantMessages.length === 0) {
-      // window.message.info({ content: t('chat.navigation.first'), key: 'navigation-info' })
+      // window.toast.info(t('chat.navigation.first'))
       return scrollToTop()
     }
 
     const visibleIndex = getCurrentVisibleIndex('up')
 
     if (visibleIndex === -1) {
-      // window.message.info({ content: t('chat.navigation.first'), key: 'navigation-info' })
+      // window.toast.info(t('chat.navigation.first'))
       return scrollToTop()
     }
 
     const targetIndex = visibleIndex + 1
 
     if (targetIndex >= userMessages.length) {
-      // window.message.info({ content: t('chat.navigation.first'), key: 'navigation-info' })
+      // window.toast.info(t('chat.navigation.first'))
       return scrollToTop()
     }
 

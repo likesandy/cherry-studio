@@ -538,6 +538,10 @@
         "tip": "A barra de ferramentas de blocos de código executáveis exibirá um botão de execução; atenção para não executar códigos perigosos!",
         "title": "Execução de Código"
       },
+      "code_fancy_block": {
+        "label": "Bloco de código estilizado",
+        "tip": "Use um estilo de bloco de código mais agradável, como cartões HTML"
+      },
       "code_image_tools": {
         "label": "Habilitar ferramenta de visualização",
         "tip": "Ativar ferramentas de visualização para imagens renderizadas de blocos de código como mermaid"
@@ -943,6 +947,9 @@
     "image": "Imagem",
     "name": "Nome do Arquivo",
     "open": "Abrir",
+    "preview": {
+      "error": "Falha ao abrir o arquivo"
+    },
     "size": "Tamanho",
     "text": "Texto",
     "title": "Arquivo",
@@ -1701,7 +1708,7 @@
     "delete_confirm": "Tem a certeza de que deseja eliminar este {{type}}?",
     "delete_folder_confirm": "Tem a certeza de que deseja eliminar a pasta \"{{name}}\" e todos os seus conteúdos?",
     "delete_note_confirm": "Tem a certeza de que deseja eliminar a nota \"{{name}}\"?",
-    "drop_markdown_hint": "Arraste o arquivo Markdown para aqui e importe",
+    "drop_markdown_hint": "Arraste e solte arquivos ou pastas .md aqui para importar",
     "empty": "Ainda não existem notas",
     "expand": "expandir",
     "export_failed": "Falha ao exportar para a base de conhecimento",
@@ -1712,8 +1719,7 @@
     "new_note": "Nova nota",
     "no_content_to_copy": "Não há conteúdo para copiar",
     "no_file_selected": "Selecione o arquivo a ser enviado",
-    "only_markdown": "Apenas o formato Markdown é suportado",
-    "only_one_file_allowed": "só é possível enviar um arquivo",
+    "no_valid_files": "Nenhum arquivo válido foi carregado",
     "open_folder": "Abrir pasta externa",
     "open_outside": "Abrir externamente",
     "rename": "renomear",
@@ -1739,8 +1745,15 @@
         "compress_content": "reduzir a largura da coluna",
         "compress_content_description": "Ativando isso limitará o número de caracteres por linha, reduzindo o conteúdo exibido na tela.",
         "default_font": "fonte padrão",
+        "font_size": "tamanho da fonte",
+        "font_size_description": "Ajuste o tamanho da fonte para uma melhor experiência de leitura (10-30px)",
+        "font_size_large": "Grande",
+        "font_size_medium": "中",
+        "font_size_small": "pequeno",
         "font_title": "configuração de fonte",
         "serif_font": "fonte com serifa",
+        "show_table_of_contents": "Mostrar esboço do diretório",
+        "show_table_of_contents_description": "Mostrar barra lateral do índice, facilitando a navegação dentro do documento",
         "title": "configurações de exibição"
       },
       "editor": {
@@ -1768,7 +1781,7 @@
     "sort_updated_asc": "Tempo de atualização (do mais antigo para o mais recente)",
     "sort_updated_desc": "atualização de tempo (do mais novo para o mais antigo)",
     "sort_z2a": "Nome do arquivo (Z-A)",
-    "star": "coleções",
+    "star": "Notas favoritas",
     "starred_notes": "notas salvas",
     "title": "nota",
     "unsaved_changes": "Você tem conteúdo não salvo, tem certeza que deseja sair?",
@@ -2221,6 +2234,21 @@
       }
     },
     "dragHandle": "bloco de arrastar",
+    "frontMatter": {
+      "addProperty": "Adicionar atributo",
+      "addTag": "Adicionar etiqueta",
+      "changeToBoolean": "Caixa de seleção",
+      "changeToDate": "Data",
+      "changeToNumber": "número",
+      "changeToTags": "etiqueta",
+      "changeToText": "texto",
+      "changeType": "Alterar tipo",
+      "deleteProperty": "Excluir atributo",
+      "editValue": "Editar valor",
+      "empty": "vazio",
+      "moreActions": "Mais ações",
+      "propertyName": "nome do atributo"
+    },
     "image": {
       "placeholder": "adicionar imagem"
     },
@@ -2621,6 +2649,10 @@
         "token_placeholder": "Insira o token de autorização do Joplin",
         "url": "URL para o qual o serviço de recorte do Joplin está escutando",
         "url_placeholder": "http://127.0.0.1:41184/"
+      },
+      "limit": {
+        "appDataDiskQuota": "Aviso de espaço em disco",
+        "appDataDiskQuotaDescription": "O espaço de armazenamento de dados está quase cheio, por favor, limpe o espaço em disco, caso contrário, os dados serão perdidos"
       },
       "local": {
         "autoSync": {
@@ -3083,6 +3115,13 @@
           "label": "CSS personalizado",
           "placeholder": "/* Escreva seu CSS personalizado aqui */"
         }
+      },
+      "font": {
+        "code": "fonte de código",
+        "default": "padrão",
+        "global": "Fonte global",
+        "select": "Selecionar fonte",
+        "title": "Configuração de fonte"
       },
       "navbar": {
         "position": {
@@ -3681,15 +3720,19 @@
         "apikey": "Chave da API",
         "auth_failed": "Falha na autenticação da Anthropic",
         "auth_method": "Método de autenticação",
+        "auth_success": "Autenticação OAuth da Anthropic bem-sucedida",
         "authenticated": "[retranslating]: Verificado",
         "authenticating": "A autenticar",
         "cancel": "Cancelar",
+        "code_error": "Código de autorização inválido, tente novamente",
         "code_placeholder": "Introduza o código de autorização exibido no browser",
         "code_required": "O código de autorização não pode estar vazio",
         "description": "Autenticação OAuth",
         "description_detail": "Precisa de uma subscrição Claude Pro ou superior para utilizar este método de autenticação",
         "enter_auth_code": "Código de autorização",
         "logout": "Sair da sessão",
+        "logout_failed": "Falha ao sair da conta, tente novamente",
+        "logout_success": "Logout bem-sucedido do login Anthropic",
         "oauth": "OAuth da Página Web",
         "start_auth": "Iniciar autorização",
         "submit_code": "Concluir login"
@@ -4278,6 +4321,7 @@
     },
     "processing": "Traduzindo...",
     "settings": {
+      "autoCopy": "Cópia automática após a tradução",
       "bidirectional": "Configuração de Tradução Bidirecional",
       "bidirectional_tip": "Quando ativado, suporta apenas tradução bidirecional entre o idioma de origem e o idioma de destino",
       "model": "Configuração de Modelo",

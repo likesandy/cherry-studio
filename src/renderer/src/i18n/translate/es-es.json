@@ -538,6 +538,10 @@
         "tip": "En la barra de herramientas de bloques de código ejecutables se mostrará un botón de ejecución. ¡Tenga cuidado en no ejecutar código peligroso!",
         "title": "Ejecución de Código"
       },
+      "code_fancy_block": {
+        "label": "Bloque de código con estilo",
+        "tip": "Utiliza un estilo de bloque de código más atractivo, como una tarjeta HTML"
+      },
       "code_image_tools": {
         "label": "Habilitar herramienta de vista previa",
         "tip": "Habilitar herramientas de vista previa para imágenes renderizadas de bloques de código como mermaid"
@@ -943,6 +947,9 @@
     "image": "Imagen",
     "name": "Nombre del archivo",
     "open": "Abrir",
+    "preview": {
+      "error": "No se pudo abrir el archivo"
+    },
     "size": "Tamaño",
     "text": "Texto",
     "title": "Archivo",
@@ -1701,7 +1708,7 @@
     "delete_confirm": "¿Estás seguro de que deseas eliminar este {{type}}?",
     "delete_folder_confirm": "¿Está seguro de que desea eliminar la carpeta \"{{name}}\" y todo su contenido?",
     "delete_note_confirm": "¿Está seguro de que desea eliminar la nota \"{{name}}\"?",
-    "drop_markdown_hint": "Arrastra archivos Markdown aquí para importar",
+    "drop_markdown_hint": "Arrastre y suelte archivos o carpetas de .md aquí para importar",
     "empty": "Sin notas por el momento",
     "expand": "expandir",
     "export_failed": "Exportación a la base de conocimientos fallida",
@@ -1712,8 +1719,7 @@
     "new_note": "Crear nota nueva",
     "no_content_to_copy": "No hay contenido para copiar",
     "no_file_selected": "Por favor, seleccione el archivo a subir",
-    "only_markdown": "Solo se admite el formato Markdown",
-    "only_one_file_allowed": "solo se puede subir un archivo",
+    "no_valid_files": "No se ha cargado un archivo válido",
     "open_folder": "abrir carpeta externa",
     "open_outside": "Abrir desde el exterior",
     "rename": "renombrar",
@@ -1739,8 +1745,15 @@
         "compress_content": "reducir el ancho de la columna",
         "compress_content_description": "Al activarlo, se limitará el número de caracteres por línea, reduciendo el contenido mostrado en pantalla.",
         "default_font": "fuente predeterminada",
+        "font_size": "Tamaño de fuente",
+        "font_size_description": "Ajusta el tamaño de la fuente para una mejor experiencia de lectura (10-30px)",
+        "font_size_large": "Grande",
+        "font_size_medium": "中",
+        "font_size_small": "pequeño",
         "font_title": "Configuración de fuente",
         "serif_font": "fuente serif",
+        "show_table_of_contents": "Mostrar esquema del directorio",
+        "show_table_of_contents_description": "Mostrar la barra lateral del índice para facilitar la navegación dentro del documento",
         "title": "configuración de visualización"
       },
       "editor": {
@@ -1768,7 +1781,7 @@
     "sort_updated_asc": "Fecha de actualización (de más antigua a más reciente)",
     "sort_updated_desc": "Fecha de actualización (de más nuevo a más antiguo)",
     "sort_z2a": "Nombre de archivo (Z-A)",
-    "star": "Colección",
+    "star": "Notas guardadas",
     "starred_notes": "notas guardadas",
     "title": "notas",
     "unsaved_changes": "Tienes contenido no guardado, ¿estás seguro de que quieres salir?",
@@ -2221,6 +2234,21 @@
       }
     },
     "dragHandle": "bloque de arrastre",
+    "frontMatter": {
+      "addProperty": "Agregar atributo",
+      "addTag": "Añadir etiqueta",
+      "changeToBoolean": "Casilla de verificación",
+      "changeToDate": "Fecha",
+      "changeToNumber": "número",
+      "changeToTags": "etiqueta",
+      "changeToText": "texto",
+      "changeType": "cambiar tipo",
+      "deleteProperty": "eliminar atributo",
+      "editValue": "editar valor",
+      "empty": "vacío",
+      "moreActions": "Más operaciones",
+      "propertyName": "Nombre del atributo"
+    },
     "image": {
       "placeholder": "añadir imágenes"
     },
@@ -2621,6 +2649,10 @@
         "token_placeholder": "Introduce el token de autorización de Joplin",
         "url": "URL a la que escucha el servicio de recorte de Joplin",
         "url_placeholder": "http://127.0.0.1:41184/"
+      },
+      "limit": {
+        "appDataDiskQuota": "Advertencia de espacio en disco",
+        "appDataDiskQuotaDescription": "El espacio de almacenamiento de datos está casi lleno, por favor, limpie el espacio en disco, de lo contrario, se perderán los datos"
       },
       "local": {
         "autoSync": {
@@ -3083,6 +3115,13 @@
           "label": "CSS personalizado",
           "placeholder": "/* Escribe tu CSS personalizado aquí */"
         }
+      },
+      "font": {
+        "code": "fuente de código",
+        "default": "predeterminado",
+        "global": "Fuente global",
+        "select": "Seleccionar fuente",
+        "title": "Configuración de fuente"
       },
       "navbar": {
         "position": {
@@ -3681,15 +3720,19 @@
         "apikey": "Clave de API",
         "auth_failed": "Error de autenticación de Anthropic",
         "auth_method": "Método de autenticación",
+        "auth_success": "Autenticación OAuth de Anthropic exitosa",
         "authenticated": "Verificado",
         "authenticating": "Autenticando",
         "cancel": "Cancelar",
+        "code_error": "Código de autorización inválido, inténtalo de nuevo",
         "code_placeholder": "Introduzca el código de autorización que se muestra en el navegador",
         "code_required": "El código de autorización no puede estar vacío",
         "description": "Autenticación OAuth",
         "description_detail": "Necesitas suscribirte a Claude Pro o a una versión superior para utilizar este método de autenticación",
         "enter_auth_code": "Código de autorización",
         "logout": "Cerrar sesión",
+        "logout_failed": "Error al cerrar sesión, inténtalo de nuevo",
+        "logout_success": "Cierre de sesión exitoso en Anthropic",
         "oauth": "Web OAuth",
         "start_auth": "Comenzar autorización",
         "submit_code": "Iniciar sesión completado"
@@ -4278,6 +4321,7 @@
     },
     "processing": "Traduciendo...",
     "settings": {
+      "autoCopy": "Copiar automáticamente después de completar la traducción",
       "bidirectional": "Configuración de traducción bidireccional",
       "bidirectional_tip": "Una vez activada, solo se admitirá la traducción bidireccional entre el idioma de origen y el idioma de destino",
       "model": "Configuración del modelo",

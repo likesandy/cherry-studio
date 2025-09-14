@@ -35,8 +35,10 @@ export enum IpcChannel {
   App_InstallBunBinary = 'app:install-bun-binary',
   App_LogToMain = 'app:log-to-main',
   App_SaveData = 'app:save-data',
+  App_GetDiskInfo = 'app:get-disk-info',
   App_SetFullScreen = 'app:set-full-screen',
   App_IsFullScreen = 'app:is-full-screen',
+  App_GetSystemFonts = 'app:get-system-fonts',
 
   App_MacIsProcessTrusted = 'app:mac-is-process-trusted',
   App_MacRequestProcessTrust = 'app:mac-request-process-trust',
@@ -330,6 +332,13 @@ export enum IpcChannel {
   TRACE_ADD_END_MESSAGE = 'trace:addEndMessage',
   TRACE_CLEAN_LOCAL_DATA = 'trace:cleanLocalData',
   TRACE_ADD_STREAM_MESSAGE = 'trace:addStreamMessage',
+
+  // API Server
+  ApiServer_Start = 'api-server:start',
+  ApiServer_Stop = 'api-server:stop',
+  ApiServer_Restart = 'api-server:restart',
+  ApiServer_GetStatus = 'api-server:get-status',
+  ApiServer_GetConfig = 'api-server:get-config',
 
   // Anthropic OAuth
   Anthropic_StartOAuthFlow = 'anthropic:start-oauth-flow',

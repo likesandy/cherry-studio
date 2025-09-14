@@ -1,8 +1,8 @@
+import type { LanguageModelV2Source } from '@ai-sdk/provider'
 import type { WebSearchResultBlock } from '@anthropic-ai/sdk/resources'
 import type { GenerateImagesConfig, GroundingMetadata, PersonGeneration } from '@google/genai'
 import type OpenAI from 'openai'
 import type { CSSProperties } from 'react'
-import * as z from 'zod/v4'
 
 export * from './file'
 export * from './note'
@@ -722,12 +722,15 @@ export type WebSearchProviderResponse = {
   results: WebSearchProviderResult[]
 }
 
+export type AISDKWebSearchResult = Omit<Extract<LanguageModelV2Source, { sourceType: 'url' }>, 'sourceType'>
+
 export type WebSearchResults =
   | WebSearchProviderResponse
   | GroundingMetadata
   | OpenAI.Chat.Completions.ChatCompletionMessage.Annotation.URLCitation[]
   | OpenAI.Responses.ResponseOutputText.URLCitation[]
   | WebSearchResultBlock[]
+  | AISDKWebSearchResult[]
   | any[]
 
 export enum WebSearchSource {
@@ -830,20 +833,6 @@ export const BuiltinMCPServerNamesArray = Object.values(BuiltinMCPServerNames)
 export const isBuiltinMCPServerName = (name: string): name is BuiltinMCPServerName => {
   return BuiltinMCPServerNamesArray.some((n) => n === name)
 }
-
-export interface MCPToolInputSchema {
-  type: string
-  title: string
-  description?: string
-  required?: string[]
-  properties: Record<string, object>
-}
-
-export const MCPToolOutputSchema = z.object({
-  type: z.literal('object'),
-  properties: z.record(z.string(), z.unknown()),
-  required: z.array(z.string())
-})
 
 export interface MCPPromptArguments {
   name: string
@@ -1209,6 +1198,21 @@ export function strip<T, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> {
   }
   return result
 }
+
+/**
+ * Makes specified properties required while keeping others as is
+ * @template T - The object type to modify
+ * @template K - Keys of T that should be required
+ * @example
+ * type User = {
+ *   name?: string;
+ *   age?: number;
+ * }
+ *
+ * type UserWithName = RequireSome<User, 'name'>
+ * // Result: { name: string; age?: number; }
+ */
+export type RequireSome<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
 
 export type HexColor = string
 

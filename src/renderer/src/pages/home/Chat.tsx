@@ -46,6 +46,7 @@ const Chat: FC<Props> = (props) => {
   const { showTopics } = useShowTopics()
   const { isMultiSelectMode } = useChatContext(props.activeTopic)
   const { isTopNavbar } = useNavbarPosition()
+  const chatMaxWidth = useChatMaxWidth()
 
   const mainRef = React.useRef<HTMLDivElement>(null)
   const contentSearchRef = React.useRef<ContentSearchRef>(null)
@@ -156,7 +157,7 @@ const Chat: FC<Props> = (props) => {
           vertical
           flex={1}
           justify="space-between"
-          style={{ maxWidth: '100%', height: mainHeight }}>
+          style={{ maxWidth: chatMaxWidth, height: mainHeight }}>
           <Messages
             key={props.activeTopic.id}
             assistant={assistant}
@@ -219,7 +220,7 @@ const Container = styled.div`
   height: calc(100vh - var(--navbar-height));
   flex: 1;
   [navbar-position='top'] & {
-    height: calc(100vh - var(--navbar-height) -6px);
+    height: calc(100vh - var(--navbar-height) - 6px);
     background-color: var(--color-background);
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;

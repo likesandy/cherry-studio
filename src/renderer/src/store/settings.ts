@@ -37,6 +37,8 @@ export interface NutstoreSyncRuntime extends RemoteSyncState {}
 
 export type UserTheme = {
   colorPrimary: string
+  userFontFamily: string
+  userCodeFontFamily: string
 }
 
 export interface SettingsState {
@@ -103,6 +105,7 @@ export interface SettingsState {
   codeCollapsible: boolean
   codeWrappable: boolean
   codeImageTools: boolean
+  codeFancyBlock: boolean
   mathEngine: MathEngine
   mathEnableSingleDollar: boolean
   messageStyle: 'plain' | 'bubble'
@@ -247,7 +250,9 @@ export const initialState: SettingsState = {
   tray: true,
   theme: ThemeMode.system,
   userTheme: {
-    colorPrimary: '#00b96b'
+    colorPrimary: '#00b96b',
+    userFontFamily: '',
+    userCodeFontFamily: ''
   },
   windowStyle: isMac ? 'transparent' : 'opaque',
   fontSize: 14,
@@ -288,6 +293,7 @@ export const initialState: SettingsState = {
   codeCollapsible: false,
   codeWrappable: false,
   codeImageTools: false,
+  codeFancyBlock: true,
   mathEngine: 'KaTeX',
   mathEnableSingleDollar: true,
   messageStyle: 'plain',
@@ -617,6 +623,9 @@ const settingsSlice = createSlice({
     // setCodeImageTools: (state, action: PayloadAction<boolean>) => {
     //   state.codeImageTools = action.payload
     // },
+    setCodeFancyBlock: (state, action: PayloadAction<boolean>) => {
+      state.codeFancyBlock = action.payload
+    },
     // setMathEngine: (state, action: PayloadAction<MathEngine>) => {
     //   state.mathEngine = action.payload
     // },
@@ -906,6 +915,7 @@ export const {
   // setCodeCollapsible,
   // setCodeWrappable,
   // setCodeImageTools,
+  setCodeFancyBlock,
   // setMathEngine,
   // setMathEnableSingleDollar,
   // setFoldDisplayMode,

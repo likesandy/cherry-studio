@@ -4,8 +4,9 @@
  */
 
 import { loggerService } from '@logger'
-import { MCPTool, WebSearchResults, WebSearchSource } from '@renderer/types'
+import { AISDKWebSearchResult, MCPTool, WebSearchResults, WebSearchSource } from '@renderer/types'
 import { Chunk, ChunkType } from '@renderer/types/chunk'
+import { convertLinks, flushLinkConverterBuffer } from '@renderer/utils/linkConverter'
 import type { TextStreamPart, ToolSet } from 'ai'
 
 import { ToolCallChunkHandler } from './handleToolCallChunk'
@@ -29,13 +30,18 @@ export interface CherryStudioChunk {
 export class AiSdkToChunkAdapter {
   toolCallHandler: ToolCallChunkHandler
   private accumulate: boolean | undefined
+  private isFirstChunk = true
+  private enableWebSearch: boolean = false
+
   constructor(
     private onChunk: (chunk: Chunk) => void,
     mcpTools: MCPTool[] = [],
-    accumulate?: boolean
+    accumulate?: boolean,
+    enableWebSearch?: boolean
   ) {
     this.toolCallHandler = new ToolCallChunkHandler(onChunk, mcpTools)
     this.accumulate = accumulate
+    this.enableWebSearch = enableWebSearch || false
   }
 
   /**
@@ -65,11 +71,24 @@ export class AiSdkToChunkAdapter {
       webSearchResults: [],
       reasoningId: ''
     }
+    // Reset link converter state at the start of stream
+    this.isFirstChunk = true
+
     try {
       while (true) {
         const { done, value } = await reader.read()
 
         if (done) {
+          // Flush any remaining content from link converter buffer if web search is enabled
+          if (this.enableWebSearch) {
+            const remainingText = flushLinkConverterBuffer()
+            if (remainingText) {
+              this.onChunk({
+                type: ChunkType.TEXT_DELTA,
+                text: remainingText
+              })
+            }
+          }
           break
         }
 
@@ -87,9 +106,9 @@ export class AiSdkToChunkAdapter {
    */
   private convertAndEmitChunk(
     chunk: TextStreamPart<any>,
-    final: { text: string; reasoningContent: string; webSearchResults: any[]; reasoningId: string }
+    final: { text: string; reasoningContent: string; webSearchResults: AISDKWebSearchResult[]; reasoningId: string }
   ) {
-    logger.info(`AI SDK chunk type: ${chunk.type}`, chunk)
+    logger.silly(`AI SDK chunk type: ${chunk.type}`, chunk)
     switch (chunk.type) {
       // === 文本相关事件 ===
       case 'text-start':
@@ -97,17 +116,44 @@ export class AiSdkToChunkAdapter {
           type: ChunkType.TEXT_START
         })
         break
-      case 'text-delta':
-        if (this.accumulate) {
-          final.text += chunk.text || ''
+      case 'text-delta': {
+        const processedText = chunk.text || ''
+        let finalText: string
+
+        // Only apply link conversion if web search is enabled
+        if (this.enableWebSearch) {
+          const result = convertLinks(processedText, this.isFirstChunk)
+
+          if (this.isFirstChunk) {
+            this.isFirstChunk = false
+          }
+
+          // Handle buffered content
+          if (result.hasBufferedContent) {
+            finalText = result.text
+          } else {
+            finalText = result.text || processedText
+          }
         } else {
-          final.text = chunk.text || ''
+          // Without web search, just use the original text
+          finalText = processedText
         }
-        this.onChunk({
-          type: ChunkType.TEXT_DELTA,
-          text: final.text || ''
-        })
+
+        if (this.accumulate) {
+          final.text += finalText
+        } else {
+          final.text = finalText
+        }
+
+        // Only emit chunk if there's text to send
+        if (finalText) {
+          this.onChunk({
+            type: ChunkType.TEXT_DELTA,
+            text: this.accumulate ? final.text : finalText
+          })
+        }
         break
+      }
       case 'text-end':
         this.onChunk({
           type: ChunkType.TEXT_COMPLETE,
@@ -152,12 +198,14 @@ export class AiSdkToChunkAdapter {
       //   this.toolCallHandler.handleToolCallCreated(chunk)
       //   break
       case 'tool-call':
-        // 原始的工具调用（未被中间件处理）
         this.toolCallHandler.handleToolCall(chunk)
         break
 
+      case 'tool-error':
+        this.toolCallHandler.handleToolError(chunk)
+        break
+
       case 'tool-result':
-        // 原始的工具调用结果（未被中间件处理）
         this.toolCallHandler.handleToolResult(chunk)
         break
 
@@ -167,7 +215,6 @@ export class AiSdkToChunkAdapter {
       //     type: ChunkType.LLM_RESPONSE_CREATED
       //   })
       //   break
-      // TODO: 需要区分接口开始和步骤开始
       // case 'start-step':
       //   this.onChunk({
       //     type: ChunkType.BLOCK_CREATED
@@ -199,7 +246,7 @@ export class AiSdkToChunkAdapter {
             [WebSearchSource.ANTHROPIC]: WebSearchSource.ANTHROPIC,
             [WebSearchSource.OPENROUTER]: WebSearchSource.OPENROUTER,
             [WebSearchSource.GEMINI]: WebSearchSource.GEMINI,
-            [WebSearchSource.PERPLEXITY]: WebSearchSource.PERPLEXITY,
+            // [WebSearchSource.PERPLEXITY]: WebSearchSource.PERPLEXITY,
             [WebSearchSource.QWEN]: WebSearchSource.QWEN,
             [WebSearchSource.HUNYUAN]: WebSearchSource.HUNYUAN,
             [WebSearchSource.ZHIPU]: WebSearchSource.ZHIPU,
@@ -267,18 +314,9 @@ export class AiSdkToChunkAdapter {
       // === 源和文件相关事件 ===
       case 'source':
         if (chunk.sourceType === 'url') {
-          // if (final.webSearchResults.length === 0) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { sourceType: _, ...rest } = chunk
           final.webSearchResults.push(rest)
-          // }
-          // this.onChunk({
-          //   type: ChunkType.LLM_WEB_SEARCH_COMPLETE,
-          //   llm_web_search: {
-          //     source: WebSearchSource.AISDK,
-          //     results: final.webSearchResults
-          //   }
-          // })
         }
         break
       case 'file':
@@ -305,8 +343,6 @@ export class AiSdkToChunkAdapter {
         break
 
       default:
-      // 其他类型的 chunk 可以忽略或记录日志
-      // console.log('Unhandled AI SDK chunk type:', chunk.type, chunk)
     }
   }
 }

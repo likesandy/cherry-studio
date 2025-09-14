@@ -19,6 +19,7 @@ import {
   resetAssistantMessage
 } from '@renderer/utils/messageUtils/create'
 import { getTopicQueue, waitForTopicQueue } from '@renderer/utils/queue'
+import { defaultAppHeaders } from '@shared/utils'
 import { t } from 'i18next'
 import { isEmpty, throttle } from 'lodash'
 import { LRUCache } from 'lru-cache'
@@ -369,7 +370,8 @@ const fetchAndProcessAssistantResponseImpl = async (
         topicId,
         options: {
           signal: abortController.signal,
-          timeout: 30000
+          timeout: 30000,
+          headers: defaultAppHeaders()
         }
       },
       streamProcessorCallbacks
@@ -735,10 +737,7 @@ export const regenerateAssistantResponseThunk =
         )
 
         // Show error popup instead of creating error message block
-        window.message.error({
-          content: t('error.missing_user_message'),
-          key: 'missing-user-message-error'
-        })
+        window.toast.error(t('error.missing_user_message'))
 
         return
       }
@@ -958,10 +957,7 @@ export const appendAssistantResponseThunk =
         )
 
         // Show error popup instead of creating error message block
-        window.message.error({
-          content: t('error.missing_user_message'),
-          key: 'missing-user-message-error'
-        })
+        window.toast.error(t('error.missing_user_message'))
 
         return
       }
@@ -1079,7 +1075,7 @@ export const cloneMessagesToNewTopicThunk =
             const oldBlock = state.messageBlocks.entities[oldBlockId]
             if (oldBlock) {
               const newBlockId = uuid()
-              const newBlock: MessageBlock = {
+              const newBlock = {
                 ...oldBlock,
                 id: newBlockId,
                 messageId: newMsgId // Link block to the NEW message ID

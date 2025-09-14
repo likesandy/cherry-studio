@@ -538,6 +538,10 @@
         "tip": "The run button will be displayed in the toolbar of executable code blocks, please do not execute dangerous code!",
         "title": "Code Execution"
       },
+      "code_fancy_block": {
+        "label": "Fancy code block",
+        "tip": "Enable fancy style for code block, e.g., html card"
+      },
       "code_image_tools": {
         "label": "Enable preview tools",
         "tip": "Enable preview tools for images rendered from code blocks such as mermaid"
@@ -943,6 +947,9 @@
     "image": "Image",
     "name": "Name",
     "open": "Open",
+    "preview": {
+      "error": "Failed to open file"
+    },
     "size": "Size",
     "text": "Text",
     "title": "Files",
@@ -1701,7 +1708,7 @@
     "delete_confirm": "Are you sure you want to delete this {{type}}?",
     "delete_folder_confirm": "Are you sure you want to delete the folder \"{{name}}\" and all of its contents?",
     "delete_note_confirm": "Are you sure you want to delete the note \"{{name}}\"?",
-    "drop_markdown_hint": "Drop markdown files here to import",
+    "drop_markdown_hint": "Drop .md files or folders here to import",
     "empty": "No notes available yet",
     "expand": "unfold",
     "export_failed": "Failed to export to knowledge base",
@@ -1712,8 +1719,7 @@
     "new_note": "Create a new note",
     "no_content_to_copy": "No content to copy",
     "no_file_selected": "Please select the file to upload",
-    "only_markdown": "Only Markdown files are supported",
-    "only_one_file_allowed": "Only one file can be uploaded",
+    "no_valid_files": "No valid file was uploaded",
     "open_folder": "Open an external folder",
     "open_outside": "Open from external",
     "rename": "Rename",
@@ -1739,8 +1745,15 @@
         "compress_content": "Content Compression",
         "compress_content_description": "When enabled, it will limit the number of characters per line, reducing the content displayed on the screen, but making longer paragraphs more readable.",
         "default_font": "Default font",
+        "font_size": "Font Size",
+        "font_size_description": "Adjust the font size for better reading experience (10-30px)",
+        "font_size_large": "Large",
+        "font_size_medium": "Medium",
+        "font_size_small": "Small",
         "font_title": "Font settings",
         "serif_font": "Serif font",
+        "show_table_of_contents": "Show Table of Contents",
+        "show_table_of_contents_description": "Display a table of contents sidebar for easy navigation within documents",
         "title": "Display Settings"
       },
       "editor": {
@@ -1768,7 +1781,7 @@
     "sort_updated_asc": "Update time (oldest first)",
     "sort_updated_desc": "Update time (newest first)",
     "sort_z2a": "File name (Z-A)",
-    "star": "Favorite",
+    "star": "Favorite note",
     "starred_notes": "Collected notes",
     "title": "Notes",
     "unsaved_changes": "You have unsaved content, are you sure you want to leave?",
@@ -2637,6 +2650,10 @@
         "url": "Joplin Web Clipper Service URL",
         "url_placeholder": "http://127.0.0.1:41184/"
       },
+      "limit": {
+        "appDataDiskQuota": "Disk Space Warning",
+        "appDataDiskQuotaDescription": "Data directory space is almost full, please clear disk space, otherwise data will be lost"
+      },
       "local": {
         "autoSync": {
           "label": "Auto Backup",
@@ -3098,6 +3115,13 @@
           "label": "Custom CSS",
           "placeholder": "/* Put custom CSS here */"
         }
+      },
+      "font": {
+        "code": "Code Font",
+        "default": "Default",
+        "global": "Global Font",
+        "select": "Select Font",
+        "title": "Font Settings"
       },
       "navbar": {
         "position": {
@@ -4297,6 +4321,7 @@
     },
     "processing": "Translation in progress...",
     "settings": {
+      "autoCopy": "Copy after translation ",
       "bidirectional": "Bidirectional Translation Settings",
       "bidirectional_tip": "When enabled, only bidirectional translation between source and target languages is supported",
       "model": "Model Settings",

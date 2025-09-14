@@ -1,6 +1,6 @@
 import { ThemeMode } from '@shared/data/preferenceTypes'
-import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import styled from 'styled-components'
 

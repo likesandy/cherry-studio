@@ -54,7 +54,7 @@ const AboutSettings: FC = () => {
       try {
         await window.api.checkForUpdate()
       } catch (error) {
-        window.message.error(t('settings.about.updateError'))
+        window.toast.error(t('settings.about.updateError'))
       }
 
       dispatch(setUpdateState({ checking: false }))
@@ -108,7 +108,7 @@ const AboutSettings: FC = () => {
 
   const handleTestChannelChange = async (value: UpgradeChannel) => {
     if (testPlan && currentChannelByVersion !== UpgradeChannel.LATEST && value !== currentChannelByVersion) {
-      window.message.warning(t('settings.general.test_plan.version_channel_not_match'))
+      window.toast.warning(t('settings.general.test_plan.version_channel_not_match'))
     }
     setTestChannel(value)
     // Clear update info when switching upgrade channel

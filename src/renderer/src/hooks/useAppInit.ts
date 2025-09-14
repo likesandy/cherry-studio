@@ -13,6 +13,7 @@ import { handleSaveData } from '@renderer/store'
 import { selectMemoryConfig } from '@renderer/store/memory'
 import { setAvatar, setFilesPath, setResourcesPath, setUpdateState } from '@renderer/store/runtime'
 import { delay, runAsyncFunction } from '@renderer/utils'
+import { checkDataLimit } from '@renderer/utils'
 import { defaultLanguage } from '@shared/config/constant'
 import { IpcChannel } from '@shared/IpcChannel'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -21,6 +22,7 @@ import { useEffect } from 'react'
 import { useDefaultModel } from './useAssistant'
 import useFullScreenNotice from './useFullScreenNotice'
 import { useRuntime } from './useRuntime'
+import { useNavbarPosition } from './useNavbar'
 import useUpdateHandler from './useUpdateHandler'
 const logger = loggerService.withContext('useAppInit')
 
@@ -35,6 +37,7 @@ export function useAppInit() {
   const [proxyMode] = usePreference('app.proxy.mode')
   const [enableDataCollection] = usePreference('app.privacy.data_collection.enabled')
 
+  const { isTopNavbar } = useNavbarPosition()
   const { minappShow } = useRuntime()
   const { setDefaultModel, setQuickModel, setTranslateModel } = useDefaultModel()
   const avatar = useLiveQuery(() => db.settings.get('image://avatar'))
@@ -100,14 +103,14 @@ export function useAppInit() {
   useEffect(() => {
     const transparentWindow = windowStyle === 'transparent' && isMac && !minappShow
 
-    if (minappShow) {
+    if (minappShow && isTopNavbar) {
       window.root.style.background =
         windowStyle === 'transparent' && isMac ? 'var(--color-background)' : 'var(--navbar-background)'
       return
     }
 
     window.root.style.background = transparentWindow ? 'var(--navbar-background-mac)' : 'var(--navbar-background)'
-  }, [windowStyle, minappShow, theme])
+  }, [windowStyle, minappShow, theme, isTopNavbar])
 
   useEffect(() => {
     if (isLocalAi) {
@@ -156,4 +159,8 @@ export function useAppInit() {
       logger.error('Failed to update memory config:', error)
     })
   }, [memoryConfig])
+
+  useEffect(() => {
+    checkDataLimit()
+  }, [])
 }
