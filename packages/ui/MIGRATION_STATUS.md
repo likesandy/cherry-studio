@@ -49,9 +49,9 @@ function MyComponent() {
 ## 迁移概览
 
 - **总组件数**: 236
-- **已迁移**: 36
+- **已迁移**: 38
 - **已重构**: 0
-- **待迁移**: 200
+- **待迁移**: 198
 
 ## 组件状态表
 
@@ -74,6 +74,7 @@ function MyComponent() {
 | | ExpandableText | ✅ | ❌ | 可展开文本 |
 | | ThinkingEffect | ✅ | ❌ | 思考效果动画 |
 | | EmojiAvatar | ✅ | ❌ | 表情头像 |
+| | ListItem | ✅ | ❌ | 列表项 |
 | | CodeViewer | ❌ | ❌ | 代码查看器 (外部依赖) |
 | | OGCard | ❌ | ❌ | OG 卡片 |
 | | MarkdownShadowDOMRenderer | ❌ | ❌ | Markdown 渲染器 |
@@ -105,8 +106,8 @@ function MyComponent() {
 | | InfoTooltip | ✅ | ❌ | 信息提示 |
 | | HelpTooltip | ✅ | ❌ | 帮助提示 |
 | | WarnTooltip | ✅ | ❌ | 警告提示 |
+| | EditableNumber | ✅ | ❌ | 可编辑数字 |
 | | DraggableList | ❌ | ❌ | 可拖拽列表 |
-| | EditableNumber | ❌ | ❌ | 可编辑数字 |
 | | EmojiPicker | ❌ | ❌ | 表情选择器 |
 | | Selector | ✅ | ❌ | 选择器 (i18n 依赖) |
 | | ModelSelector | ❌ | ❌ | 模型选择器 (Redux 依赖) |

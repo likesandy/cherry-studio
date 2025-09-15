@@ -15,6 +15,7 @@ export { WarnTag } from './base/WarnTag'
 export { default as Ellipsis } from './display/Ellipsis'
 export { default as EmojiAvatar } from './display/EmojiAvatar'
 export { default as ExpandableText } from './display/ExpandableText'
+export { default as ListItem } from './display/ListItem'
 export { default as ThinkingEffect } from './display/ThinkingEffect'
 
 // Layout Components
@@ -39,6 +40,8 @@ export { default as WebSearchIcon } from './icons/WebSearchIcon'
 export { default as WrapIcon } from './icons/WrapIcon'
 
 // Interactive Components
+export type { EditableNumberProps } from './interactive/EditableNumber'
+export { default as EditableNumber } from './interactive/EditableNumber'
 export { default as HelpTooltip } from './interactive/HelpTooltip'
 export { default as InfoTooltip } from './interactive/InfoTooltip'
 export { default as Selector } from './interactive/Selector'

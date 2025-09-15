@@ -48,9 +48,9 @@ When submitting PRs, please place components in the correct directory based on t
 ## Migration Overview
 
 - **Total Components**: 236
-- **Migrated**: 36
+- **Migrated**: 38
 - **Refactored**: 0
-- **Pending Migration**: 200
+- **Pending Migration**: 198
 
 ## Component Status Table
 
@@ -73,6 +73,7 @@ When submitting PRs, please place components in the correct directory based on t
 | | ExpandableText | ✅ | ❌ | Expandable text |
 | | ThinkingEffect | ✅ | ❌ | Thinking effect animation |
 | | EmojiAvatar | ✅ | ❌ | Emoji avatar |
+| | ListItem | ✅ | ❌ | List item |
 | | CodeViewer | ❌ | ❌ | Code viewer (external deps) |
 | | OGCard | ❌ | ❌ | OG card |
 | | MarkdownShadowDOMRenderer | ❌ | ❌ | Markdown renderer |
@@ -104,8 +105,8 @@ When submitting PRs, please place components in the correct directory based on t
 | | InfoTooltip | ✅ | ❌ | Info tooltip |
 | | HelpTooltip | ✅ | ❌ | Help tooltip |
 | | WarnTooltip | ✅ | ❌ | Warning tooltip |
+| | EditableNumber | ✅ | ❌ | Editable number |
 | | DraggableList | ❌ | ❌ | Draggable list |
-| | EditableNumber | ❌ | ❌ | Editable number |
 | | EmojiPicker | ❌ | ❌ | Emoji picker |
 | | Selector | ✅ | ❌ | Selector (i18n dependency) |
 | | ModelSelector | ❌ | ❌ | Model selector (Redux dependency) |
