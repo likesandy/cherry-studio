@@ -21,13 +21,23 @@ const logger = loggerService.withContext('CacheService')
  */
 export class CacheService {
   private static instance: CacheService
+  private initialized = false
 
   // Main process cache
   private cache = new Map<string, CacheEntry>()
 
   private constructor() {
+    // Private constructor for singleton pattern
+  }
+
+  public async initialize(): Promise<void> {
+    if (this.initialized) {
+      logger.warn('CacheService already initialized')
+      return
+    }
+
     this.setupIpcHandlers()
-    logger.debug('CacheService initialized')
+    logger.info('CacheService initialized')
   }
 
   /**
