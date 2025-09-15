@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 
-import Scrollbar from './Scrollbar'
+import Scrollbar from '../Scrollbar'
 
 /**
  * 水平滚动容器
