@@ -20,7 +20,7 @@ function MyComponent() {
 
 ## Directory Structure
 
-```
+```text
 @packages/ui/
 ├── src/
 │   ├── components/         # Main components directory
@@ -48,32 +48,77 @@ When submitting PRs, please place components in the correct directory based on t
 ## Migration Overview
 
 - **Total Components**: 236
-- **Migrated**: 18
+- **Migrated**: 26
 - **Refactored**: 0
-- **Pending Migration**: 218
+- **Pending Migration**: 210
 
 ## Component Status Table
 
-| Component Name | Original Path | Category | Migration Status | Refactoring Status |
-|---------------|---------------|----------|------------------|-------------------|
-| CopyButton | src/renderer/src/components/CopyButton.tsx | base | ✅ | ❌ |
-| DividerWithText | src/renderer/src/components/DividerWithText.tsx | base | ✅ | ❌ |
-| EmojiIcon | src/renderer/src/components/EmojiIcon.tsx | base | ✅ | ❌ |
-| IndicatorLight | src/renderer/src/components/IndicatorLight.tsx | base | ✅ | ❌ |
-| Spinner | src/renderer/src/components/Spinner.tsx | base | ✅ | ❌ |
-| TextBadge | src/renderer/src/components/TextBadge.tsx | base | ✅ | ❌ |
-| Ellipsis | src/renderer/src/components/Ellipsis/index.tsx | display | ✅ | ❌ |
-| ExpandableText | src/renderer/src/components/ExpandableText.tsx | display | ✅ | ❌ |
-| ThinkingEffect | src/renderer/src/components/ThinkingEffect.tsx | display | ✅ | ❌ |
-| HorizontalScrollContainer | src/renderer/src/components/HorizontalScrollContainer/index.tsx | layout | ✅ | ❌ |
-| Scrollbar | src/renderer/src/components/Scrollbar/index.tsx | layout | ✅ | ❌ |
-| VisionIcon | src/renderer/src/components/Icons/VisionIcon.tsx | icons | ✅ | ❌ |
-| WebSearchIcon | src/renderer/src/components/Icons/WebSearchIcon.tsx | icons | ✅ | ❌ |
-| ToolsCallingIcon | src/renderer/src/components/Icons/ToolsCallingIcon.tsx | icons | ✅ | ❌ |
-| FileIcons | src/renderer/src/components/Icons/FileIcons.tsx | icons | ✅ | ❌ |
-| SvgSpinners180Ring | src/renderer/src/components/Icons/SvgSpinners180Ring.tsx | icons | ✅ | ❌ |
-| ReasoningIcon | src/renderer/src/components/Icons/ReasoningIcon.tsx | icons | ✅ | ❌ |
-| InfoTooltip | src/renderer/src/components/TooltipIcons/InfoTooltip.tsx | interactive | ✅ | ❌ |
+| Category | Component Name | Migration Status | Refactoring Status | Description |
+|----------|----------------|------------------|--------------------|-------------|
+| **base** | | | | Base components |
+| | CopyButton | ✅ | ❌ | Copy button |
+| | CustomTag | ✅ | ❌ | Custom tag |
+| | DividerWithText | ✅ | ❌ | Divider with text |
+| | EmojiIcon | ✅ | ❌ | Emoji icon |
+| | ErrorTag | ✅ | ❌ | Error tag |
+| | IndicatorLight | ✅ | ❌ | Indicator light |
+| | Spinner | ✅ | ❌ | Loading spinner |
+| | SuccessTag | ✅ | ❌ | Success tag |
+| | TextBadge | ✅ | ❌ | Text badge |
+| | WarnTag | ✅ | ❌ | Warning tag |
+| | CustomCollapse | ❌ | ❌ | Custom collapse panel |
+| **display** | | | | Display components |
+| | Ellipsis | ✅ | ❌ | Text ellipsis |
+| | ExpandableText | ✅ | ❌ | Expandable text |
+| | ThinkingEffect | ✅ | ❌ | Thinking effect animation |
+| | CodeViewer | ❌ | ❌ | Code viewer (external deps) |
+| | OGCard | ❌ | ❌ | OG card |
+| | MarkdownShadowDOMRenderer | ❌ | ❌ | Markdown renderer |
+| | Preview/* | ❌ | ❌ | Preview components |
+| **layout** | | | | Layout components |
+| | HorizontalScrollContainer | ✅ | ❌ | Horizontal scroll container |
+| | Scrollbar | ✅ | ❌ | Scrollbar |
+| | Layout/* | ❌ | ❌ | Layout components |
+| | Tab/* | ❌ | ❌ | Tab (Redux dependency) |
+| | TopView | ❌ | ❌ | Top view (window.api dependency) |
+| **icons** | | | | Icon components |
+| | CopyIcon | ✅ | ❌ | Copy icon |
+| | DeleteIcon | ✅ | ❌ | Delete icon |
+| | EditIcon | ✅ | ❌ | Edit icon |
+| | FileIcons | ✅ | ❌ | File icons (includes FileSvgIcon, FilePngIcon) |
+| | ReasoningIcon | ✅ | ❌ | Reasoning icon |
+| | RefreshIcon | ✅ | ❌ | Refresh icon |
+| | SvgSpinners180Ring | ✅ | ❌ | Spinners icon |
+| | ToolsCallingIcon | ✅ | ❌ | Tools calling icon |
+| | VisionIcon | ✅ | ❌ | Vision icon |
+| | WebSearchIcon | ✅ | ❌ | Web search icon |
+| | Other icons | ❌ | ❌ | Other icon files |
+| **interactive** | | | | Interactive components |
+| | InfoTooltip | ✅ | ❌ | Info tooltip |
+| | HelpTooltip | ❌ | ❌ | Help tooltip |
+| | WarnTooltip | ❌ | ❌ | Warning tooltip |
+| | DraggableList | ❌ | ❌ | Draggable list |
+| | EditableNumber | ❌ | ❌ | Editable number |
+| | EmojiPicker | ❌ | ❌ | Emoji picker |
+| | Selector | ❌ | ❌ | Selector |
+| | ModelSelector | ❌ | ❌ | Model selector (Redux dependency) |
+| | LanguageSelect | ❌ | ❌ | Language select |
+| | TranslateButton | ❌ | ❌ | Translate button (window.api dependency) |
+| **composite** | | | | Composite components |
+| | - | - | - | No composite components yet |
+| **Uncategorized** | | | | Components needing categorization |
+| | Popups/* (16+ files) | ❌ | ❌ | Popup components (business coupled) |
+| | RichEditor/* (30+ files) | ❌ | ❌ | Rich text editor |
+| | CodeEditor/* | ❌ | ❌ | Code editor |
+| | MarkdownEditor/* | ❌ | ❌ | Markdown editor |
+| | MinApp/* | ❌ | ❌ | Mini app (Redux dependency) |
+| | Avatar/* | ❌ | ❌ | Avatar components |
+| | ActionTools/* | ❌ | ❌ | Action tools |
+| | CodeBlockView/* | ❌ | ❌ | Code block view (window.api dependency) |
+| | ContextMenu | ❌ | ❌ | Context menu (Electron API) |
+| | WindowControls | ❌ | ❌ | Window controls (Electron API) |
+| | ErrorBoundary | ❌ | ❌ | Error boundary (window.api dependency) |
 
 ## Migration Steps
 
@@ -91,7 +136,7 @@ When submitting PRs, please place components in the correct directory based on t
 
 ## Notes
 
-1. **Do NOT migrate** components with these dependencies:
+1. **Do NOT migrate** components with these dependencies (can be migrated after decoupling):
    - window.api calls
    - Redux (useSelector, useDispatch, etc.)
    - Other external data sources

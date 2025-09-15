@@ -4,7 +4,7 @@
 
 ```typescript
 // 从 @cherrystudio/ui 导入组件
-import { Spinner, DividerWithText, InfoTooltip } from '@cherrystudio/ui'
+import { Spinner, DividerWithText, InfoTooltip, CustomTag } from '@cherrystudio/ui'
 
 // 在组件中使用
 function MyComponent() {
@@ -13,6 +13,7 @@ function MyComponent() {
       <Spinner size={24} />
       <DividerWithText text="分隔文本" />
       <InfoTooltip content="提示信息" />
+      <CustomTag color="var(--color-primary)">标签</CustomTag>
     </div>
   )
 }
@@ -20,7 +21,7 @@ function MyComponent() {
 
 ## 目录结构说明
 
-```
+```text
 @packages/ui/
 ├── src/
 │   ├── components/         # 组件主目录
@@ -48,48 +49,95 @@ function MyComponent() {
 ## 迁移概览
 
 - **总组件数**: 236
-- **已迁移**: 18
+- **已迁移**: 26
 - **已重构**: 0
-- **待迁移**: 218
+- **待迁移**: 210
 
 ## 组件状态表
 
-| 组件名称 | 原路径 | 分类 | 迁移状态 | 重构状态 |
-|---------|--------|------|---------|---------|
-| CopyButton | src/renderer/src/components/CopyButton.tsx | base | ✅ | ❌ |
-| DividerWithText | src/renderer/src/components/DividerWithText.tsx | base | ✅ | ❌ |
-| EmojiIcon | src/renderer/src/components/EmojiIcon.tsx | base | ✅ | ❌ |
-| IndicatorLight | src/renderer/src/components/IndicatorLight.tsx | base | ✅ | ❌ |
-| Spinner | src/renderer/src/components/Spinner.tsx | base | ✅ | ❌ |
-| TextBadge | src/renderer/src/components/TextBadge.tsx | base | ✅ | ❌ |
-| Ellipsis | src/renderer/src/components/Ellipsis/index.tsx | display | ✅ | ❌ |
-| ExpandableText | src/renderer/src/components/ExpandableText.tsx | display | ✅ | ❌ |
-| ThinkingEffect | src/renderer/src/components/ThinkingEffect.tsx | display | ✅ | ❌ |
-| HorizontalScrollContainer | src/renderer/src/components/HorizontalScrollContainer/index.tsx | layout | ✅ | ❌ |
-| Scrollbar | src/renderer/src/components/Scrollbar/index.tsx | layout | ✅ | ❌ |
-| VisionIcon | src/renderer/src/components/Icons/VisionIcon.tsx | icons | ✅ | ❌ |
-| WebSearchIcon | src/renderer/src/components/Icons/WebSearchIcon.tsx | icons | ✅ | ❌ |
-| ToolsCallingIcon | src/renderer/src/components/Icons/ToolsCallingIcon.tsx | icons | ✅ | ❌ |
-| FileIcons | src/renderer/src/components/Icons/FileIcons.tsx | icons | ✅ | ❌ |
-| SvgSpinners180Ring | src/renderer/src/components/Icons/SvgSpinners180Ring.tsx | icons | ✅ | ❌ |
-| ReasoningIcon | src/renderer/src/components/Icons/ReasoningIcon.tsx | icons | ✅ | ❌ |
-| InfoTooltip | src/renderer/src/components/TooltipIcons/InfoTooltip.tsx | interactive | ✅ | ❌ |
+| Category | Component Name | Migration Status | Refactoring Status | Description |
+|----------|----------------|------------------|--------------------|-------------|
+| **base** | | | | 基础组件 |
+| | CopyButton | ✅ | ❌ | 复制按钮 |
+| | CustomTag | ✅ | ❌ | 自定义标签 |
+| | DividerWithText | ✅ | ❌ | 带文本的分隔线 |
+| | EmojiIcon | ✅ | ❌ | 表情图标 |
+| | ErrorTag | ✅ | ❌ | 错误标签 |
+| | IndicatorLight | ✅ | ❌ | 指示灯 |
+| | Spinner | ✅ | ❌ | 加载动画 |
+| | SuccessTag | ✅ | ❌ | 成功标签 |
+| | TextBadge | ✅ | ❌ | 文本徽标 |
+| | WarnTag | ✅ | ❌ | 警告标签 |
+| | CustomCollapse | ❌ | ❌ | 自定义折叠面板 |
+| **display** | | | | 显示组件 |
+| | Ellipsis | ✅ | ❌ | 文本省略 |
+| | ExpandableText | ✅ | ❌ | 可展开文本 |
+| | ThinkingEffect | ✅ | ❌ | 思考效果动画 |
+| | CodeViewer | ❌ | ❌ | 代码查看器 (外部依赖) |
+| | OGCard | ❌ | ❌ | OG 卡片 |
+| | MarkdownShadowDOMRenderer | ❌ | ❌ | Markdown 渲染器 |
+| | Preview/* | ❌ | ❌ | 预览组件 |
+| **layout** | | | | 布局组件 |
+| | HorizontalScrollContainer | ✅ | ❌ | 水平滚动容器 |
+| | Scrollbar | ✅ | ❌ | 滚动条 |
+| | Layout/* | ❌ | ❌ | 布局组件 |
+| | Tab/* | ❌ | ❌ | 标签页 (Redux 依赖) |
+| | TopView | ❌ | ❌ | 顶部视图 (window.api 依赖) |
+| **icons** | | | | 图标组件 |
+| | CopyIcon | ✅ | ❌ | 复制图标 |
+| | DeleteIcon | ✅ | ❌ | 删除图标 |
+| | EditIcon | ✅ | ❌ | 编辑图标 |
+| | FileIcons | ✅ | ❌ | 文件图标 (包含 FileSvgIcon、FilePngIcon) |
+| | ReasoningIcon | ✅ | ❌ | 推理图标 |
+| | RefreshIcon | ✅ | ❌ | 刷新图标 |
+| | SvgSpinners180Ring | ✅ | ❌ | 旋转加载图标 |
+| | ToolsCallingIcon | ✅ | ❌ | 工具调用图标 |
+| | VisionIcon | ✅ | ❌ | 视觉图标 |
+| | WebSearchIcon | ✅ | ❌ | 网页搜索图标 |
+| | Other icons | ❌ | ❌ | 其他图标文件 |
+| **interactive** | | | | 交互组件 |
+| | InfoTooltip | ✅ | ❌ | 信息提示 |
+| | HelpTooltip | ❌ | ❌ | 帮助提示 |
+| | WarnTooltip | ❌ | ❌ | 警告提示 |
+| | DraggableList | ❌ | ❌ | 可拖拽列表 |
+| | EditableNumber | ❌ | ❌ | 可编辑数字 |
+| | EmojiPicker | ❌ | ❌ | 表情选择器 |
+| | Selector | ❌ | ❌ | 选择器 |
+| | ModelSelector | ❌ | ❌ | 模型选择器 (Redux 依赖) |
+| | LanguageSelect | ❌ | ❌ | 语言选择 |
+| | TranslateButton | ❌ | ❌ | 翻译按钮 (window.api 依赖) |
+| **composite** | | | | 复合组件 |
+| | - | - | - | 暂无复合组件 |
+| **未分类** | | | | 需要分类的组件 |
+| | Popups/* (16+ 文件) | ❌ | ❌ | 弹窗组件 (业务耦合) |
+| | RichEditor/* (30+ 文件) | ❌ | ❌ | 富文本编辑器 |
+| | CodeEditor/* | ❌ | ❌ | 代码编辑器 |
+| | MarkdownEditor/* | ❌ | ❌ | Markdown 编辑器 |
+| | MinApp/* | ❌ | ❌ | 迷你应用 (Redux 依赖) |
+| | Avatar/* | ❌ | ❌ | 头像组件 |
+| | ActionTools/* | ❌ | ❌ | 操作工具 |
+| | CodeBlockView/* | ❌ | ❌ | 代码块视图 (window.api 依赖) |
+| | ContextMenu | ❌ | ❌ | 右键菜单 (Electron API) |
+| | WindowControls | ❌ | ❌ | 窗口控制 (Electron API) |
+| | ErrorBoundary | ❌ | ❌ | 错误边界 (window.api 依赖) |
 
 ## 迁移步骤
 
 ### 第一阶段：复制迁移（当前阶段）
+
 - 将组件原样复制到 @packages/ui
 - 保留原有依赖（antd、styled-components 等）
 - 在文件顶部添加原路径注释
 
 ### 第二阶段：重构优化
+
 - 移除 antd 依赖，替换为 HeroUI
 - 移除 styled-components，替换为 Tailwind CSS
 - 优化组件 API 和类型定义
 
 ## 注意事项
 
-1. **不迁移**包含以下依赖的组件**(解耦后可迁移)**：
+1. **不迁移**包含以下依赖的组件（解耦后可迁移）：
    - window.api 调用
    - Redux（useSelector、useDispatch 等）
    - 其他外部数据源
