@@ -9,6 +9,7 @@ import {
   ReloadOutlined
 } from '@ant-design/icons'
 import { usePreference } from '@data/hooks/usePreference'
+import { isDev } from '@renderer/config/constant'
 import { DEFAULT_MIN_APPS } from '@renderer/config/minapps'
 import { useMinapps } from '@renderer/hooks/useMinapps'
 import { MinAppType } from '@renderer/types'
@@ -34,8 +35,6 @@ const MinimalToolbar: FC<Props> = ({ app, webviewRef, currentUrl, onReload, onOp
   const navigate = useNavigate()
   const [canGoBack, setCanGoBack] = useState(false)
   const [canGoForward, setCanGoForward] = useState(false)
-
-  const isInDevelopment = process.env.NODE_ENV === 'development'
   const canPinned = DEFAULT_MIN_APPS.some((item) => item.id === app.id)
   const isPinned = pinned.some((item) => item.id === app.id)
   const canOpenExternalLink = app.url.startsWith('http://') || app.url.startsWith('https://')
@@ -136,7 +135,7 @@ const MinimalToolbar: FC<Props> = ({ app, webviewRef, currentUrl, onReload, onOp
             </ToolbarButton>
           </Tooltip>
 
-          {isInDevelopment && (
+          {isDev && (
             <Tooltip title={t('minapp.popup.devtools')} placement="bottom">
               <ToolbarButton onClick={onOpenDevTools}>
                 <CodeOutlined />
