@@ -48,9 +48,9 @@ When submitting PRs, please place components in the correct directory based on t
 ## Migration Overview
 
 - **Total Components**: 236
-- **Migrated**: 26
+- **Migrated**: 36
 - **Refactored**: 0
-- **Pending Migration**: 210
+- **Pending Migration**: 200
 
 ## Component Status Table
 
@@ -67,11 +67,12 @@ When submitting PRs, please place components in the correct directory based on t
 | | SuccessTag | ✅ | ❌ | Success tag |
 | | TextBadge | ✅ | ❌ | Text badge |
 | | WarnTag | ✅ | ❌ | Warning tag |
-| | CustomCollapse | ❌ | ❌ | Custom collapse panel |
+| | CustomCollapse | ✅ | ❌ | Custom collapse panel |
 | **display** | | | | Display components |
 | | Ellipsis | ✅ | ❌ | Text ellipsis |
 | | ExpandableText | ✅ | ❌ | Expandable text |
 | | ThinkingEffect | ✅ | ❌ | Thinking effect animation |
+| | EmojiAvatar | ✅ | ❌ | Emoji avatar |
 | | CodeViewer | ❌ | ❌ | Code viewer (external deps) |
 | | OGCard | ❌ | ❌ | OG card |
 | | MarkdownShadowDOMRenderer | ❌ | ❌ | Markdown renderer |
@@ -89,19 +90,24 @@ When submitting PRs, please place components in the correct directory based on t
 | | FileIcons | ✅ | ❌ | File icons (includes FileSvgIcon, FilePngIcon) |
 | | ReasoningIcon | ✅ | ❌ | Reasoning icon |
 | | RefreshIcon | ✅ | ❌ | Refresh icon |
+| | ResetIcon | ✅ | ❌ | Reset icon |
 | | SvgSpinners180Ring | ✅ | ❌ | Spinners icon |
 | | ToolsCallingIcon | ✅ | ❌ | Tools calling icon |
 | | VisionIcon | ✅ | ❌ | Vision icon |
 | | WebSearchIcon | ✅ | ❌ | Web search icon |
+| | WrapIcon | ✅ | ❌ | Wrap icon |
+| | UnWrapIcon | ✅ | ❌ | Unwrap icon |
+| | OcrIcon | ✅ | ❌ | OCR icon |
+| | ToolIcon | ✅ | ❌ | Tool icon |
 | | Other icons | ❌ | ❌ | Other icon files |
 | **interactive** | | | | Interactive components |
 | | InfoTooltip | ✅ | ❌ | Info tooltip |
-| | HelpTooltip | ❌ | ❌ | Help tooltip |
-| | WarnTooltip | ❌ | ❌ | Warning tooltip |
+| | HelpTooltip | ✅ | ❌ | Help tooltip |
+| | WarnTooltip | ✅ | ❌ | Warning tooltip |
 | | DraggableList | ❌ | ❌ | Draggable list |
 | | EditableNumber | ❌ | ❌ | Editable number |
 | | EmojiPicker | ❌ | ❌ | Emoji picker |
-| | Selector | ❌ | ❌ | Selector |
+| | Selector | ✅ | ❌ | Selector (i18n dependency) |
 | | ModelSelector | ❌ | ❌ | Model selector (Redux dependency) |
 | | LanguageSelect | ❌ | ❌ | Language select |
 | | TranslateButton | ❌ | ❌ | Translate button (window.api dependency) |

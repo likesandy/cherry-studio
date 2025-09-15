@@ -49,9 +49,9 @@ function MyComponent() {
 ## 迁移概览
 
 - **总组件数**: 236
-- **已迁移**: 26
+- **已迁移**: 36
 - **已重构**: 0
-- **待迁移**: 210
+- **待迁移**: 200
 
 ## 组件状态表
 
@@ -68,11 +68,12 @@ function MyComponent() {
 | | SuccessTag | ✅ | ❌ | 成功标签 |
 | | TextBadge | ✅ | ❌ | 文本徽标 |
 | | WarnTag | ✅ | ❌ | 警告标签 |
-| | CustomCollapse | ❌ | ❌ | 自定义折叠面板 |
+| | CustomCollapse | ✅ | ❌ | 自定义折叠面板 |
 | **display** | | | | 显示组件 |
 | | Ellipsis | ✅ | ❌ | 文本省略 |
 | | ExpandableText | ✅ | ❌ | 可展开文本 |
 | | ThinkingEffect | ✅ | ❌ | 思考效果动画 |
+| | EmojiAvatar | ✅ | ❌ | 表情头像 |
 | | CodeViewer | ❌ | ❌ | 代码查看器 (外部依赖) |
 | | OGCard | ❌ | ❌ | OG 卡片 |
 | | MarkdownShadowDOMRenderer | ❌ | ❌ | Markdown 渲染器 |
@@ -90,19 +91,24 @@ function MyComponent() {
 | | FileIcons | ✅ | ❌ | 文件图标 (包含 FileSvgIcon、FilePngIcon) |
 | | ReasoningIcon | ✅ | ❌ | 推理图标 |
 | | RefreshIcon | ✅ | ❌ | 刷新图标 |
+| | ResetIcon | ✅ | ❌ | 重置图标 |
 | | SvgSpinners180Ring | ✅ | ❌ | 旋转加载图标 |
 | | ToolsCallingIcon | ✅ | ❌ | 工具调用图标 |
 | | VisionIcon | ✅ | ❌ | 视觉图标 |
 | | WebSearchIcon | ✅ | ❌ | 网页搜索图标 |
+| | WrapIcon | ✅ | ❌ | 换行图标 |
+| | UnWrapIcon | ✅ | ❌ | 不换行图标 |
+| | OcrIcon | ✅ | ❌ | OCR 图标 |
+| | ToolIcon | ✅ | ❌ | 工具图标 |
 | | Other icons | ❌ | ❌ | 其他图标文件 |
 | **interactive** | | | | 交互组件 |
 | | InfoTooltip | ✅ | ❌ | 信息提示 |
-| | HelpTooltip | ❌ | ❌ | 帮助提示 |
-| | WarnTooltip | ❌ | ❌ | 警告提示 |
+| | HelpTooltip | ✅ | ❌ | 帮助提示 |
+| | WarnTooltip | ✅ | ❌ | 警告提示 |
 | | DraggableList | ❌ | ❌ | 可拖拽列表 |
 | | EditableNumber | ❌ | ❌ | 可编辑数字 |
 | | EmojiPicker | ❌ | ❌ | 表情选择器 |
-| | Selector | ❌ | ❌ | 选择器 |
+| | Selector | ✅ | ❌ | 选择器 (i18n 依赖) |
 | | ModelSelector | ❌ | ❌ | 模型选择器 (Redux 依赖) |
 | | LanguageSelect | ❌ | ❌ | 语言选择 |
 | | TranslateButton | ❌ | ❌ | 翻译按钮 (window.api 依赖) |
