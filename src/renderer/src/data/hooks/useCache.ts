@@ -1,8 +1,15 @@
 import { cacheService } from '@data/CacheService'
 import { loggerService } from '@logger'
-import type { PersistCacheKey, PersistCacheSchema } from '@shared/data/cache/cacheSchemas'
+import type {
+  RendererPersistCacheKey,
+  RendererPersistCacheSchema,
+  UseCacheKey,
+  UseCacheSchema,
+  UseSharedCacheKey,
+  UseSharedCacheSchema
+} from '@shared/data/cache/cacheSchemas'
+import { DefaultUseCache, DefaultUseSharedCache } from '@shared/data/cache/cacheSchemas'
 import { useCallback, useEffect, useSyncExternalStore } from 'react'
-
 const logger = loggerService.withContext('useCache')
 
 /**
@@ -15,23 +22,32 @@ const logger = loggerService.withContext('useCache')
  * - TTL support with warning when used
  *
  * @param key - Cache key
- * @param defaultValue - Default value (set automatically if not exists)
+ * @param initValue - Default value (set automatically if not exists)
  * @returns [value, setValue]
  */
-export function useCache<T>(key: string, defaultValue?: T): [T | undefined, (value: T) => void] {
+export function useCache<K extends UseCacheKey>(
+  key: K,
+  initValue?: UseCacheSchema[K]
+): [UseCacheSchema[K], (value: UseCacheSchema[K]) => void] {
   // Subscribe to cache changes
   const value = useSyncExternalStore(
     useCallback((callback) => cacheService.subscribe(key, callback), [key]),
-    useCallback(() => cacheService.get<T>(key), [key]),
-    useCallback(() => cacheService.get<T>(key), [key]) // SSR snapshot
+    useCallback(() => cacheService.get<UseCacheSchema[K]>(key), [key]),
+    useCallback(() => cacheService.get<UseCacheSchema[K]>(key), [key]) // SSR snapshot
   )
 
   // Set default value if not exists
   useEffect(() => {
-    if (defaultValue !== undefined && !cacheService.has(key)) {
-      cacheService.set(key, defaultValue)
+    if (cacheService.has(key)) {
+      return
     }
-  }, [key, defaultValue])
+
+    if (initValue === undefined) {
+      cacheService.set(key, DefaultUseCache[key])
+    } else {
+      cacheService.set(key, initValue)
+    }
+  }, [key, initValue])
 
   // Register hook lifecycle
   useEffect(() => {
@@ -49,13 +65,13 @@ export function useCache<T>(key: string, defaultValue?: T): [T | undefined, (val
   }, [key])
 
   const setValue = useCallback(
-    (newValue: T) => {
+    (newValue: UseCacheSchema[K]) => {
       cacheService.set(key, newValue)
     },
     [key]
   )
 
-  return [value ?? defaultValue, setValue]
+  return [value ?? initValue ?? DefaultUseCache[key], setValue]
 }
 
 /**
@@ -68,23 +84,32 @@ export function useCache<T>(key: string, defaultValue?: T): [T | undefined, (val
  * - Hook lifecycle management
  *
  * @param key - Cache key
- * @param defaultValue - Default value (set automatically if not exists)
+ * @param initValue - Default value (set automatically if not exists)
  * @returns [value, setValue]
  */
-export function useSharedCache<T>(key: string, defaultValue?: T): [T | undefined, (value: T) => void] {
+export function useSharedCache<K extends UseSharedCacheKey>(
+  key: K,
+  initValue?: UseSharedCacheSchema[K]
+): [UseSharedCacheSchema[K], (value: UseSharedCacheSchema[K]) => void] {
   // Subscribe to cache changes
   const value = useSyncExternalStore(
     useCallback((callback) => cacheService.subscribe(key, callback), [key]),
-    useCallback(() => cacheService.getShared<T>(key), [key]),
-    useCallback(() => cacheService.getShared<T>(key), [key]) // SSR snapshot
+    useCallback(() => cacheService.getShared<UseSharedCacheSchema[K]>(key), [key]),
+    useCallback(() => cacheService.getShared<UseSharedCacheSchema[K]>(key), [key]) // SSR snapshot
   )
 
   // Set default value if not exists
   useEffect(() => {
-    if (defaultValue !== undefined && !cacheService.hasShared(key)) {
-      cacheService.setShared(key, defaultValue)
+    if (cacheService.hasShared(key)) {
+      return
     }
-  }, [key, defaultValue])
+
+    if (initValue === undefined) {
+      cacheService.setShared(key, DefaultUseSharedCache[key])
+    } else {
+      cacheService.setShared(key, initValue)
+    }
+  }, [key, initValue])
 
   // Register hook lifecycle
   useEffect(() => {
@@ -102,13 +127,13 @@ export function useSharedCache<T>(key: string, defaultValue?: T): [T | undefined
   }, [key])
 
   const setValue = useCallback(
-    (newValue: T) => {
+    (newValue: UseSharedCacheSchema[K]) => {
       cacheService.setShared(key, newValue)
     },
     [key]
   )
 
-  return [value ?? defaultValue, setValue]
+  return [value ?? initValue ?? DefaultUseSharedCache[key], setValue]
 }
 
 /**
@@ -123,9 +148,9 @@ export function useSharedCache<T>(key: string, defaultValue?: T): [T | undefined
  * @param key - Predefined persist cache key
  * @returns [value, setValue]
  */
-export function usePersistCache<K extends PersistCacheKey>(
+export function usePersistCache<K extends RendererPersistCacheKey>(
   key: K
-): [PersistCacheSchema[K], (value: PersistCacheSchema[K]) => void] {
+): [RendererPersistCacheSchema[K], (value: RendererPersistCacheSchema[K]) => void] {
   // Subscribe to cache changes
   const value = useSyncExternalStore(
     useCallback((callback) => cacheService.subscribe(key, callback), [key]),
@@ -140,7 +165,7 @@ export function usePersistCache<K extends PersistCacheKey>(
   }, [key])
 
   const setValue = useCallback(
-    (newValue: PersistCacheSchema[K]) => {
+    (newValue: RendererPersistCacheSchema[K]) => {
       cacheService.setPersist(key, newValue)
     },
     [key]

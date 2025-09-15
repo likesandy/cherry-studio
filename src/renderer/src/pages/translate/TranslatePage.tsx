@@ -18,7 +18,7 @@ import useTranslate from '@renderer/hooks/useTranslate'
 import { estimateTextTokens } from '@renderer/services/TokenService'
 import { saveTranslateHistory, translateText } from '@renderer/services/TranslateService'
 import { useAppDispatch, useAppSelector } from '@renderer/store'
-import { setTranslateAbortKey, setTranslating as setTranslatingAction } from '@renderer/store/runtime'
+// import { setTranslateAbortKey, setTranslating as setTranslatingAction } from '@renderer/store/runtime'
 import { setTranslatedContent as setTranslatedContentAction, setTranslateInput } from '@renderer/store/translate'
 import {
   type AutoDetectionMethod,
@@ -88,11 +88,13 @@ const TranslatePage: FC = () => {
   const [autoDetectionMethod, setAutoDetectionMethod] = useState<AutoDetectionMethod>('franc')
   const [isProcessing, setIsProcessing] = useState(false)
 
+  const [translating, setTranslating] = useState(false)
+  const [abortKey, setTranslateAbortKey] = useState<string>('')
   // redux states
   const text = useAppSelector((state) => state.translate.translateInput)
   const translatedContent = useAppSelector((state) => state.translate.translatedContent)
-  const translating = useAppSelector((state) => state.runtime.translating)
-  const abortKey = useAppSelector((state) => state.runtime.translateAbortKey)
+  // const translating = useAppSelector((state) => state.runtime.translating)
+  // const abortKey = useAppSelector((state) => state.runtime.translateAbortKey)
 
   // ref
   const contentContainerRef = useRef<HTMLDivElement>(null)
@@ -126,12 +128,12 @@ const TranslatePage: FC = () => {
     [dispatch]
   )
 
-  const setTranslating = useCallback(
-    (translating: boolean) => {
-      dispatch(setTranslatingAction(translating))
-    },
-    [dispatch]
-  )
+  // const setTranslating = useCallback(
+  //   (translating: boolean) => {
+  //     dispatch(setTranslatingAction(translating))
+  //   },
+  //   [dispatch]
+  // )
 
   // 控制复制行为
   const onCopy = useCallback(async () => {
@@ -163,7 +165,7 @@ const TranslatePage: FC = () => {
 
         let translated: string
         const abortKey = uuid()
-        dispatch(setTranslateAbortKey(abortKey))
+        setTranslateAbortKey(abortKey)
 
         try {
           translated = await translateText(text, actualTargetLanguage, throttle(setTranslatedContent, 100), abortKey)
@@ -200,7 +202,7 @@ const TranslatePage: FC = () => {
         window.toast.error(t('translate.error.unknown') + ': ' + formatErrorMessage(e))
       }
     },
-    [autoCopy, dispatch, onCopy, setTimeoutTimer, setTranslatedContent, setTranslating, t, translating]
+    [autoCopy, onCopy, setTimeoutTimer, setTranslatedContent, setTranslating, t, translating]
   )
 
   // 控制翻译按钮是否可用

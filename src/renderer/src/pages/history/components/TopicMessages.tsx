@@ -3,12 +3,13 @@ import { usePreference } from '@data/hooks/usePreference'
 import { HStack } from '@renderer/components/Layout'
 import SearchPopup from '@renderer/components/Popups/SearchPopup'
 import { MessageEditingProvider } from '@renderer/context/MessageEditingContext'
+import { modelGenerating } from '@renderer/hooks/useModel'
 import useScrollPosition from '@renderer/hooks/useScrollPosition'
 import { useTimer } from '@renderer/hooks/useTimer'
 import { getTopicById } from '@renderer/hooks/useTopic'
 import { getAssistantById } from '@renderer/services/AssistantService'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
-import { isGenerating, locateToMessage } from '@renderer/services/MessagesService'
+import { locateToMessage } from '@renderer/services/MessagesService'
 import NavigationService from '@renderer/services/NavigationService'
 import { Topic } from '@renderer/types'
 import { classNames, runAsyncFunction } from '@renderer/utils'
@@ -47,7 +48,7 @@ const TopicMessages: FC<Props> = ({ topic: _topic, ...props }) => {
   }
 
   const onContinueChat = async (topic: Topic) => {
-    await isGenerating()
+    await modelGenerating()
     SearchPopup.hide()
     const assistant = getAssistantById(topic.assistantId)
     navigate('/', { state: { assistant, topic } })

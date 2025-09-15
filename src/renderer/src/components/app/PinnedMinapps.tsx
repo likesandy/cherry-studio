@@ -3,7 +3,6 @@ import { useTheme } from '@renderer/context/ThemeProvider'
 import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { useMinapps } from '@renderer/hooks/useMinapps'
 import { useNavbarPosition } from '@renderer/hooks/useNavbar'
-import { useRuntime } from '@renderer/hooks/useRuntime'
 import { MinAppType } from '@renderer/types'
 import type { MenuProps } from 'antd'
 import { Dropdown, Tooltip } from 'antd'
@@ -16,7 +15,7 @@ import MinAppIcon from '../Icons/MinAppIcon'
 
 /** Tabs of opened minapps in sidebar */
 export const SidebarOpenedMinappTabs: FC = () => {
-  const { minappShow, openedKeepAliveMinapps, currentMinappId } = useRuntime()
+  const { minappShow, openedKeepAliveMinapps, currentMinappId } = useMinapps()
   const { openMinappKeepAlive, hideMinappPopup, closeMinapp, closeAllMinapps } = useMinappPopup()
   const [showOpenedMinappsInSidebar] = usePreference('feature.minapp.show_opened_in_sidebar')
   const { theme } = useTheme()
@@ -105,9 +104,8 @@ export const SidebarOpenedMinappTabs: FC = () => {
 }
 
 export const SidebarPinnedApps: FC = () => {
-  const { pinned, updatePinnedMinapps } = useMinapps()
+  const { pinned, updatePinnedMinapps, minappShow, openedKeepAliveMinapps, currentMinappId } = useMinapps()
   const { t } = useTranslation()
-  const { minappShow, openedKeepAliveMinapps, currentMinappId } = useRuntime()
   const { theme } = useTheme()
   const { openMinappKeepAlive } = useMinappPopup()
   const { isTopNavbar } = useNavbarPosition()

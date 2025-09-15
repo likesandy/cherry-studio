@@ -20,7 +20,6 @@ import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { useMinapps } from '@renderer/hooks/useMinapps'
 import useNavBackgroundColor from '@renderer/hooks/useNavBackgroundColor'
 import { useNavbarPosition } from '@renderer/hooks/useNavbar'
-import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useTimer } from '@renderer/hooks/useTimer'
 import { MinAppType } from '@renderer/types'
 import { delay } from '@renderer/utils'
@@ -141,10 +140,10 @@ const GoogleLoginTip = ({
 
 /** The main container for MinApp popup */
 const MinappPopupContainer: React.FC = () => {
-  const { openedKeepAliveMinapps, openedOneOffMinapp, currentMinappId, minappShow } = useRuntime()
   const [minappsOpenLinkExternal, setMinappsOpenLinkExternal] = usePreference('feature.minapp.open_link_external')
   const { closeMinapp, hideMinappPopup } = useMinappPopup()
-  const { pinned, updatePinnedMinapps } = useMinapps()
+  const { pinned, updatePinnedMinapps, openedKeepAliveMinapps, openedOneOffMinapp, currentMinappId, minappShow } =
+    useMinapps()
   const { t } = useTranslation()
   const backgroundColor = useNavBackgroundColor()
   const { isTopNavbar } = useNavbarPosition()

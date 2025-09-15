@@ -1,6 +1,5 @@
 import App from '@renderer/components/MinApp/MinApp'
 import { useMinapps } from '@renderer/hooks/useMinapps'
-import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useSettings } from '@renderer/hooks/useSettings'
 import { Code, FileSearch, Folder, Languages, LayoutGrid, NotepadText, Palette, Sparkle } from 'lucide-react'
 import { FC, useMemo } from 'react'
@@ -12,8 +11,7 @@ const LaunchpadPage: FC = () => {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { defaultPaintingProvider } = useSettings()
-  const { pinned } = useMinapps()
-  const { openedKeepAliveMinapps } = useRuntime()
+  const { pinned, openedKeepAliveMinapps } = useMinapps()
 
   const appMenuItems = [
     {

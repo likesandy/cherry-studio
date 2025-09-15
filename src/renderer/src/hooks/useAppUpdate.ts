@@ -1,15 +1,28 @@
+import { useCache } from '@data/hooks/useCache'
 import { NotificationService } from '@renderer/services/NotificationService'
-import { useAppDispatch } from '@renderer/store'
-import { setUpdateState } from '@renderer/store/runtime'
 import { uuid } from '@renderer/utils'
+import type { CacheAppUpdateState } from '@shared/data/cache/cacheValueTypes'
 import { IpcChannel } from '@shared/IpcChannel'
 import type { ProgressInfo, UpdateInfo } from 'builder-util-runtime'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+export const useAppUpdateState = () => {
+  const [appUpdateState, setAppUpdateState] = useCache('app.dist.update_state')
 
-export default function useUpdateHandler() {
-  const dispatch = useAppDispatch()
+  const updateAppUpdateState = (state: Partial<CacheAppUpdateState>) => {
+    setAppUpdateState({ ...appUpdateState, ...state })
+  }
+
+  return {
+    appUpdateState,
+    updateAppUpdateState
+  }
+}
+
+//TODO: 这个函数是从useUpdateHandler中复制过来的，是v2数据重构时调整的，但这个函数本身需要重构和优化（并不需要用在use中）。by fullex
+export function useAppUpdateHandler() {
   const { t } = useTranslation()
+  const { updateAppUpdateState } = useAppUpdateState()
   const notificationService = NotificationService.getInstance()
 
   useEffect(() => {
@@ -19,7 +32,7 @@ export default function useUpdateHandler() {
 
     const removers = [
       ipcRenderer.on(IpcChannel.UpdateNotAvailable, () => {
-        dispatch(setUpdateState({ checking: false }))
+        updateAppUpdateState({ checking: false })
         if (window.location.hash.includes('settings/about')) {
           window.toast.success(t('settings.about.updateNotAvailable'))
         }
@@ -34,48 +47,38 @@ export default function useUpdateHandler() {
           source: 'update',
           channel: 'system'
         })
-        dispatch(
-          setUpdateState({
-            checking: false,
-            downloading: true,
-            info: releaseInfo,
-            available: true
-          })
-        )
+        updateAppUpdateState({
+          checking: false,
+          downloading: true,
+          info: releaseInfo,
+          available: true
+        })
       }),
       ipcRenderer.on(IpcChannel.DownloadUpdate, () => {
-        dispatch(
-          setUpdateState({
-            checking: false,
-            downloading: true
-          })
-        )
+        updateAppUpdateState({
+          checking: false,
+          downloading: true
+        })
       }),
       ipcRenderer.on(IpcChannel.DownloadProgress, (_, progress: ProgressInfo) => {
-        dispatch(
-          setUpdateState({
-            downloading: progress.percent < 100,
-            downloadProgress: progress.percent
-          })
-        )
+        updateAppUpdateState({
+          downloading: progress.percent < 100,
+          downloadProgress: progress.percent
+        })
       }),
       ipcRenderer.on(IpcChannel.UpdateDownloaded, (_, releaseInfo: UpdateInfo) => {
-        dispatch(
-          setUpdateState({
-            downloading: false,
-            info: releaseInfo,
-            downloaded: true
-          })
-        )
+        updateAppUpdateState({
+          downloading: false,
+          info: releaseInfo,
+          downloaded: true
+        })
       }),
       ipcRenderer.on(IpcChannel.UpdateError, (_, error) => {
-        dispatch(
-          setUpdateState({
-            checking: false,
-            downloading: false,
-            downloadProgress: 0
-          })
-        )
+        updateAppUpdateState({
+          checking: false,
+          downloading: false,
+          downloadProgress: 0
+        })
         if (window.location.hash.includes('settings/about')) {
           window.modal.info({
             title: t('settings.about.updateError'),
@@ -86,5 +89,5 @@ export default function useUpdateHandler() {
       })
     ]
     return () => removers.forEach((remover) => remover())
-  }, [dispatch, notificationService, t])
+  }, [notificationService, t, updateAppUpdateState])
 }

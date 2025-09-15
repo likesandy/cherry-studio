@@ -5,8 +5,6 @@ import i18n from '@renderer/i18n'
 import { getProviderLabel } from '@renderer/i18n/label'
 import { getMessageTitle } from '@renderer/services/MessagesService'
 import { createNote } from '@renderer/services/NotesService'
-import store from '@renderer/store'
-import { setExportState } from '@renderer/store/runtime'
 import type { Topic } from '@renderer/types'
 import type { Message } from '@renderer/types/newMessage'
 import { NotesTreeNode } from '@renderer/types/note'
@@ -20,12 +18,11 @@ import { appendBlocks } from 'notion-helper'
 
 const logger = loggerService.withContext('Utils:export')
 
-// 全局的导出状态获取函数
-const getExportState = () => store.getState().runtime.export.isExporting
+let exportState = false
 
-// 全局的导出状态设置函数，使用 dispatch 保障 Redux 状态更新正确
+const getExportState = () => exportState
 const setExportingState = (isExporting: boolean) => {
-  store.dispatch(setExportState({ isExporting }))
+  exportState = isExporting
 }
 
 /**

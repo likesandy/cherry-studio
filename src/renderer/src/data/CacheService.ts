@@ -1,6 +1,13 @@
 import { loggerService } from '@logger'
-import type { PersistCacheKey, PersistCacheSchema } from '@shared/data/cache/cacheSchemas'
-import { DefaultPersistCache } from '@shared/data/cache/cacheSchemas'
+import type {
+  RendererPersistCacheKey,
+  RendererPersistCacheSchema,
+  UseCacheKey,
+  UseCacheSchema,
+  UseSharedCacheKey,
+  UseSharedCacheSchema
+} from '@shared/data/cache/cacheSchemas'
+import { DefaultRendererPersistCache } from '@shared/data/cache/cacheSchemas'
 import type { CacheEntry, CacheSubscriber, CacheSyncMessage } from '@shared/data/cache/cacheTypes'
 
 const STORAGE_PERSIST_KEY = 'cs_cache_persist'
@@ -28,7 +35,7 @@ export class CacheService {
   // Three-layer cache system
   private memoryCache = new Map<string, CacheEntry>() // Cross-component cache
   private sharedCache = new Map<string, CacheEntry>() // Cross-window cache (local copy)
-  private persistCache = new Map<PersistCacheKey, any>() // Persistent cache
+  private persistCache = new Map<RendererPersistCacheKey, any>() // Persistent cache
 
   // Hook reference tracking
   private activeHooks = new Set<string>()
@@ -66,10 +73,13 @@ export class CacheService {
   /**
    * Get value from memory cache
    */
-  get<T>(key: string): T | undefined {
+  get<K extends UseCacheKey>(key: K): UseCacheSchema[K]
+  get<T>(key: Exclude<string, UseCacheKey>): T | undefined
+  get(key: string): any {
     const entry = this.memoryCache.get(key)
-    if (!entry) return undefined
-
+    if (entry === undefined) {
+      return undefined
+    }
     // Check TTL (lazy cleanup)
     if (entry.expireAt && Date.now() > entry.expireAt) {
       this.memoryCache.delete(key)
@@ -77,13 +87,15 @@ export class CacheService {
       return undefined
     }
 
-    return entry.value as T
+    return entry.value
   }
 
   /**
    * Set value in memory cache
    */
-  set<T>(key: string, value: T, ttl?: number): void {
+  set<K extends UseCacheKey>(key: K, value: UseCacheSchema[K]): void
+  set<T>(key: Exclude<string, UseCacheKey>, value: T, ttl?: number): void
+  set(key: string, value: any, ttl?: number): void {
     const existingEntry = this.memoryCache.get(key)
 
     // Value comparison optimization
@@ -99,7 +111,7 @@ export class CacheService {
       return // Skip notification
     }
 
-    const entry: CacheEntry<T> = {
+    const entry: CacheEntry = {
       value,
       expireAt: ttl ? Date.now() + ttl : undefined
     }
@@ -112,9 +124,14 @@ export class CacheService {
   /**
    * Check if key exists in memory cache
    */
+
+  has<K extends UseCacheKey>(key: K): boolean
+  has(key: Exclude<string, UseCacheKey>): boolean
   has(key: string): boolean {
     const entry = this.memoryCache.get(key)
-    if (!entry) return false
+    if (entry === undefined) {
+      return false
+    }
 
     // Check TTL
     if (entry.expireAt && Date.now() > entry.expireAt) {
@@ -129,6 +146,8 @@ export class CacheService {
   /**
    * Delete from memory cache
    */
+  delete<K extends UseCacheKey>(key: K): boolean
+  delete(key: Exclude<string, UseCacheKey>): boolean
   delete(key: string): boolean {
     // Check if key is being used by hooks
     if (this.activeHooks.has(key)) {
@@ -151,6 +170,8 @@ export class CacheService {
   /**
    * Check if a key has TTL set (for warning purposes)
    */
+  hasTTL<K extends UseCacheKey>(key: K): boolean
+  hasTTL(key: Exclude<string, UseCacheKey>): boolean
   hasTTL(key: string): boolean {
     const entry = this.memoryCache.get(key)
     return entry?.expireAt !== undefined
@@ -159,6 +180,8 @@ export class CacheService {
   /**
    * Check if a shared cache key has TTL set (for warning purposes)
    */
+  hasSharedTTL<K extends UseSharedCacheKey>(key: K): boolean
+  hasSharedTTL(key: Exclude<string, UseSharedCacheKey>): boolean
   hasSharedTTL(key: string): boolean {
     const entry = this.sharedCache.get(key)
     return entry?.expireAt !== undefined
@@ -169,7 +192,9 @@ export class CacheService {
   /**
    * Get value from shared cache
    */
-  getShared<T>(key: string): T | undefined {
+  getShared<K extends UseSharedCacheKey>(key: K): UseSharedCacheSchema[K]
+  getShared<T>(key: Exclude<string, UseSharedCacheKey>): T | undefined
+  getShared(key: string): any {
     const entry = this.sharedCache.get(key)
     if (!entry) return undefined
 
@@ -180,13 +205,15 @@ export class CacheService {
       return undefined
     }
 
-    return entry.value as T
+    return entry.value
   }
 
   /**
    * Set value in shared cache
    */
-  setShared<T>(key: string, value: T, ttl?: number): void {
+  setShared<K extends UseSharedCacheKey>(key: K, value: UseSharedCacheSchema[K]): void
+  setShared<T>(key: Exclude<string, UseSharedCacheKey>, value: T, ttl?: number): void
+  setShared(key: string, value: any, ttl?: number): void {
     const existingEntry = this.sharedCache.get(key)
 
     // Value comparison optimization
@@ -209,7 +236,7 @@ export class CacheService {
       return // Skip local update and notification
     }
 
-    const entry: CacheEntry<T> = {
+    const entry: CacheEntry = {
       value,
       expireAt: ttl ? Date.now() + ttl : undefined
     }
@@ -231,6 +258,8 @@ export class CacheService {
   /**
    * Check if key exists in shared cache
    */
+  hasShared<K extends UseSharedCacheKey>(key: K): boolean
+  hasShared(key: Exclude<string, UseSharedCacheKey>): boolean
   hasShared(key: string): boolean {
     const entry = this.sharedCache.get(key)
     if (!entry) return false
@@ -248,6 +277,8 @@ export class CacheService {
   /**
    * Delete from shared cache
    */
+  deleteShared<K extends UseSharedCacheKey>(key: K): boolean
+  deleteShared(key: Exclude<string, UseSharedCacheKey>): boolean
   deleteShared(key: string): boolean {
     // Check if key is being used by hooks
     if (this.activeHooks.has(key)) {
@@ -279,14 +310,14 @@ export class CacheService {
   /**
    * Get value from persist cache
    */
-  getPersist<K extends PersistCacheKey>(key: K): PersistCacheSchema[K] {
+  getPersist<K extends RendererPersistCacheKey>(key: K): RendererPersistCacheSchema[K] {
     const value = this.persistCache.get(key)
     if (value !== undefined) {
       return value
     }
 
     // Fallback to default value if somehow missing
-    const defaultValue = DefaultPersistCache[key]
+    const defaultValue = DefaultRendererPersistCache[key]
     this.persistCache.set(key, defaultValue)
     this.schedulePersistSave()
     logger.warn(`Missing persist cache key "${key}", using default value`)
@@ -296,7 +327,7 @@ export class CacheService {
   /**
    * Set value in persist cache
    */
-  setPersist<K extends PersistCacheKey>(key: K, value: PersistCacheSchema[K]): void {
+  setPersist<K extends RendererPersistCacheKey>(key: K, value: RendererPersistCacheSchema[K]): void {
     const existingValue = this.persistCache.get(key)
 
     // Use deep comparison for persist cache (usually objects)
@@ -323,7 +354,7 @@ export class CacheService {
   /**
    * Check if key exists in persist cache
    */
-  hasPersist(key: PersistCacheKey): boolean {
+  hasPersist(key: RendererPersistCacheKey): boolean {
     return this.persistCache.has(key)
   }
 
@@ -424,8 +455,8 @@ export class CacheService {
    */
   private loadPersistCache(): void {
     // First, initialize with default values
-    for (const [key, defaultValue] of Object.entries(DefaultPersistCache)) {
-      this.persistCache.set(key as PersistCacheKey, defaultValue)
+    for (const [key, defaultValue] of Object.entries(DefaultRendererPersistCache)) {
+      this.persistCache.set(key as RendererPersistCacheKey, defaultValue)
     }
 
     try {
@@ -440,7 +471,7 @@ export class CacheService {
       const data = JSON.parse(stored)
 
       // Only load keys that exist in schema, overriding defaults
-      const schemaKeys = Object.keys(DefaultPersistCache) as PersistCacheKey[]
+      const schemaKeys = Object.keys(DefaultRendererPersistCache) as RendererPersistCacheKey[]
       for (const key of schemaKeys) {
         if (key in data) {
           this.persistCache.set(key, data[key])
@@ -536,7 +567,7 @@ export class CacheService {
         this.notifySubscribers(message.key)
       } else if (message.type === 'persist') {
         // Update persist cache (other windows only update memory, not localStorage)
-        this.persistCache.set(message.key as PersistCacheKey, message.value)
+        this.persistCache.set(message.key as RendererPersistCacheKey, message.value)
         this.notifySubscribers(message.key)
       }
     })
