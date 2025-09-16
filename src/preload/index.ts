@@ -11,6 +11,7 @@ import type {
 } from '@shared/data/preference/preferenceTypes'
 import { UpgradeChannel } from '@shared/data/preference/preferenceTypes'
 import { IpcChannel } from '@shared/IpcChannel'
+import type { Notification } from '@types'
 import {
   AddMemoryOptions,
   AssistantMessage,
@@ -33,7 +34,6 @@ import {
   WebDavConfig
 } from '@types'
 import { contextBridge, ipcRenderer, OpenDialogOptions, shell, webUtils } from 'electron'
-import { Notification } from 'src/renderer/src/types/notification'
 import { CreateDirectoryOptions } from 'webdav'
 
 export function tracedInvoke(channel: string, spanContext: SpanContext | undefined, ...args: any[]) {
