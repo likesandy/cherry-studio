@@ -49,7 +49,7 @@ export interface RuntimeState {
   // update: UpdateState
   // export: ExportState
   // chat: ChatState
-  websearch: WebSearchState
+  // websearch: WebSearchState
 }
 
 export interface ExportState {
@@ -85,9 +85,9 @@ const initialState: RuntimeState = {
   //   renamingTopics: [],
   //   newlyRenamedTopics: []
   // },
-  websearch: {
-    activeSearches: {}
-  }
+  // websearch: {
+  //   activeSearches: {}
+  // }
 }
 
 const runtimeSlice = createSlice({

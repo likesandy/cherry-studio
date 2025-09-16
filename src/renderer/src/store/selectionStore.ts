@@ -54,54 +54,58 @@ const selectionSlice = createSlice({
   name: 'selectionStore',
   initialState,
   reducers: {
-    setSelectionEnabled: (state, action: PayloadAction<boolean>) => {
-      state.selectionEnabled = action.payload
-    },
-    setTriggerMode: (state, action: PayloadAction<SelectionTriggerMode>) => {
-      state.triggerMode = action.payload
-    },
-    setIsCompact: (state, action: PayloadAction<boolean>) => {
-      state.isCompact = action.payload
-    },
-    setIsAutoClose: (state, action: PayloadAction<boolean>) => {
-      state.isAutoClose = action.payload
-    },
-    setIsAutoPin: (state, action: PayloadAction<boolean>) => {
-      state.isAutoPin = action.payload
-    },
-    setIsFollowToolbar: (state, action: PayloadAction<boolean>) => {
-      state.isFollowToolbar = action.payload
-    },
-    setIsRemeberWinSize: (state, action: PayloadAction<boolean>) => {
-      state.isRemeberWinSize = action.payload
-    },
-    setFilterMode: (state, action: PayloadAction<SelectionFilterMode>) => {
-      state.filterMode = action.payload
-    },
-    setFilterList: (state, action: PayloadAction<string[]>) => {
-      state.filterList = action.payload
-    },
-    setActionWindowOpacity: (state, action: PayloadAction<number>) => {
-      state.actionWindowOpacity = action.payload
-    },
-    setActionItems: (state, action: PayloadAction<SelectionActionItem[]>) => {
-      state.actionItems = action.payload
+    // setSelectionEnabled: (state, action: PayloadAction<boolean>) => {
+    //   state.selectionEnabled = action.payload
+    // },
+    // setTriggerMode: (state, action: PayloadAction<SelectionTriggerMode>) => {
+    //   state.triggerMode = action.payload
+    // },
+    // setIsCompact: (state, action: PayloadAction<boolean>) => {
+    //   state.isCompact = action.payload
+    // },
+    // setIsAutoClose: (state, action: PayloadAction<boolean>) => {
+    //   state.isAutoClose = action.payload
+    // },
+    // setIsAutoPin: (state, action: PayloadAction<boolean>) => {
+    //   state.isAutoPin = action.payload
+    // },
+    // setIsFollowToolbar: (state, action: PayloadAction<boolean>) => {
+    //   state.isFollowToolbar = action.payload
+    // },
+    // setIsRemeberWinSize: (state, action: PayloadAction<boolean>) => {
+    //   state.isRemeberWinSize = action.payload
+    // },
+    // setFilterMode: (state, action: PayloadAction<SelectionFilterMode>) => {
+    //   state.filterMode = action.payload
+    // },
+    // setFilterList: (state, action: PayloadAction<string[]>) => {
+    //   state.filterList = action.payload
+    // },
+    // setActionWindowOpacity: (state, action: PayloadAction<number>) => {
+    //   state.actionWindowOpacity = action.payload
+    // },
+    // setActionItems: (state, action: PayloadAction<SelectionActionItem[]>) => {
+    //   state.actionItems = action.payload
+    // },
+    setPlaceholder: (state, action: PayloadAction<Partial<SelectionState>>) => {
+      state = { ...state, ...action.payload }
     }
   }
 })
 
 export const {
-  setSelectionEnabled,
-  setTriggerMode,
-  setIsCompact,
-  setIsAutoClose,
-  setIsAutoPin,
-  setIsFollowToolbar,
-  setIsRemeberWinSize,
-  setFilterMode,
-  setFilterList,
-  setActionWindowOpacity,
-  setActionItems
+  // setSelectionEnabled,
+  // setTriggerMode,
+  // setIsCompact,
+  // setIsAutoClose,
+  // setIsAutoPin,
+  // setIsFollowToolbar,
+  // setIsRemeberWinSize,
+  // setFilterMode,
+  // setFilterList,
+  // setActionWindowOpacity,
+  // setActionItems,
+  setPlaceholder
 } = selectionSlice.actions
 
 export default selectionSlice.reducer

@@ -1,3 +1,6 @@
+/**
+ * //TODO @deprecated this file will be removed after data refactor
+ */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { isMac } from '@renderer/config/constant'
 import {
@@ -621,9 +624,9 @@ const settingsSlice = createSlice({
     // setCodeImageTools: (state, action: PayloadAction<boolean>) => {
     //   state.codeImageTools = action.payload
     // },
-    setCodeFancyBlock: (state, action: PayloadAction<boolean>) => {
-      state.codeFancyBlock = action.payload
-    },
+    // setCodeFancyBlock: (state, action: PayloadAction<boolean>) => {
+    //   state.codeFancyBlock = action.payload
+    // },
     // setMathEngine: (state, action: PayloadAction<MathEngine>) => {
     //   state.mathEngine = action.payload
     // },
@@ -822,18 +825,18 @@ const settingsSlice = createSlice({
     setDefaultPaintingProvider: (state, action: PayloadAction<PaintingProvider>) => {
       state.defaultPaintingProvider = action.payload
     },
-    setS3: (state, action: PayloadAction<S3Config>) => {
-      state.s3 = action.payload
-    },
-    setS3Partial: (state, action: PayloadAction<Partial<S3Config>>) => {
-      state.s3 = { ...state.s3, ...action.payload }
-    },
-    setEnableDeveloperMode: (state, action: PayloadAction<boolean>) => {
-      state.enableDeveloperMode = action.payload
-    },
-    setNavbarPosition: (state, action: PayloadAction<'left' | 'top'>) => {
-      state.navbarPosition = action.payload
-    },
+    // setS3: (state, action: PayloadAction<S3Config>) => {
+    //   state.s3 = action.payload
+    // },
+    // setS3Partial: (state, action: PayloadAction<Partial<S3Config>>) => {
+    //   state.s3 = { ...state.s3, ...action.payload }
+    // },
+    // setEnableDeveloperMode: (state, action: PayloadAction<boolean>) => {
+    //   state.enableDeveloperMode = action.payload
+    // },
+    // setNavbarPosition: (state, action: PayloadAction<'left' | 'top'>) => {
+    //   state.navbarPosition = action.payload
+    // },
     // API Server actions
     setApiServerEnabled: (state, action: PayloadAction<boolean>) => {
       state.apiServer = {
@@ -913,7 +916,7 @@ export const {
   // setCodeCollapsible,
   // setCodeWrappable,
   // setCodeImageTools,
-  setCodeFancyBlock,
+  // setCodeFancyBlock,
   // setMathEngine,
   // setMathEnableSingleDollar,
   // setFoldDisplayMode,

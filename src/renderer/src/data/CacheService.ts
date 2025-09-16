@@ -61,6 +61,9 @@ export class CacheService {
     return CacheService.instance
   }
 
+  /**
+   * Initialize the cache service with persist cache loading and IPC listeners
+   */
   public initialize(): void {
     this.loadPersistCache()
     this.setupIpcListeners()
@@ -71,7 +74,9 @@ export class CacheService {
   // ============ Memory Cache (Cross-component) ============
 
   /**
-   * Get value from memory cache
+   * Get value from memory cache with TTL validation
+   * @param key - Cache key to retrieve
+   * @returns Cached value or undefined if not found or expired
    */
   get<K extends UseCacheKey>(key: K): UseCacheSchema[K]
   get<T>(key: Exclude<string, UseCacheKey>): T | undefined
@@ -91,7 +96,10 @@ export class CacheService {
   }
 
   /**
-   * Set value in memory cache
+   * Set value in memory cache with optional TTL
+   * @param key - Cache key to store
+   * @param value - Value to cache
+   * @param ttl - Time to live in milliseconds (optional)
    */
   set<K extends UseCacheKey>(key: K, value: UseCacheSchema[K]): void
   set<T>(key: Exclude<string, UseCacheKey>, value: T, ttl?: number): void
@@ -122,7 +130,9 @@ export class CacheService {
   }
 
   /**
-   * Check if key exists in memory cache
+   * Check if key exists in memory cache and is not expired
+   * @param key - Cache key to check
+   * @returns True if key exists and is valid, false otherwise
    */
 
   has<K extends UseCacheKey>(key: K): boolean
@@ -144,7 +154,9 @@ export class CacheService {
   }
 
   /**
-   * Delete from memory cache
+   * Delete from memory cache with hook protection
+   * @param key - Cache key to delete
+   * @returns True if deletion succeeded, false if key is protected by active hooks
    */
   delete<K extends UseCacheKey>(key: K): boolean
   delete(key: Exclude<string, UseCacheKey>): boolean
@@ -168,7 +180,9 @@ export class CacheService {
   }
 
   /**
-   * Check if a key has TTL set (for warning purposes)
+   * Check if a key has TTL set in memory cache
+   * @param key - Cache key to check
+   * @returns True if key has TTL configured
    */
   hasTTL<K extends UseCacheKey>(key: K): boolean
   hasTTL(key: Exclude<string, UseCacheKey>): boolean
@@ -178,7 +192,9 @@ export class CacheService {
   }
 
   /**
-   * Check if a shared cache key has TTL set (for warning purposes)
+   * Check if a shared cache key has TTL set
+   * @param key - Shared cache key to check
+   * @returns True if key has TTL configured
    */
   hasSharedTTL<K extends UseSharedCacheKey>(key: K): boolean
   hasSharedTTL(key: Exclude<string, UseSharedCacheKey>): boolean
@@ -190,7 +206,9 @@ export class CacheService {
   // ============ Shared Cache (Cross-window) ============
 
   /**
-   * Get value from shared cache
+   * Get value from shared cache with TTL validation
+   * @param key - Shared cache key to retrieve
+   * @returns Cached value or undefined if not found or expired
    */
   getShared<K extends UseSharedCacheKey>(key: K): UseSharedCacheSchema[K]
   getShared<T>(key: Exclude<string, UseSharedCacheKey>): T | undefined
@@ -209,7 +227,10 @@ export class CacheService {
   }
 
   /**
-   * Set value in shared cache
+   * Set value in shared cache with cross-window synchronization
+   * @param key - Shared cache key to store
+   * @param value - Value to cache
+   * @param ttl - Time to live in milliseconds (optional)
    */
   setShared<K extends UseSharedCacheKey>(key: K, value: UseSharedCacheSchema[K]): void
   setShared<T>(key: Exclude<string, UseSharedCacheKey>, value: T, ttl?: number): void
@@ -256,7 +277,9 @@ export class CacheService {
   }
 
   /**
-   * Check if key exists in shared cache
+   * Check if key exists in shared cache and is not expired
+   * @param key - Shared cache key to check
+   * @returns True if key exists and is valid, false otherwise
    */
   hasShared<K extends UseSharedCacheKey>(key: K): boolean
   hasShared(key: Exclude<string, UseSharedCacheKey>): boolean
@@ -275,7 +298,9 @@ export class CacheService {
   }
 
   /**
-   * Delete from shared cache
+   * Delete from shared cache with cross-window synchronization and hook protection
+   * @param key - Shared cache key to delete
+   * @returns True if deletion succeeded, false if key is protected by active hooks
    */
   deleteShared<K extends UseSharedCacheKey>(key: K): boolean
   deleteShared(key: Exclude<string, UseSharedCacheKey>): boolean
@@ -308,7 +333,9 @@ export class CacheService {
   // ============ Persist Cache (Cross-window + localStorage) ============
 
   /**
-   * Get value from persist cache
+   * Get value from persist cache with automatic default value fallback
+   * @param key - Persist cache key to retrieve
+   * @returns Cached value or default value if not found
    */
   getPersist<K extends RendererPersistCacheKey>(key: K): RendererPersistCacheSchema[K] {
     const value = this.persistCache.get(key)
@@ -325,7 +352,9 @@ export class CacheService {
   }
 
   /**
-   * Set value in persist cache
+   * Set value in persist cache with cross-window sync and localStorage persistence
+   * @param key - Persist cache key to store
+   * @param value - Value to cache (must match schema type)
    */
   setPersist<K extends RendererPersistCacheKey>(key: K, value: RendererPersistCacheSchema[K]): void {
     const existingValue = this.persistCache.get(key)
@@ -353,6 +382,8 @@ export class CacheService {
 
   /**
    * Check if key exists in persist cache
+   * @param key - Persist cache key to check
+   * @returns True if key exists in cache
    */
   hasPersist(key: RendererPersistCacheKey): boolean {
     return this.persistCache.has(key)
@@ -363,14 +394,16 @@ export class CacheService {
   // ============ Hook Reference Management ============
 
   /**
-   * Register a hook as using a specific key
+   * Register a hook as using a specific cache key to prevent deletion
+   * @param key - Cache key being used by the hook
    */
   registerHook(key: string): void {
     this.activeHooks.add(key)
   }
 
   /**
-   * Unregister a hook from using a specific key
+   * Unregister a hook from using a specific cache key
+   * @param key - Cache key no longer being used by the hook
    */
   unregisterHook(key: string): void {
     this.activeHooks.delete(key)
@@ -379,7 +412,10 @@ export class CacheService {
   // ============ Subscription Management ============
 
   /**
-   * Subscribe to cache changes for specific key
+   * Subscribe to cache changes for a specific key
+   * @param key - Cache key to watch for changes
+   * @param callback - Function to call when key changes
+   * @returns Unsubscribe function
    */
   subscribe(key: string, callback: CacheSubscriber): () => void {
     if (!this.subscribers.has(key)) {
@@ -398,7 +434,8 @@ export class CacheService {
   }
 
   /**
-   * Notify subscribers for specific key
+   * Notify all subscribers when a cache key changes
+   * @param key - Cache key that changed
    */
   notifySubscribers(key: string): void {
     const keySubscribers = this.subscribers.get(key)
@@ -416,7 +453,10 @@ export class CacheService {
   // ============ Private Methods ============
 
   /**
-   * Deep equality comparison for cache values
+   * Perform deep equality comparison for cache values
+   * @param a - First value to compare
+   * @param b - Second value to compare
+   * @returns True if values are deeply equal
    */
   private deepEqual(a: any, b: any): boolean {
     // Use Object.is for primitive values and same reference
@@ -451,7 +491,7 @@ export class CacheService {
   }
 
   /**
-   * Load persist cache from localStorage
+   * Load persist cache from localStorage with default value initialization
    */
   private loadPersistCache(): void {
     // First, initialize with default values
@@ -490,7 +530,7 @@ export class CacheService {
   }
 
   /**
-   * Save persist cache to localStorage
+   * Save persist cache to localStorage with size validation
    */
   private savePersistCache(): void {
     try {
@@ -517,7 +557,7 @@ export class CacheService {
   }
 
   /**
-   * Schedule persist cache save with debounce
+   * Schedule persist cache save with 200ms debounce to avoid excessive writes
    */
   private schedulePersistSave(): void {
     this.persistDirty = true
@@ -533,7 +573,8 @@ export class CacheService {
   }
 
   /**
-   * Broadcast cache sync message to other windows
+   * Broadcast cache sync message to other windows via IPC
+   * @param message - Cache sync message to broadcast
    */
   private broadcastSync(message: CacheSyncMessage): void {
     if (window.api?.cache?.broadcastSync) {
@@ -542,7 +583,7 @@ export class CacheService {
   }
 
   /**
-   * Setup IPC listeners for cache synchronization
+   * Setup IPC listeners for receiving cache sync messages from other windows
    */
   private setupIpcListeners(): void {
     if (!window.api?.cache?.onSync) {
@@ -574,7 +615,7 @@ export class CacheService {
   }
 
   /**
-   * Setup window unload handler to force save persist cache
+   * Setup window unload handler to ensure persist cache is saved before exit
    */
   private setupWindowUnloadHandler(): void {
     window.addEventListener('beforeunload', () => {
@@ -585,7 +626,7 @@ export class CacheService {
   }
 
   /**
-   * Cleanup service resources
+   * Cleanup service resources including timers, caches, and event listeners
    */
   public cleanup(): void {
     // Force save persist cache if dirty

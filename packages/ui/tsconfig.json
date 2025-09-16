@@ -17,13 +17,6 @@
     "isolatedModules": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.*",
-    "**/__tests__/**"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.*", "**/__tests__/**"]
 }

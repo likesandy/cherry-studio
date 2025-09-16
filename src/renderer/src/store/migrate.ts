@@ -1,3 +1,6 @@
+/**
+ * @deprecated this file will be removed after data refactor
+ */
 import { loggerService } from '@logger'
 import { nanoid } from '@reduxjs/toolkit'
 import { DEFAULT_CONTEXTCOUNT, DEFAULT_TEMPERATURE, isMac } from '@renderer/config/constant'

@@ -95,7 +95,7 @@ export async function getNormalizedExtension(language: string) {
 export function getCmThemeNames(): string[] {
   return ['auto', 'light', 'dark']
     .concat(Object.keys(cmThemes))
-    .filter((item) => typeof cmThemes[item as keyof typeof cmThemes] !== 'function')
+    .filter((item) => typeof (cmThemes as any)[item] !== 'function')
     .filter((item) => !/^(defaultSettings)/.test(item as string) && !/(Style)$/.test(item as string))
 }
 

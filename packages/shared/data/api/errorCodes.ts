@@ -68,7 +68,7 @@ export class DataApiErrorFactory {
       message: customMessage || ERROR_MESSAGES[code],
       status: ERROR_STATUS_MAP[code],
       details,
-      stack: process.env.NODE_ENV === 'development' ? stack : undefined
+      stack: stack || undefined
     }
   }
 
