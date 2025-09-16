@@ -15,6 +15,7 @@ const CodeEditor = ({
   value,
   placeholder,
   language,
+  languageConfig,
   onSave,
   onChange,
   onBlur,
@@ -55,7 +56,7 @@ const CodeEditor = ({
   const initialContent = useRef(options?.stream ? (value ?? '').trimEnd() : (value ?? ''))
   const editorViewRef = useRef<EditorView | null>(null)
 
-  const langExtensions = useLanguageExtensions(language, options?.lint)
+  const langExtensions = useLanguageExtensions(language, options?.lint, languageConfig)
 
   const handleSave = useCallback(() => {
     const currentDoc = editorViewRef.current?.state.doc.toString() ?? ''

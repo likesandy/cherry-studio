@@ -15,8 +15,7 @@
     "lint": "eslint src --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "update:languages": "tsx scripts/update-languages.ts"
+    "build-storybook": "storybook build"
   },
   "keywords": [
     "ui",

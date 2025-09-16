@@ -2,6 +2,16 @@ import { BasicSetupOptions, Extension } from '@uiw/react-codemirror'
 
 export type CodeMirrorTheme = 'light' | 'dark' | 'none' | Extension
 
+/** Language data structure for file extension mapping */
+export interface LanguageData {
+  type: string
+  aliases?: string[]
+  extensions?: string[]
+}
+
+/** Language configuration mapping language names to their data */
+export type LanguageConfig = Record<string, LanguageData>
+
 export interface CodeEditorHandles {
   save?: () => void
 }
@@ -20,6 +30,12 @@ export interface CodeEditorProps {
    * - Supports file extensions: .cpp/cpp, .js/js, .py/py, etc.
    */
   language: string
+  /**
+   * Language configuration for extension mapping.
+   * If not provided, will use a default minimal configuration.
+   * @optional
+   */
+  languageConfig?: LanguageConfig
   /** Fired when ref.save() is called or the save shortcut is triggered. */
   onSave?: (newContent: string) => void
   /** Fired when the editor content changes. */

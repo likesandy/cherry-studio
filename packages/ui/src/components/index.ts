@@ -4,12 +4,13 @@ export { default as CustomCollapse } from './base/CustomCollapse'
 export { default as CustomTag } from './base/CustomTag'
 export { default as DividerWithText } from './base/DividerWithText'
 export { default as EmojiIcon } from './base/EmojiIcon'
-export { ErrorTag } from './base/ErrorTag'
+export { ErrorBoundary } from './base/ErrorBoundary'
+export type { ErrorBoundaryCustomizedProps, CustomFallbackProps } from './base/ErrorBoundary'
 export { default as IndicatorLight } from './base/IndicatorLight'
 export { default as Spinner } from './base/Spinner'
-export { SuccessTag } from './base/SuccessTag'
+export { StatusTag, ErrorTag, SuccessTag, WarnTag, InfoTag } from './base/StatusTag'
+export type { StatusType, StatusTagProps } from './base/StatusTag'
 export { default as TextBadge } from './base/TextBadge'
-export { WarnTag } from './base/WarnTag'
 
 // Display Components
 export { default as Ellipsis } from './display/Ellipsis'
@@ -17,6 +18,7 @@ export { default as EmojiAvatar } from './display/EmojiAvatar'
 export { default as ExpandableText } from './display/ExpandableText'
 export { default as ListItem } from './display/ListItem'
 export { default as MaxContextCount } from './display/MaxContextCount'
+export { ProviderAvatar } from './display/ProviderAvatar'
 export { default as ThinkingEffect } from './display/ThinkingEffect'
 
 // Layout Components
@@ -24,21 +26,25 @@ export { default as HorizontalScrollContainer } from './layout/HorizontalScrollC
 export { default as Scrollbar } from './layout/Scrollbar'
 
 // Icon Components
-export { default as CopyIcon } from './icons/CopyIcon'
-export { default as DeleteIcon } from './icons/DeleteIcon'
-export { default as EditIcon } from './icons/EditIcon'
+export {
+  createIcon,
+  CopyIcon,
+  DeleteIcon,
+  EditIcon,
+  RefreshIcon,
+  ResetIcon,
+  ToolIcon,
+  VisionIcon,
+  WebSearchIcon,
+  WrapIcon,
+  UnWrapIcon,
+  OcrIcon
+} from './icons/Icon'
+export type { LucideIcon, LucideProps } from './icons/Icon'
 export { FilePngIcon, FileSvgIcon } from './icons/FileIcons'
-export { default as OcrIcon } from './icons/OcrIcon'
 export { default as ReasoningIcon } from './icons/ReasoningIcon'
-export { default as RefreshIcon } from './icons/RefreshIcon'
-export { default as ResetIcon } from './icons/ResetIcon'
 export { default as SvgSpinners180Ring } from './icons/SvgSpinners180Ring'
-export { default as ToolIcon } from './icons/ToolIcon'
 export { default as ToolsCallingIcon } from './icons/ToolsCallingIcon'
-export { default as UnWrapIcon } from './icons/UnWrapIcon'
-export { default as VisionIcon } from './icons/VisionIcon'
-export { default as WebSearchIcon } from './icons/WebSearchIcon'
-export { default as WrapIcon } from './icons/WrapIcon'
 
 // Interactive Components
 export {

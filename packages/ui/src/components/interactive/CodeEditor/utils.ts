@@ -2,8 +2,7 @@ import * as cmThemes from '@uiw/codemirror-themes-all'
 import { Extension } from '@uiw/react-codemirror'
 import diff from 'fast-diff'
 
-import { getExtensionByLanguage } from '../../../utils/codeLanguage'
-import { CodeMirrorTheme } from './types'
+import { CodeMirrorTheme, LanguageConfig } from './types'
 
 /**
  * Computes code changes using fast-diff and converts them to CodeMirror changes.
@@ -50,15 +49,158 @@ const _customLanguageExtensions: Record<string, string> = {
   graphviz: 'dot'
 }
 
+// Default minimal language configuration for common languages
+const _defaultLanguageConfig: LanguageConfig = {
+  JavaScript: {
+    type: 'programming',
+    extensions: ['.js', '.mjs', '.cjs'],
+    aliases: ['js', 'node']
+  },
+  TypeScript: {
+    type: 'programming',
+    extensions: ['.ts'],
+    aliases: ['ts']
+  },
+  Python: {
+    type: 'programming',
+    extensions: ['.py'],
+    aliases: ['python3', 'py']
+  },
+  Java: {
+    type: 'programming',
+    extensions: ['.java']
+  },
+  'C++': {
+    type: 'programming',
+    extensions: ['.cpp', '.cc', '.cxx'],
+    aliases: ['cpp']
+  },
+  C: {
+    type: 'programming',
+    extensions: ['.c']
+  },
+  'C#': {
+    type: 'programming',
+    extensions: ['.cs'],
+    aliases: ['csharp']
+  },
+  HTML: {
+    type: 'markup',
+    extensions: ['.html', '.htm']
+  },
+  CSS: {
+    type: 'markup',
+    extensions: ['.css']
+  },
+  JSON: {
+    type: 'data',
+    extensions: ['.json']
+  },
+  XML: {
+    type: 'data',
+    extensions: ['.xml']
+  },
+  YAML: {
+    type: 'data',
+    extensions: ['.yml', '.yaml']
+  },
+  SQL: {
+    type: 'data',
+    extensions: ['.sql']
+  },
+  Shell: {
+    type: 'programming',
+    extensions: ['.sh', '.bash'],
+    aliases: ['bash', 'sh']
+  },
+  Go: {
+    type: 'programming',
+    extensions: ['.go'],
+    aliases: ['golang']
+  },
+  Rust: {
+    type: 'programming',
+    extensions: ['.rs']
+  },
+  PHP: {
+    type: 'programming',
+    extensions: ['.php']
+  },
+  Ruby: {
+    type: 'programming',
+    extensions: ['.rb'],
+    aliases: ['rb']
+  },
+  Swift: {
+    type: 'programming',
+    extensions: ['.swift']
+  },
+  Kotlin: {
+    type: 'programming',
+    extensions: ['.kt']
+  },
+  Dart: {
+    type: 'programming',
+    extensions: ['.dart']
+  },
+  R: {
+    type: 'programming',
+    extensions: ['.r']
+  },
+  MATLAB: {
+    type: 'programming',
+    extensions: ['.m']
+  }
+}
+
+/**
+ * Get the file extension of the language, by language name
+ * - First, exact match
+ * - Then, case-insensitive match
+ * - Finally, match aliases
+ * If there are multiple file extensions, only the first one will be returned
+ * @param language language name
+ * @param languageConfig optional language configuration, defaults to a minimal config
+ * @returns file extension
+ */
+export function getExtensionByLanguage(language: string, languageConfig?: LanguageConfig): string {
+  const languages = languageConfig || _defaultLanguageConfig
+  const lowerLanguage = language.toLowerCase()
+
+  // Exact match language name
+  const directMatch = languages[language]
+  if (directMatch?.extensions?.[0]) {
+    return directMatch.extensions[0]
+  }
+
+  // Case-insensitive match language name
+  for (const [langName, data] of Object.entries(languages)) {
+    if (langName.toLowerCase() === lowerLanguage && data.extensions?.[0]) {
+      return data.extensions[0]
+    }
+  }
+
+  // Match aliases
+  for (const [, data] of Object.entries(languages)) {
+    if (data.aliases?.some((alias) => alias.toLowerCase() === lowerLanguage)) {
+      return data.extensions?.[0] || `.${language}`
+    }
+  }
+
+  // Fallback to language name
+  return `.${language}`
+}
+
 /**
  * Get the file extension of the language, for @uiw/codemirror-extensions-langs
  * - First, search for custom extensions
- * - Then, search for github linguist extensions
+ * - Then, search for language configuration extensions
  * - Finally, assume the name is already an extension
  * @param language language name
+ * @param languageConfig optional language configuration
  * @returns file extension (without `.` prefix)
  */
-export async function getNormalizedExtension(language: string) {
+export async function getNormalizedExtension(language: string, languageConfig?: LanguageConfig) {
   let lang = language
 
   // If the language name looks like an extension, remove the dot
@@ -74,8 +216,8 @@ export async function getNormalizedExtension(language: string) {
     return customExt
   }
 
-  // 2. Search for github linguist extensions
-  const linguistExt = getExtensionByLanguage(lang)
+  // 2. Search for language configuration extensions
+  const linguistExt = getExtensionByLanguage(lang, languageConfig)
   if (linguistExt) {
     return linguistExt.slice(1)
   }

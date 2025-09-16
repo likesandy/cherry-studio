@@ -49,9 +49,9 @@ function MyComponent() {
 ## 迁移概览
 
 - **总组件数**: 236
-- **已迁移**: 43
-- **已重构**: 0
-- **待迁移**: 193
+- **已迁移**: 46
+- **已重构**: 2
+- **待迁移**: 190
 
 ## 组件状态表
 
@@ -62,12 +62,11 @@ function MyComponent() {
 | | CustomTag | ✅ | ❌ | 自定义标签 |
 | | DividerWithText | ✅ | ❌ | 带文本的分隔线 |
 | | EmojiIcon | ✅ | ❌ | 表情图标 |
-| | ErrorTag | ✅ | ❌ | 错误标签 |
+| | ErrorBoundary | ✅ | ❌ | 错误边界 (通过 props 解耦) |
+| | StatusTag | ✅ | ✅ | 统一状态标签（合并了 ErrorTag、SuccessTag、WarnTag、InfoTag）|
 | | IndicatorLight | ✅ | ❌ | 指示灯 |
 | | Spinner | ✅ | ❌ | 加载动画 |
-| | SuccessTag | ✅ | ❌ | 成功标签 |
 | | TextBadge | ✅ | ❌ | 文本徽标 |
-| | WarnTag | ✅ | ❌ | 警告标签 |
 | | CustomCollapse | ✅ | ❌ | 自定义折叠面板 |
 | **display** | | | | 显示组件 |
 | | Ellipsis | ✅ | ❌ | 文本省略 |
@@ -76,6 +75,7 @@ function MyComponent() {
 | | EmojiAvatar | ✅ | ❌ | 表情头像 |
 | | ListItem | ✅ | ❌ | 列表项 |
 | | MaxContextCount | ✅ | ❌ | 最大上下文数显示 |
+| | ProviderAvatar | ✅ | ❌ | 提供者头像 |
 | | CodeViewer | ❌ | ❌ | 代码查看器 (外部依赖) |
 | | OGCard | ❌ | ❌ | OG 卡片 |
 | | MarkdownShadowDOMRenderer | ❌ | ❌ | Markdown 渲染器 |
@@ -87,22 +87,11 @@ function MyComponent() {
 | | Tab/* | ❌ | ❌ | 标签页 (Redux 依赖) |
 | | TopView | ❌ | ❌ | 顶部视图 (window.api 依赖) |
 | **icons** | | | | 图标组件 |
-| | CopyIcon | ✅ | ❌ | 复制图标 |
-| | DeleteIcon | ✅ | ❌ | 删除图标 |
-| | EditIcon | ✅ | ❌ | 编辑图标 |
-| | FileIcons | ✅ | ❌ | 文件图标 (包含 FileSvgIcon、FilePngIcon) |
+| | Icon | ✅ | ✅ | 图标工厂函数和预定义图标（合并了 CopyIcon、DeleteIcon、EditIcon、RefreshIcon、ResetIcon、ToolIcon、VisionIcon、WebSearchIcon、WrapIcon、UnWrapIcon、OcrIcon）|
+| | FileIcons | ✅ | ❌ | 文件图标 (FileSvgIcon、FilePngIcon) |
 | | ReasoningIcon | ✅ | ❌ | 推理图标 |
-| | RefreshIcon | ✅ | ❌ | 刷新图标 |
-| | ResetIcon | ✅ | ❌ | 重置图标 |
 | | SvgSpinners180Ring | ✅ | ❌ | 旋转加载图标 |
 | | ToolsCallingIcon | ✅ | ❌ | 工具调用图标 |
-| | VisionIcon | ✅ | ❌ | 视觉图标 |
-| | WebSearchIcon | ✅ | ❌ | 网页搜索图标 |
-| | WrapIcon | ✅ | ❌ | 换行图标 |
-| | UnWrapIcon | ✅ | ❌ | 不换行图标 |
-| | OcrIcon | ✅ | ❌ | OCR 图标 |
-| | ToolIcon | ✅ | ❌ | 工具图标 |
-| | Other icons | ❌ | ❌ | 其他图标文件 |
 | **interactive** | | | | 交互组件 |
 | | InfoTooltip | ✅ | ❌ | 信息提示 |
 | | HelpTooltip | ✅ | ❌ | 帮助提示 |
@@ -112,6 +101,7 @@ function MyComponent() {
 | | CollapsibleSearchBar | ✅ | ❌ | 可折叠搜索栏 |
 | | ImageToolButton | ✅ | ❌ | 图片工具按钮 |
 | | DraggableList | ✅ | ❌ | 可拖拽列表 |
+| | CodeEditor | ✅ | ❌ | 代码编辑器 |
 | | EmojiPicker | ❌ | ❌ | 表情选择器 (useTheme 依赖) |
 | | Selector | ✅ | ❌ | 选择器 (i18n 依赖) |
 | | ModelSelector | ❌ | ❌ | 模型选择器 (Redux 依赖) |
@@ -122,7 +112,6 @@ function MyComponent() {
 | **未分类** | | | | 需要分类的组件 |
 | | Popups/* (16+ 文件) | ❌ | ❌ | 弹窗组件 (业务耦合) |
 | | RichEditor/* (30+ 文件) | ❌ | ❌ | 富文本编辑器 |
-| | CodeEditor/* | ❌ | ❌ | 代码编辑器 |
 | | MarkdownEditor/* | ❌ | ❌ | Markdown 编辑器 |
 | | MinApp/* | ❌ | ❌ | 迷你应用 (Redux 依赖) |
 | | Avatar/* | ❌ | ❌ | 头像组件 |

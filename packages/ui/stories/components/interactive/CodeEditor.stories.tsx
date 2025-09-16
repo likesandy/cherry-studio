@@ -1,7 +1,57 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { action } from 'storybook/actions'
 
-import CodeEditor, { getCmThemeByName, getCmThemeNames } from '../../../src/components/interactive/CodeEditor'
+import CodeEditor, {
+  getCmThemeByName,
+  getCmThemeNames,
+  LanguageConfig
+} from '../../../src/components/interactive/CodeEditor'
+
+// 示例语言配置 - 为 Storybook 提供更丰富的语言支持演示
+const exampleLanguageConfig: LanguageConfig = {
+  JavaScript: {
+    type: 'programming',
+    extensions: ['.js', '.mjs', '.cjs'],
+    aliases: ['js', 'node']
+  },
+  TypeScript: {
+    type: 'programming',
+    extensions: ['.ts'],
+    aliases: ['ts']
+  },
+  Python: {
+    type: 'programming',
+    extensions: ['.py'],
+    aliases: ['python3', 'py']
+  },
+  JSON: {
+    type: 'data',
+    extensions: ['.json']
+  },
+  Markdown: {
+    type: 'prose',
+    extensions: ['.md', '.markdown'],
+    aliases: ['md']
+  },
+  HTML: {
+    type: 'markup',
+    extensions: ['.html', '.htm']
+  },
+  CSS: {
+    type: 'markup',
+    extensions: ['.css']
+  },
+  'Graphviz (DOT)': {
+    type: 'data',
+    extensions: ['.dot', '.gv'],
+    aliases: ['dot', 'graphviz']
+  },
+  Mermaid: {
+    type: 'markup',
+    extensions: ['.mmd', '.mermaid'],
+    aliases: ['mmd']
+  }
+}
 
 const meta: Meta<typeof CodeEditor> = {
   title: 'Interactive/CodeEditor',
@@ -11,7 +61,7 @@ const meta: Meta<typeof CodeEditor> = {
   argTypes: {
     language: {
       control: 'select',
-      options: ['typescript', 'javascript', 'json', 'markdown', 'python', 'dot', 'mmd']
+      options: ['typescript', 'javascript', 'json', 'markdown', 'python', 'dot', 'mmd', 'go', 'rust', 'php']
     },
     theme: {
       control: 'select',
@@ -23,7 +73,11 @@ const meta: Meta<typeof CodeEditor> = {
     wrapped: { control: 'boolean' },
     height: { control: 'text' },
     maxHeight: { control: 'text' },
-    minHeight: { control: 'text' }
+    minHeight: { control: 'text' },
+    languageConfig: {
+      control: false,
+      description: 'Optional language configuration. If not provided, uses built-in defaults.'
+    }
   }
 }
 
@@ -46,6 +100,7 @@ export const Default: Story = {
       <CodeEditor
         value={args.value as string}
         language={args.language as string}
+        languageConfig={exampleLanguageConfig}
         theme={getCmThemeByName((args as any).theme || 'light')}
         fontSize={args.fontSize as number}
         editable={args.editable as boolean}
@@ -79,6 +134,7 @@ export const JSONLint: Story = {
         options={{ lint: true }}
         wrapped
         onChange={action('change')}
+        languageConfig={exampleLanguageConfig}
       />
     </div>
   )
@@ -97,6 +153,7 @@ export const SaveShortcut: Story = {
       <CodeEditor
         value={args.value as string}
         language={args.language as string}
+        languageConfig={exampleLanguageConfig}
         theme={getCmThemeByName((args as any).theme || 'light')}
         options={{ keymap: true }}
         onSave={action('save')}
@@ -104,6 +161,35 @@ export const SaveShortcut: Story = {
         wrapped
       />
       <p className="text-xs text-gray-500">使用 Mod/Ctrl + S 触发保存事件。</p>
+    </div>
+  )
+}
+
+// 使用默认语言配置（展示组件的独立性）
+export const DefaultLanguageConfig: Story = {
+  args: {
+    language: 'javascript',
+    theme: 'light',
+    value: `// 这个示例使用内置的默认语言配置
+function fibonacci(n) {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+console.log(fibonacci(10));`,
+    wrapped: true
+  },
+  render: (args) => (
+    <div className="w-[720px] space-y-3">
+      <CodeEditor
+        value={args.value as string}
+        language={args.language as string}
+        // 注意：这里没有传入 languageConfig，使用默认配置
+        theme={getCmThemeByName((args as any).theme || 'light')}
+        onChange={action('change')}
+        wrapped
+      />
+      <p className="text-xs text-gray-500">此示例未传入 languageConfig，使用组件内置的默认语言配置。</p>
     </div>
   )
 }

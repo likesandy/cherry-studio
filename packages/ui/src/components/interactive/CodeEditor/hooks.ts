@@ -3,6 +3,7 @@ import { EditorView } from '@codemirror/view'
 import { Extension, keymap } from '@uiw/react-codemirror'
 import { useEffect, useMemo, useState } from 'react'
 
+import { LanguageConfig } from './types'
 import { getNormalizedExtension } from './utils'
 
 /** 语言对应的 linter 加载器
@@ -34,8 +35,8 @@ const specialLanguageLoaders: Record<string, () => Promise<Extension>> = {
 /**
  * 加载语言扩展
  */
-async function loadLanguageExtension(language: string): Promise<Extension | null> {
-  const fileExt = await getNormalizedExtension(language)
+async function loadLanguageExtension(language: string, languageConfig?: LanguageConfig): Promise<Extension | null> {
+  const fileExt = await getNormalizedExtension(language, languageConfig)
 
   // 尝试加载特殊语言
   const specialLoader = specialLanguageLoaders[fileExt]
@@ -62,8 +63,8 @@ async function loadLanguageExtension(language: string): Promise<Extension | null
 /**
  * 加载 linter 扩展
  */
-async function loadLinterExtension(language: string): Promise<Extension | null> {
-  const fileExt = await getNormalizedExtension(language)
+async function loadLinterExtension(language: string, languageConfig?: LanguageConfig): Promise<Extension | null> {
+  const fileExt = await getNormalizedExtension(language, languageConfig)
 
   const loader = linterLoaders[fileExt]
   if (!loader) return null
@@ -79,7 +80,7 @@ async function loadLinterExtension(language: string): Promise<Extension | null> 
 /**
  * 加载语言相关扩展
  */
-export const useLanguageExtensions = (language: string, lint?: boolean) => {
+export const useLanguageExtensions = (language: string, lint?: boolean, languageConfig?: LanguageConfig) => {
   const [extensions, setExtensions] = useState<Extension[]>([])
 
   useEffect(() => {
@@ -89,8 +90,8 @@ export const useLanguageExtensions = (language: string, lint?: boolean) => {
       try {
         // 加载所有扩展
         const [languageResult, linterResult] = await Promise.allSettled([
-          loadLanguageExtension(language),
-          lint ? loadLinterExtension(language) : Promise.resolve(null)
+          loadLanguageExtension(language, languageConfig),
+          lint ? loadLinterExtension(language, languageConfig) : Promise.resolve(null)
         ])
 
         if (cancelled) return
@@ -121,7 +122,7 @@ export const useLanguageExtensions = (language: string, lint?: boolean) => {
     return () => {
       cancelled = true
     }
-  }, [language, lint])
+  }, [language, lint, languageConfig])
 
   return extensions
 }

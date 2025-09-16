@@ -48,9 +48,9 @@ When submitting PRs, please place components in the correct directory based on t
 ## Migration Overview
 
 - **Total Components**: 236
-- **Migrated**: 43
+- **Migrated**: 46
 - **Refactored**: 0
-- **Pending Migration**: 193
+- **Pending Migration**: 190
 
 ## Component Status Table
 
@@ -61,6 +61,7 @@ When submitting PRs, please place components in the correct directory based on t
 | | CustomTag | ✅ | ❌ | Custom tag |
 | | DividerWithText | ✅ | ❌ | Divider with text |
 | | EmojiIcon | ✅ | ❌ | Emoji icon |
+| | ErrorBoundary | ✅ | ❌ | Error boundary (decoupled via props) |
 | | ErrorTag | ✅ | ❌ | Error tag |
 | | IndicatorLight | ✅ | ❌ | Indicator light |
 | | Spinner | ✅ | ❌ | Loading spinner |
@@ -75,6 +76,7 @@ When submitting PRs, please place components in the correct directory based on t
 | | EmojiAvatar | ✅ | ❌ | Emoji avatar |
 | | ListItem | ✅ | ❌ | List item |
 | | MaxContextCount | ✅ | ❌ | Max context count display |
+| | ProviderAvatar | ✅ | ❌ | Provider avatar |
 | | CodeViewer | ❌ | ❌ | Code viewer (external deps) |
 | | OGCard | ❌ | ❌ | OG card |
 | | MarkdownShadowDOMRenderer | ❌ | ❌ | Markdown renderer |
@@ -111,6 +113,7 @@ When submitting PRs, please place components in the correct directory based on t
 | | CollapsibleSearchBar | ✅ | ❌ | Collapsible search bar |
 | | ImageToolButton | ✅ | ❌ | Image tool button |
 | | DraggableList | ✅ | ❌ | Draggable list |
+| | CodeEditor | ✅ | ❌ | Code editor |
 | | EmojiPicker | ❌ | ❌ | Emoji picker (useTheme dependency) |
 | | Selector | ✅ | ❌ | Selector (i18n dependency) |
 | | ModelSelector | ❌ | ❌ | Model selector (Redux dependency) |
@@ -121,7 +124,6 @@ When submitting PRs, please place components in the correct directory based on t
 | **Uncategorized** | | | | Components needing categorization |
 | | Popups/* (16+ files) | ❌ | ❌ | Popup components (business coupled) |
 | | RichEditor/* (30+ files) | ❌ | ❌ | Rich text editor |
-| | CodeEditor/* | ❌ | ❌ | Code editor |
 | | MarkdownEditor/* | ❌ | ❌ | Markdown editor |
 | | MinApp/* | ❌ | ❌ | Mini app (Redux dependency) |
 | | Avatar/* | ❌ | ❌ | Avatar components |
