@@ -270,7 +270,7 @@ const createBaseMarkdown = async (
   normalizeCitations: boolean = true
 ): Promise<{ titleSection: string; reasoningSection: string; contentSection: string; citation: string }> => {
   const forceDollarMathInMarkdown = await preferenceService.get('data.export.markdown.force_dollar_math')
-  const roleText = getRoleText(message.role, message.model?.name, message.model?.provider)
+  const roleText = await getRoleText(message.role, message.model?.name, message.model?.provider)
   const titleSection = `## ${roleText}`
   let reasoningSection = ''
 
