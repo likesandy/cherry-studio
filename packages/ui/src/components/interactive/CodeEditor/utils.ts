@@ -1,8 +1,8 @@
-import { languages } from '@shared/config/languages'
 import * as cmThemes from '@uiw/codemirror-themes-all'
 import { Extension } from '@uiw/react-codemirror'
 import diff from 'fast-diff'
 
+import { getExtensionByLanguage } from '../../../utils/codeLanguage'
 import { CodeMirrorTheme } from './types'
 
 /**
@@ -82,42 +82,6 @@ export async function getNormalizedExtension(language: string) {
 
   // Fallback to language name
   return lang
-}
-
-/**
- * Get the file extension of the language, by language name
- * - First, exact match
- * - Then, case-insensitive match
- * - Finally, match aliases
- * If there are multiple file extensions, only the first one will be returned
- * @param language language name
- * @returns file extension
- */
-export function getExtensionByLanguage(language: string): string {
-  const lowerLanguage = language.toLowerCase()
-
-  // Exact match language name
-  const directMatch = languages[language]
-  if (directMatch?.extensions?.[0]) {
-    return directMatch.extensions[0]
-  }
-
-  // Case-insensitive match language name
-  for (const [langName, data] of Object.entries(languages)) {
-    if (langName.toLowerCase() === lowerLanguage && data.extensions?.[0]) {
-      return data.extensions[0]
-    }
-  }
-
-  // Match aliases
-  for (const [, data] of Object.entries(languages)) {
-    if (data.aliases?.some((alias) => alias.toLowerCase() === lowerLanguage)) {
-      return data.extensions?.[0] || `.${language}`
-    }
-  }
-
-  // Fallback to language name
-  return `.${language}`
 }
 
 /**
