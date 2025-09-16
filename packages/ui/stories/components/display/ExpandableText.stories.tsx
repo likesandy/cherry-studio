@@ -39,9 +39,11 @@ const meta: Meta<typeof ExpandableText> = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-const longText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
+const longText =
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
 
-const chineseText = '这是一段很长的中文文本内容，用于测试文本展开和收起功能。当文本内容超过指定的行数限制时，会显示省略号，用户可以点击展开按钮查看完整内容，也可以点击收起按钮将文本重新收起。这个组件在显示长文本内容时非常有用。'
+const chineseText =
+  '这是一段很长的中文文本内容，用于测试文本展开和收起功能。当文本内容超过指定的行数限制时，会显示省略号，用户可以点击展开按钮查看完整内容，也可以点击收起按钮将文本重新收起。这个组件在显示长文本内容时非常有用。'
 
 // 基础用法
 export const Default: Story = {

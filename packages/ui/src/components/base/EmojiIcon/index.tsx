@@ -17,15 +17,13 @@ const EmojiIcon: FC<EmojiIconProps> = ({ emoji, className = '', size = 26, fontS
         height: `${size}px`,
         borderRadius: `${size / 2}px`,
         fontSize: `${fontSize}px`
-      }}
-    >
+      }}>
       <div
         className="absolute inset-0 flex items-center justify-center blur-sm opacity-40"
         style={{
           fontSize: '200%',
           transform: 'scale(1.5)'
-        }}
-      >
+        }}>
         {emoji || '⭐️'}
       </div>
       {emoji}

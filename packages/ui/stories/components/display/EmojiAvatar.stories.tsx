@@ -60,10 +60,32 @@ export const Sizes: Story = {
 export const VariousEmojis: Story = {
   render: (args) => (
     <div className="grid grid-cols-6 gap-4">
-      {['😀', '😎', '🥳', '🤔', '😴', '🤯',
-        '❤️', '🔥', '✨', '🎉', '🎯', '🚀',
-        '🌟', '🌈', '☀️', '🌸', '🍕', '🎨',
-        '📚', '💡', '🔧', '🎮', '🎵', '🏆'].map((emoji) => (
+      {[
+        '😀',
+        '😎',
+        '🥳',
+        '🤔',
+        '😴',
+        '🤯',
+        '❤️',
+        '🔥',
+        '✨',
+        '🎉',
+        '🎯',
+        '🚀',
+        '🌟',
+        '🌈',
+        '☀️',
+        '🌸',
+        '🍕',
+        '🎨',
+        '📚',
+        '💡',
+        '🔧',
+        '🎮',
+        '🎵',
+        '🏆'
+      ].map((emoji) => (
         <EmojiAvatar key={emoji} {...args} children={emoji} size={40} />
       ))}
     </div>
@@ -103,30 +125,10 @@ export const Interactive: Story = {
 export const CustomStyles: Story = {
   render: (args) => (
     <div className="flex items-center gap-4">
-      <EmojiAvatar
-        {...args}
-        children="🎨"
-        size={50}
-        style={{ backgroundColor: '#ffe4e1' }}
-      />
-      <EmojiAvatar
-        {...args}
-        children="🌊"
-        size={50}
-        style={{ backgroundColor: '#e0f2ff' }}
-      />
-      <EmojiAvatar
-        {...args}
-        children="🌿"
-        size={50}
-        style={{ backgroundColor: '#e8f5e9' }}
-      />
-      <EmojiAvatar
-        {...args}
-        children="☀️"
-        size={50}
-        style={{ backgroundColor: '#fff8e1' }}
-      />
+      <EmojiAvatar {...args} children="🎨" size={50} style={{ backgroundColor: '#ffe4e1' }} />
+      <EmojiAvatar {...args} children="🌊" size={50} style={{ backgroundColor: '#e0f2ff' }} />
+      <EmojiAvatar {...args} children="🌿" size={50} style={{ backgroundColor: '#e8f5e9' }} />
+      <EmojiAvatar {...args} children="☀️" size={50} style={{ backgroundColor: '#fff8e1' }} />
     </div>
   )
 }
@@ -156,9 +158,32 @@ export const Grid: Story = {
     <div className="w-96">
       <h3 className="mb-4 text-lg font-semibold">选择你的心情</h3>
       <div className="grid grid-cols-8 gap-2">
-        {['😊', '😂', '😍', '🤔', '😎', '😴', '😭', '😡',
-          '🤗', '😏', '😅', '😌', '🙄', '😮', '😐', '😯',
-          '😪', '😫', '🥱', '😤', '😢', '😥', '😰', '🤯'].map((emoji) => (
+        {[
+          '😊',
+          '😂',
+          '😍',
+          '🤔',
+          '😎',
+          '😴',
+          '😭',
+          '😡',
+          '🤗',
+          '😏',
+          '😅',
+          '😌',
+          '🙄',
+          '😮',
+          '😐',
+          '😯',
+          '😪',
+          '😫',
+          '🥱',
+          '😤',
+          '😢',
+          '😥',
+          '😰',
+          '🤯'
+        ].map((emoji) => (
           <EmojiAvatar
             key={emoji}
             {...args}

@@ -53,9 +53,7 @@ export const ProviderAvatar: React.FC<ProviderAvatarProps> = ({
         <div
           className={`flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 ${className || ''}`}
           style={getCustomStyle()}>
-          <div className="w-4/5 h-4/5 flex items-center justify-center">
-            {customLogo}
-          </div>
+          <div className="w-4/5 h-4/5 flex items-center justify-center">{customLogo}</div>
         </div>
       )
     }

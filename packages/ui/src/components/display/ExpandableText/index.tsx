@@ -21,38 +21,29 @@ const ExpandableText = ({
   lineClamp = 1,
   ref
 }: ExpandableTextProps) => {
-    const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
 
-    const toggleExpand = useCallback(() => {
-      setIsExpanded((prev) => !prev)
-    }, [])
+  const toggleExpand = useCallback(() => {
+    setIsExpanded((prev) => !prev)
+  }, [])
 
-    return (
+  return (
+    <div
+      ref={ref}
+      className={`flex ${isExpanded ? 'flex-col' : 'flex-row items-center'} gap-2 ${className}`}
+      style={style}>
       <div
-        ref={ref}
-        className={`flex ${isExpanded ? 'flex-col' : 'flex-row items-center'} gap-2 ${className}`}
-        style={style}>
-        <div
-          className={`overflow-hidden ${
-            isExpanded
-              ? ''
-              : lineClamp === 1
-              ? 'text-ellipsis whitespace-nowrap'
-              : `line-clamp-${lineClamp}`
-          } ${isExpanded ? '' : 'flex-1'}`}>
-          {text}
-        </div>
-        <Button
-          size="sm"
-          variant="light"
-          color="primary"
-          onClick={toggleExpand}
-          className="min-w-fit px-2">
-          {isExpanded ? collapseText : expandText}
-        </Button>
+        className={`overflow-hidden ${
+          isExpanded ? '' : lineClamp === 1 ? 'text-ellipsis whitespace-nowrap' : `line-clamp-${lineClamp}`
+        } ${isExpanded ? '' : 'flex-1'}`}>
+        {text}
       </div>
-    )
-  }
+      <Button size="sm" variant="light" color="primary" onClick={toggleExpand} className="min-w-fit px-2">
+        {isExpanded ? collapseText : expandText}
+      </Button>
+    </div>
+  )
+}
 
 ExpandableText.displayName = 'ExpandableText'
 
