@@ -14051,6 +14051,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@typescript-eslint/visitor-keys@npm:8.43.0":
+  version: 8.43.0
+  resolution: "@typescript-eslint/visitor-keys@npm:8.43.0"
+  dependencies:
+    "@typescript-eslint/types": "npm:8.43.0"
+    eslint-visitor-keys: "npm:^4.2.1"
+  checksum: 10c0/5d576eaf7bea41933ba726f4b24410bd3fc2521ef286967c3dc630c6a90fabff2a2d7c4d12cb841d3f946d2e5e6fb2605e7edd84e3360308fe379dbf2b8dc2fa
+  languageName: node
+  linkType: hard
+
 "@typescript/native-preview-darwin-arm64@npm:7.0.0-dev.20250915.1":
   version: 7.0.0-dev.20250915.1
   resolution: "@typescript/native-preview-darwin-arm64@npm:7.0.0-dev.20250915.1"
@@ -14129,16 +14139,6 @@ __metadata:
   bin:
     tsgo: bin/tsgo.js
   checksum: 10c0/88c8c4d497e610b05ef3a429959364fff7f0fc2b77f191909c15f886b21b06ceabdd9f89d9e5f903ee87076cfeca4d61ee609d2df897326ed115e23e01650fec
-  languageName: node
-  linkType: hard
-
-"@typescript-eslint/visitor-keys@npm:8.43.0":
-  version: 8.43.0
-  resolution: "@typescript-eslint/visitor-keys@npm:8.43.0"
-  dependencies:
-    "@typescript-eslint/types": "npm:8.43.0"
-    eslint-visitor-keys: "npm:^4.2.1"
-  checksum: 10c0/5d576eaf7bea41933ba726f4b24410bd3fc2521ef286967c3dc630c6a90fabff2a2d7c4d12cb841d3f946d2e5e6fb2605e7edd84e3360308fe379dbf2b8dc2fa
   languageName: node
   linkType: hard
 

@@ -122,7 +122,7 @@ function DraggableVirtualList<T>({
       resizeItem: (index, size) => virtualizer.resizeItem(index, size),
       getTotalSize: () => virtualizer.getTotalSize(),
       getVirtualItems: () => virtualizer.getVirtualItems(),
-      getVirtualIndexes: () => virtualizer.getVirtualIndexes()
+      getVirtualIndexes: () => virtualizer.getVirtualItems().map((item) => item.index)
     }),
     [virtualizer]
   )
