@@ -37,7 +37,7 @@ export function useAppInit() {
   const [proxyMode] = usePreference('app.proxy.mode')
   const [enableDataCollection] = usePreference('app.privacy.data_collection.enabled')
 
-  const { isTopNavbar } = useNavbarPosition()
+  const { isLeftNavbar } = useNavbarPosition()
   const { minappShow } = useMinapps()
   const { updateAppUpdateState } = useAppUpdateState()
   const { setDefaultModel, setQuickModel, setTranslateModel } = useDefaultModel()
@@ -102,16 +102,15 @@ export function useAppInit() {
   }, [language])
 
   useEffect(() => {
-    const transparentWindow = windowStyle === 'transparent' && isMac && !minappShow
+    const isMacTransparentWindow = windowStyle === 'transparent' && isMac
 
-    if (minappShow && isTopNavbar) {
-      window.root.style.background =
-        windowStyle === 'transparent' && isMac ? 'var(--color-background)' : 'var(--navbar-background)'
+    if (minappShow && isLeftNavbar) {
+      window.root.style.background = isMacTransparentWindow ? 'var(--color-background)' : 'var(--navbar-background)'
       return
     }
 
-    window.root.style.background = transparentWindow ? 'var(--navbar-background-mac)' : 'var(--navbar-background)'
-  }, [windowStyle, minappShow, theme, isTopNavbar])
+    window.root.style.background = isMacTransparentWindow ? 'var(--navbar-background-mac)' : 'var(--navbar-background)'
+  }, [windowStyle, minappShow, theme, isLeftNavbar])
 
   useEffect(() => {
     if (isLocalAi) {
