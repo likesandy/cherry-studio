@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons'
-import { Sortable, useDndReorder } from '@renderer/components/dnd'
+import { Sortable, useDndReorder } from '@cherrystudio/ui'
 import HorizontalScrollContainer from '@renderer/components/HorizontalScrollContainer'
 import { isMac } from '@renderer/config/constant'
 import { DEFAULT_MIN_APPS } from '@renderer/config/minapps'
