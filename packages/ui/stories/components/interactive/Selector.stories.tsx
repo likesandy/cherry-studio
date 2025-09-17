@@ -148,27 +148,15 @@ export const Sizes: Story = {
       <div className="space-y-4">
         <div>
           <label className="block text-sm mb-2">小尺寸 (sm)</label>
-          <Selector
-            size="sm"
-            placeholder="选择一个选项"
-            items={items}
-          />
+          <Selector size="sm" placeholder="选择一个选项" items={items} />
         </div>
         <div>
           <label className="block text-sm mb-2">中等尺寸 (md)</label>
-          <Selector
-            size="md"
-            placeholder="选择一个选项"
-            items={items}
-          />
+          <Selector size="md" placeholder="选择一个选项" items={items} />
         </div>
         <div>
           <label className="block text-sm mb-2">大尺寸 (lg)</label>
-          <Selector
-            size="lg"
-            placeholder="选择一个选项"
-            items={items}
-          />
+          <Selector size="lg" placeholder="选择一个选项" items={items} />
         </div>
       </div>
     )
@@ -211,7 +199,7 @@ export const LanguageSelector: Story = {
           items={languages}
         />
         <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded">
-          当前语言: <strong>{languages.find(l => l.value === Array.from(selectedKeys)[0])?.label}</strong>
+          当前语言: <strong>{languages.find((l) => l.value === Array.from(selectedKeys)[0])?.label}</strong>
         </div>
       </div>
     )
