@@ -1,14 +1,15 @@
 import { CloseCircleFilled, QuestionCircleOutlined } from '@ant-design/icons'
+import { RowFlex } from '@cherrystudio/ui'
+import { Flex } from '@cherrystudio/ui'
 import EmojiPicker from '@renderer/components/EmojiPicker'
 import { ResetIcon } from '@renderer/components/Icons'
-import { HStack } from '@renderer/components/Layout'
 import { TopView } from '@renderer/components/TopView'
 import { DEFAULT_CONTEXTCOUNT, DEFAULT_MAX_TOKENS, DEFAULT_TEMPERATURE } from '@renderer/config/constant'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useDefaultAssistant } from '@renderer/hooks/useAssistant'
 import type { AssistantSettings as AssistantSettingsType } from '@renderer/types'
 import { getLeadingEmoji, modalConfirm } from '@renderer/utils'
-import { Button, Col, Flex, Input, InputNumber, Modal, Popover, Row, Slider, Switch, Tooltip } from 'antd'
+import { Button, Col, Input, InputNumber, Modal, Popover, Row, Slider, Switch, Tooltip } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import type { Dispatch, FC, SetStateAction } from 'react'
 import { useState } from 'react'
@@ -110,7 +111,7 @@ const AssistantSettings: FC = () => {
       style={{ height: 'auto', background: 'transparent', padding: `0 0 12px 0`, gap: 12 }}
       theme={theme}>
       <SettingSubtitle style={{ marginTop: 0 }}>{t('common.name')}</SettingSubtitle>
-      <HStack gap={8} alignItems="center">
+      <RowFlex className="items-center gap-2">
         <Popover content={<EmojiPicker onEmojiClick={handleEmojiSelect} />} arrow trigger="click">
           <EmojiButtonWrapper>
             <Button style={{ fontSize: 20, padding: '4px', minWidth: '30px', height: '30px' }}>{emoji}</Button>
@@ -140,7 +141,7 @@ const AssistantSettings: FC = () => {
           onChange={handleNameChange}
           style={{ flex: 1 }}
         />
-      </HStack>
+      </RowFlex>
       <SettingSubtitle style={{ marginTop: 0 }}>{t('common.prompt')}</SettingSubtitle>
       <TextArea
         rows={4}
@@ -162,12 +163,12 @@ const AssistantSettings: FC = () => {
         </Tooltip>
       </SettingSubtitle>
       <SettingRow>
-        <HStack alignItems="center">
+        <RowFlex className="items-center">
           <Label>{t('chat.settings.temperature.label')}</Label>
           <Tooltip title={t('chat.settings.temperature.tip')}>
             <QuestionIcon />
           </Tooltip>
-        </HStack>
+        </RowFlex>
         <Switch
           style={{ marginLeft: 10 }}
           checked={enableTemperature}
@@ -203,12 +204,12 @@ const AssistantSettings: FC = () => {
         </Row>
       )}
       <SettingRow>
-        <HStack alignItems="center">
+        <RowFlex className="items-center">
           <Label>{t('chat.settings.top_p.label')}</Label>
           <Tooltip title={t('chat.settings.top_p.tip')}>
             <QuestionIcon />
           </Tooltip>
-        </HStack>
+        </RowFlex>
         <Switch
           style={{ marginLeft: 10 }}
           checked={enableTopP}
@@ -265,13 +266,13 @@ const AssistantSettings: FC = () => {
           />
         </Col>
       </Row>
-      <Flex justify="space-between" align="center">
-        <HStack alignItems="center">
+      <Flex className="items-center justify-between">
+        <RowFlex className="items-center">
           <Label>{t('chat.settings.max_tokens.label')}</Label>
           <Tooltip title={t('chat.settings.max_tokens.tip')}>
             <QuestionIcon />
           </Tooltip>
-        </HStack>
+        </RowFlex>
         <Switch
           style={{ marginLeft: 10 }}
           checked={enableMaxTokens}

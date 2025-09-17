@@ -22,6 +22,7 @@ export { ProviderAvatar } from './display/ProviderAvatar'
 export { default as ThinkingEffect } from './display/ThinkingEffect'
 
 // Layout Components
+export { Box, Center, ColFlex, Flex, RowFlex, SpaceBetweenRowFlex } from './layout/Flex'
 export { default as HorizontalScrollContainer } from './layout/HorizontalScrollContainer'
 export { default as Scrollbar } from './layout/Scrollbar'
 

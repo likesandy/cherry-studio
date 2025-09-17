@@ -1,6 +1,7 @@
+import { RowFlex } from '@cherrystudio/ui'
+import { Flex } from '@cherrystudio/ui'
 import OpenAIAlert from '@renderer/components/Alert/OpenAIAlert'
 import { LoadingIcon } from '@renderer/components/Icons'
-import { HStack } from '@renderer/components/Layout'
 import { ApiKeyListPopup } from '@renderer/components/Popups/ApiKeyListPopup'
 import { isEmbeddingModel, isRerankModel } from '@renderer/config/models'
 import { PROVIDER_URLS } from '@renderer/config/providers'
@@ -19,7 +20,7 @@ import type { ApiKeyConnectivity } from '@renderer/types/healthCheck'
 import { HealthStatus } from '@renderer/types/healthCheck'
 import { formatApiHost, formatApiKeys, getFancyProviderName, isOpenAIProvider } from '@renderer/utils'
 import { formatErrorMessage } from '@renderer/utils/error'
-import { Button, Divider, Flex, Input, Select, Space, Switch, Tooltip } from 'antd'
+import { Button, Divider, Input, Select, Space, Switch, Tooltip } from 'antd'
 import Link from 'antd/es/typography/Link'
 import { debounce, isEmpty } from 'lodash'
 import { Bolt, Check, Settings2, SquareArrowOutUpRight, TriangleAlert } from 'lucide-react'
@@ -242,7 +243,7 @@ const ProviderSetting: FC<Props> = ({ providerId }) => {
   return (
     <SettingContainer theme={theme} style={{ background: 'var(--color-background)' }}>
       <SettingTitle>
-        <Flex align="center" gap={8}>
+        <Flex className="items-center gap-2">
           <ProviderName>{fancyProviderName}</ProviderName>
           {officialWebsite && (
             <Link target="_blank" href={providerConfig.websites.official} style={{ display: 'flex' }}>
@@ -331,13 +332,13 @@ const ProviderSetting: FC<Props> = ({ providerId }) => {
             </Button>
           </Space.Compact>
           <SettingHelpTextRow style={{ justifyContent: 'space-between' }}>
-            <HStack>
+            <RowFlex>
               {apiKeyWebsite && !isDmxapi && (
                 <SettingHelpLink target="_blank" href={apiKeyWebsite}>
                   {t('settings.provider.get_api_key')}
                 </SettingHelpLink>
               )}
-            </HStack>
+            </RowFlex>
             <SettingHelpText>{t('settings.provider.api_key.tip')}</SettingHelpText>
           </SettingHelpTextRow>
           {!isDmxapi && !isAnthropicOAuth() && (

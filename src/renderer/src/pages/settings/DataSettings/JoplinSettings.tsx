@@ -1,6 +1,6 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
+import { RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
-import { HStack } from '@renderer/components/Layout'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { Button, Space, Switch, Tooltip } from 'antd'
@@ -80,16 +80,16 @@ const JoplinSettings: FC = () => {
       <SettingDivider />
       <SettingRow>
         <SettingRowTitle>{t('settings.data.joplin.url')}</SettingRowTitle>
-        <HStack alignItems="center" gap="5px" style={{ width: 315 }}>
+        <RowFlex className="w-[315px] items-center gap-[5px]">
           <Input
             type="text"
             value={joplinUrl || ''}
             onChange={handleJoplinUrlChange}
             onBlur={handleJoplinUrlBlur}
-            style={{ width: 315 }}
+            className="w-[315px]"
             placeholder={t('settings.data.joplin.url_placeholder')}
           />
-        </HStack>
+        </RowFlex>
       </SettingRow>
       <SettingDivider />
       <SettingRow>
@@ -102,7 +102,7 @@ const JoplinSettings: FC = () => {
             />
           </Tooltip>
         </SettingRowTitle>
-        <HStack alignItems="center" gap="5px" style={{ width: 315 }}>
+        <RowFlex className="w-[315px] items-center gap-[5px]">
           <Space.Compact style={{ width: '100%' }}>
             <Input.Password
               value={joplinToken || ''}
@@ -113,7 +113,7 @@ const JoplinSettings: FC = () => {
             />
             <Button onClick={handleJoplinConnectionCheck}>{t('settings.data.joplin.check.button')}</Button>
           </Space.Compact>
-        </HStack>
+        </RowFlex>
       </SettingRow>
       <SettingDivider />
       <SettingRow>

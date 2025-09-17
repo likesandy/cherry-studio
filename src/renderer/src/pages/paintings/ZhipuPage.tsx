@@ -1,8 +1,8 @@
 import { PlusOutlined } from '@ant-design/icons'
+import { RowFlex } from '@cherrystudio/ui'
 import { useCache } from '@data/hooks/useCache'
 import AiProvider from '@renderer/aiCore'
 import { Navbar, NavbarCenter, NavbarRight } from '@renderer/components/app/Navbar'
-import { HStack } from '@renderer/components/Layout'
 import Scrollbar from '@renderer/components/Scrollbar'
 import { isMac } from '@renderer/config/constant'
 import { getProviderLogo } from '@renderer/config/providers'
@@ -421,7 +421,7 @@ const ZhipuPage: FC<{ Options: string[] }> = ({ Options }) => {
           {/* 自定义尺寸输入框 */}
           {isCustomSize && (
             <div style={{ marginTop: 10 }}>
-              <HStack style={{ gap: 8, alignItems: 'center' }}>
+              <RowFlex className="items-center gap-2">
                 <InputNumber
                   placeholder="W"
                   value={customWidth}
@@ -442,7 +442,7 @@ const ZhipuPage: FC<{ Options: string[] }> = ({ Options }) => {
                   style={{ width: 80, flex: 1 }}
                 />
                 <span style={{ color: 'var(--color-text-2)', fontSize: '12px' }}>px</span>
-              </HStack>
+              </RowFlex>
               <div style={{ marginTop: 5, fontSize: '12px', color: 'var(--color-text-3)' }}>
                 长宽均需满足512px-2048px之间, 需被16整除, 并保证最大像素数不超过2^21px
               </div>

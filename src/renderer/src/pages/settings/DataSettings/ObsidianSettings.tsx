@@ -1,6 +1,6 @@
+import { RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
-import { HStack } from '@renderer/components/Layout'
 import { Empty, Select, Spin } from 'antd'
 import type { FC } from 'react'
 import { useEffect, useState } from 'react'
@@ -62,7 +62,7 @@ const ObsidianSettings: FC = () => {
       <SettingDivider />
       <SettingRow>
         <SettingRowTitle>{t('settings.data.obsidian.default_vault')}</SettingRowTitle>
-        <HStack gap="5px">
+        <RowFlex className="gap-[5px]">
           <Spin spinning={loading} size="small">
             {vaults.length > 0 ? (
               <Select
@@ -87,7 +87,7 @@ const ObsidianSettings: FC = () => {
               />
             )}
           </Spin>
-        </HStack>
+        </RowFlex>
       </SettingRow>
     </SettingGroup>
   )

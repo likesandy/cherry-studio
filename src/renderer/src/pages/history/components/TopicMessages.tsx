@@ -1,6 +1,6 @@
 import { MessageOutlined } from '@ant-design/icons'
+import { RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
-import { HStack } from '@renderer/components/Layout'
 import SearchPopup from '@renderer/components/Popups/SearchPopup'
 import { MessageEditingProvider } from '@renderer/context/MessageEditingContext'
 import { modelGenerating } from '@renderer/hooks/useModel'
@@ -75,11 +75,11 @@ const TopicMessages: FC<Props> = ({ topic: _topic, ...props }) => {
           ))}
           {isEmpty && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
           {!isEmpty && (
-            <HStack justifyContent="center">
+            <RowFlex className="justify-center">
               <Button onClick={() => onContinueChat(topic)} icon={<MessageOutlined />}>
                 {t('history.continue_chat')}
               </Button>
-            </HStack>
+            </RowFlex>
           )}
         </ContainerWrapper>
       </MessagesContainer>

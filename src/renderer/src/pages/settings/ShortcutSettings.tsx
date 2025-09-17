@@ -1,5 +1,5 @@
 import { ClearOutlined, UndoOutlined } from '@ant-design/icons'
-import { HStack } from '@renderer/components/Layout'
+import { RowFlex } from '@cherrystudio/ui'
 import { isMac, isWin } from '@renderer/config/constant'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useShortcuts } from '@renderer/hooks/useShortcuts'
@@ -334,8 +334,8 @@ const ShortcutSettings: FC = () => {
         const isEditable = shortcutConfig?.editable !== false
 
         return (
-          <HStack style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
-            <HStack alignItems="center" style={{ position: 'relative' }}>
+          <RowFlex className="items-center justify-end gap-2">
+            <RowFlex className="relative items-center">
               {isEditing ? (
                 <ShortcutInput
                   ref={(el) => {
@@ -358,8 +358,8 @@ const ShortcutSettings: FC = () => {
                   {shortcut.length > 0 ? formatShortcut(shortcut) : t('settings.shortcuts.press_shortcut')}
                 </ShortcutText>
               )}
-            </HStack>
-          </HStack>
+            </RowFlex>
+          </RowFlex>
         )
       }
     },
@@ -369,7 +369,7 @@ const ShortcutSettings: FC = () => {
       align: 'right',
       width: '70px',
       render: (record: Shortcut) => (
-        <HStack style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+        <RowFlex className="items-center justify-end gap-2">
           <Tooltip title={t('settings.shortcuts.reset_to_default')}>
             <Button
               icon={<UndoOutlined />}
@@ -388,7 +388,7 @@ const ShortcutSettings: FC = () => {
               disabled={record.shortcut.length === 0 || !record.editable}
             />
           </Tooltip>
-        </HStack>
+        </RowFlex>
       )
     },
     {
@@ -415,9 +415,9 @@ const ShortcutSettings: FC = () => {
           showHeader={false}
         />
         <SettingDivider style={{ marginBottom: 0 }} />
-        <HStack justifyContent="flex-end" padding="16px 0">
+        <RowFlex className="justify-end p-4">
           <Button onClick={handleResetAllShortcuts}>{t('settings.shortcuts.reset_defaults')}</Button>
-        </HStack>
+        </RowFlex>
       </SettingGroup>
     </SettingContainer>
   )

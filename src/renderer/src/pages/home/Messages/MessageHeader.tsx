@@ -1,6 +1,6 @@
+import { RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import EmojiAvatar from '@renderer/components/Avatar/EmojiAvatar'
-import { HStack } from '@renderer/components/Layout'
 import UserPopup from '@renderer/components/Popups/UserPopup'
 import { APP_NAME, AppLogo, isLocalAi } from '@renderer/config/env'
 import { getModelLogo } from '@renderer/config/models'
@@ -113,7 +113,7 @@ const MessageHeader: FC<Props> = memo(({ assistant, model, message, topic, isGro
         </>
       )}
       <UserWrap>
-        <HStack alignItems="center">
+        <RowFlex className="items-center">
           <UserName isBubbleStyle={isBubbleStyle} theme={theme}>
             {username}
           </UserName>
@@ -122,7 +122,7 @@ const MessageHeader: FC<Props> = memo(({ assistant, model, message, topic, isGro
               <Sparkle fill="var(--color-primary)" strokeWidth={0} size={18} />
             </Tooltip>
           )}
-        </HStack>
+        </RowFlex>
         <InfoWrap className="message-header-info-wrap">
           <MessageTime>{dayjs(message?.updatedAt ?? message.createdAt).format('MM/DD HH:mm')}</MessageTime>
         </InfoWrap>

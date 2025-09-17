@@ -1,7 +1,7 @@
 import { GithubOutlined } from '@ant-design/icons'
+import { RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import IndicatorLight from '@renderer/components/IndicatorLight'
-import { HStack } from '@renderer/components/Layout'
 import { APP_NAME, AppLogo } from '@renderer/config/env'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useAppUpdateState } from '@renderer/hooks/useAppUpdate'
@@ -186,11 +186,11 @@ const AboutSettings: FC = () => {
       <SettingGroup theme={theme}>
         <SettingTitle>
           {t('settings.about.title')}
-          <HStack alignItems="center">
+          <RowFlex className="items-center">
             <Link to="https://github.com/CherryHQ/cherry-studio">
               <GithubOutlined style={{ marginRight: 4, color: 'var(--color-text)', fontSize: 20 }} />
             </Link>
-          </HStack>
+          </RowFlex>
         </SettingTitle>
         <SettingDivider />
         <AboutHeader>

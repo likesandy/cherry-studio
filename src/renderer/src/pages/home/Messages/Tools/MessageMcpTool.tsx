@@ -1,3 +1,4 @@
+import { Flex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import { CopyIcon, LoadingIcon } from '@renderer/components/Icons'
@@ -14,7 +15,6 @@ import {
   Collapse,
   ConfigProvider,
   Dropdown,
-  Flex,
   message as antdMessage,
   Modal,
   Progress,
@@ -269,7 +269,7 @@ const MessageMcpTool: FC<Props> = ({ block }) => {
       label: (
         <MessageTitleLabel>
           <TitleContent>
-            <ToolName align="center" gap={4}>
+            <ToolName className="items-center gap-1">
               {tool.serverName} : {tool.name}
               {isToolAutoApproved(tool) && (
                 <Tooltip title={t('message.tools.autoApproveEnabled')} mouseLeaveDelay={0}>

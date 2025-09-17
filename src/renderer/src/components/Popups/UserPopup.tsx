@@ -1,3 +1,4 @@
+import { Center, ColFlex, RowFlex } from '@cherrystudio/ui'
 import { cacheService } from '@data/CacheService'
 import { usePreference } from '@data/hooks/usePreference'
 import DefaultAvatar from '@renderer/assets/images/avatar.png'
@@ -11,7 +12,6 @@ import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
 import EmojiPicker from '../EmojiPicker'
-import { Center, HStack, VStack } from '../Layout'
 import { TopView } from '../TopView'
 
 interface Props {
@@ -128,8 +128,8 @@ const PopupContainer: React.FC<Props> = ({ resolve }) => {
       afterClose={onClose}
       transitionName="animation-move-down"
       centered>
-      <Center mt="30px">
-        <VStack alignItems="center" gap="10px">
+      <Center className="mt-[30px]">
+        <ColFlex className="items-center gap-2.5">
           <Dropdown
             menu={{ items }}
             trigger={['click']}
@@ -162,9 +162,9 @@ const PopupContainer: React.FC<Props> = ({ resolve }) => {
               )}
             </Popover>
           </Dropdown>
-        </VStack>
+        </ColFlex>
       </Center>
-      <HStack alignItems="center" gap="10px" p="20px">
+      <RowFlex className="items-center gap-2.5 p-5">
         <Input
           placeholder={t('settings.general.user_name.placeholder')}
           value={userName}
@@ -172,7 +172,7 @@ const PopupContainer: React.FC<Props> = ({ resolve }) => {
           style={{ flex: 1, textAlign: 'center', width: '100%' }}
           maxLength={30}
         />
-      </HStack>
+      </RowFlex>
     </Modal>
   )
 }

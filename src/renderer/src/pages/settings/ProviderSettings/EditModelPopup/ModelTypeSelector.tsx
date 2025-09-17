@@ -1,6 +1,7 @@
+import { Flex } from '@cherrystudio/ui'
 import type { ModelCapability, ModelType } from '@renderer/types'
 import { getDifference, uniqueObjectArray } from '@renderer/utils'
-import { Button, Checkbox, Flex } from 'antd'
+import { Button, Checkbox } from 'antd'
 import type { FC } from 'react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -133,7 +134,7 @@ const ModelTypeSelector: FC<ModelTypeSelectorProps> = ({
 
   return (
     <div>
-      <Flex justify="space-between" align="center" style={{ marginBottom: 8 }}>
+      <Flex className="mb-2 items-center justify-between">
         <Checkbox.Group
           value={selectedTypes}
           onChange={handleTypeChange}

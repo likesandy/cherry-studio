@@ -1,4 +1,5 @@
 import { PlusOutlined, RedoOutlined } from '@ant-design/icons'
+import { ColFlex, RowFlex } from '@cherrystudio/ui'
 import { useCache } from '@data/hooks/useCache'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
@@ -10,7 +11,6 @@ import ImageSize3_4 from '@renderer/assets/images/paintings/image-size-3-4.svg'
 import ImageSize9_16 from '@renderer/assets/images/paintings/image-size-9-16.svg'
 import ImageSize16_9 from '@renderer/assets/images/paintings/image-size-16-9.svg'
 import { Navbar, NavbarCenter, NavbarRight } from '@renderer/components/app/Navbar'
-import { HStack, VStack } from '@renderer/components/Layout'
 import Scrollbar from '@renderer/components/Scrollbar'
 import TranslateButton from '@renderer/components/TranslateButton'
 import { isMac } from '@renderer/config/constant'
@@ -389,10 +389,10 @@ const SiliconPage: FC<{ Options: string[] }> = ({ Options }) => {
             style={{ display: 'flex' }}>
             {IMAGE_SIZES.map((size) => (
               <RadioButton value={size.value} key={size.value}>
-                <VStack alignItems="center">
+                <ColFlex className="items-center">
                   <ImageSizeImage src={size.icon} theme={theme} />
                   <span>{size.label}</span>
-                </VStack>
+                </ColFlex>
               </RadioButton>
             ))}
           </Radio.Group>
@@ -483,12 +483,12 @@ const SiliconPage: FC<{ Options: string[] }> = ({ Options }) => {
               <InfoIcon />
             </Tooltip>
           </SettingTitle>
-          <HStack>
+          <RowFlex>
             <Switch
               checked={painting.promptEnhancement}
               onChange={(checked) => updatePaintingState({ promptEnhancement: checked })}
             />
-          </HStack>
+          </RowFlex>
         </LeftContainer>
         <MainContainer>
           <Artboard

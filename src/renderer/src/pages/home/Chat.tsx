@@ -1,8 +1,8 @@
+import { ColFlex, RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import type { ContentSearchRef } from '@renderer/components/ContentSearch'
 import { ContentSearch } from '@renderer/components/ContentSearch'
-import { HStack } from '@renderer/components/Layout'
 import MultiSelectActionPopup from '@renderer/components/Popups/MultiSelectionPopup'
 import PromptPopup from '@renderer/components/Popups/PromptPopup'
 import { QuickPanelProvider } from '@renderer/components/QuickPanel'
@@ -15,7 +15,6 @@ import { useTimer } from '@renderer/hooks/useTimer'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
 import type { Assistant, Topic } from '@renderer/types'
 import { classNames } from '@renderer/utils'
-import { Flex } from 'antd'
 import { debounce } from 'lodash'
 import { AnimatePresence, motion } from 'motion/react'
 import type { FC } from 'react'
@@ -152,13 +151,11 @@ const Chat: FC<Props> = (props) => {
           position="left"
         />
       )}
-      <HStack>
+      <RowFlex>
         <Main
           ref={mainRef}
           id="chat-main"
-          vertical
-          flex={1}
-          justify="space-between"
+          className="flex-1 justify-between"
           style={{ maxWidth: chatMaxWidth, height: mainHeight }}>
           <QuickPanelProvider>
             <Messages
@@ -199,7 +196,7 @@ const Chat: FC<Props> = (props) => {
             </motion.div>
           )}
         </AnimatePresence>
-      </HStack>
+      </RowFlex>
     </Container>
   )
 }
@@ -230,7 +227,7 @@ const Container = styled.div`
   }
 `
 
-const Main = styled(Flex)`
+const Main = styled(ColFlex)`
   [navbar-position='left'] & {
     height: calc(100vh - var(--navbar-height));
   }

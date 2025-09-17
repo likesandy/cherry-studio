@@ -1,8 +1,9 @@
+import { Flex } from '@cherrystudio/ui'
 import { CustomCollapse } from '@cherrystudio/ui'
 import { DynamicVirtualList, type DynamicVirtualListRef } from '@renderer/components/VirtualList'
 import type { Model } from '@renderer/types'
 import type { ModelWithStatus } from '@renderer/types/healthCheck'
-import { Button, Flex, Tooltip } from 'antd'
+import { Button, Tooltip } from 'antd'
 import { Minus } from 'lucide-react'
 import React, { memo, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -76,7 +77,7 @@ const ModelListGroup: React.FC<ModelListGroupProps> = ({
             trigger: 'p-[3px_calc(6px_+_var(--scrollbar-width))_3px_16px]'
           },
           title: (
-            <Flex align="center" gap={10}>
+            <Flex className="items-center gap-[10px]">
               <span style={{ fontWeight: 'bold' }}>{groupName}</span>
             </Flex>
           )

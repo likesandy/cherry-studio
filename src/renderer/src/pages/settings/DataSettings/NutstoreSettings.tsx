@@ -1,6 +1,6 @@
 import { CheckOutlined, FolderOutlined, LoadingOutlined, SyncOutlined, WarningOutlined } from '@ant-design/icons'
+import { RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
-import { HStack } from '@renderer/components/Layout'
 import NutstorePathPopup from '@renderer/components/Popups/NutsorePathPopup'
 import Selector from '@renderer/components/Selector'
 import { WebdavBackupManager } from '@renderer/components/WebdavBackupManager'
@@ -173,7 +173,7 @@ const NutstoreSettings: FC = () => {
     }
 
     return (
-      <HStack gap="5px" alignItems="center">
+      <RowFlex className="items-center gap-[5px]">
         {nutstoreSyncState.syncing && <SyncOutlined spin />}
         {!nutstoreSyncState.syncing && nutstoreSyncState.lastSyncError && (
           <Tooltip title={`${t('settings.data.webdav.syncError')}: ${nutstoreSyncState.lastSyncError}`}>
@@ -185,7 +185,7 @@ const NutstoreSettings: FC = () => {
             {t('settings.data.webdav.lastSync')}: {dayjs(nutstoreSyncState.lastSyncTime).format('HH:mm:ss')}
           </span>
         )}
-      </HStack>
+      </RowFlex>
     )
   }
 
@@ -208,7 +208,7 @@ const NutstoreSettings: FC = () => {
           {isLogin ? t('settings.data.nutstore.isLogin') : t('settings.data.nutstore.notLogin')}
         </SettingRowTitle>
         {isLogin ? (
-          <HStack gap="5px" justifyContent="space-between" alignItems="center">
+          <RowFlex className="items-center justify-between gap-[5px]">
             <Button
               type={nsConnected ? 'primary' : 'default'}
               ghost={nsConnected}
@@ -225,7 +225,7 @@ const NutstoreSettings: FC = () => {
             <Button type="primary" danger onClick={handleLayout}>
               {t('settings.data.nutstore.logout.button')}
             </Button>
-          </HStack>
+          </RowFlex>
         ) : (
           <Button onClick={handleClickNutstoreSSO}>{t('settings.data.nutstore.login.button')}</Button>
         )}
@@ -241,7 +241,7 @@ const NutstoreSettings: FC = () => {
           <SettingDivider />
           <SettingRow>
             <SettingRowTitle>{t('settings.data.nutstore.path.label')}</SettingRowTitle>
-            <HStack gap="4px" justifyContent="space-between">
+            <RowFlex className="justify-between gap-1">
               <Input
                 placeholder={t('settings.data.nutstore.path.placeholder')}
                 style={{ width: 250 }}
@@ -253,19 +253,19 @@ const NutstoreSettings: FC = () => {
               <Button type="default" onClick={handleClickPathChange}>
                 <FolderOutlined />
               </Button>
-            </HStack>
+            </RowFlex>
           </SettingRow>
           <SettingDivider />
           <SettingRow>
             <SettingRowTitle>{t('settings.general.backup.title')}</SettingRowTitle>
-            <HStack gap="5px" justifyContent="space-between">
+            <RowFlex className="justify-between gap-[5px]">
               <Button onClick={showBackupModal} loading={backuping}>
                 {t('settings.data.nutstore.backup.button')}
               </Button>
               <Button onClick={showBackupManager} disabled={!nutstoreToken}>
                 {t('settings.data.nutstore.restore.button')}
               </Button>
-            </HStack>
+            </RowFlex>
           </SettingRow>
           <SettingDivider />
           <SettingRow>

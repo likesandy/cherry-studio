@@ -1,4 +1,5 @@
 import { PlusOutlined, SendOutlined, SwapOutlined } from '@ant-design/icons'
+import { Flex } from '@cherrystudio/ui'
 import { loggerService } from '@logger'
 import { Navbar, NavbarCenter } from '@renderer/components/app/Navbar'
 import { CopyIcon } from '@renderer/components/Icons'
@@ -40,7 +41,7 @@ import {
   determineTargetLanguage
 } from '@renderer/utils/translate'
 import { imageExts, MB, textExts } from '@shared/config/constant'
-import { Button, Flex, FloatButton, Popover, Tooltip, Typography } from 'antd'
+import { Button, FloatButton, Popover, Tooltip, Typography } from 'antd'
 import type { TextAreaRef } from 'antd/es/input/TextArea'
 import TextArea from 'antd/es/input/TextArea'
 import { isEmpty, throttle } from 'lodash'
@@ -443,7 +444,7 @@ const TranslatePage: FC = () => {
     try {
       if (isBidirectional) {
         return (
-          <Flex align="center" style={{ minWidth: 160 }}>
+          <Flex className="min-w-40 items-center">
             <BidirectionalLanguageDisplay>
               {`${bidirectionalPair[0].label()} ⇆ ${bidirectionalPair[1].label()}`}
             </BidirectionalLanguageDisplay>

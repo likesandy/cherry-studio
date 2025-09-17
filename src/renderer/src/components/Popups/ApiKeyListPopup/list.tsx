@@ -1,3 +1,4 @@
+import { Flex } from '@cherrystudio/ui'
 import { DeleteIcon } from '@renderer/components/Icons'
 import { StreamlineGoodHealthAndWellBeing } from '@renderer/components/Icons/SVGIcon'
 import Scrollbar from '@renderer/components/Scrollbar'
@@ -9,7 +10,7 @@ import { isProviderSupportAuth } from '@renderer/services/ProviderService'
 import type { PreprocessProviderId, WebSearchProviderId } from '@renderer/types'
 import type { ApiKeyWithStatus } from '@renderer/types/healthCheck'
 import { HealthStatus } from '@renderer/types/healthCheck'
-import { Button, Card, Flex, List, Popconfirm, Space, Tooltip, Typography } from 'antd'
+import { Button, Card, List, Popconfirm, Space, Tooltip, Typography } from 'antd'
 import { Plus } from 'lucide-react'
 import type { FC } from 'react'
 import { useState } from 'react'
@@ -126,7 +127,7 @@ export const ApiKeyList: FC<ApiKeyListProps> = ({ provider, updateProvider, show
         )}
       </Card>
 
-      <Flex dir="row" align="center" justify="space-between" style={{ marginTop: 15 }}>
+      <Flex className="mt-[15px] flex-row items-center justify-between">
         {/* 帮助文本 */}
         <SettingHelpText>{t('settings.provider.api_key.tip')}</SettingHelpText>
 

@@ -111,6 +111,26 @@ export default defineConfig([
     }
   },
   {
+    // Component Rules - prevent importing antd components when migration completed
+    files: ['src/**/*.{ts,tsx,js,jsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'antd',
+              // TODO: migrate message again
+              importNames: ['Flex'],
+              message:
+                '❌ Do not import Flex from antd. Use our custom Layout components instead: import { Flex } from "@cherrystudio/ui"'
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
     ignores: [
       'node_modules/**',
       'build/**',

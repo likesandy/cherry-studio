@@ -1,7 +1,7 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
+import { RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
-import { HStack } from '@renderer/components/Layout'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { Button, Space, Tooltip } from 'antd'
@@ -86,15 +86,14 @@ const SiyuanSettings: FC = () => {
       <SettingDivider />
       <SettingRow>
         <SettingRowTitle>{t('settings.data.siyuan.api_url')}</SettingRowTitle>
-        <HStack alignItems="center" gap="5px" style={{ width: 315 }}>
+        <RowFlex className="w-[315px] items-center gap-[5px]">
           <Input
             type="text"
             value={siyuanApiUrl || ''}
             onChange={handleApiUrlChange}
-            style={{ width: 315 }}
             placeholder={t('settings.data.siyuan.api_url_placeholder')}
           />
-        </HStack>
+        </RowFlex>
       </SettingRow>
       <SettingDivider />
       <SettingRow>
@@ -107,7 +106,7 @@ const SiyuanSettings: FC = () => {
             />
           </Tooltip>
         </SettingRowTitle>
-        <HStack alignItems="center" gap="5px" style={{ width: 315 }}>
+        <RowFlex className="w-[315px] items-center gap-[5px]">
           <Space.Compact style={{ width: '100%' }}>
             <Input.Password
               value={siyuanToken || ''}
@@ -118,33 +117,31 @@ const SiyuanSettings: FC = () => {
             />
             <Button onClick={handleCheckConnection}>{t('settings.data.siyuan.check.button')}</Button>
           </Space.Compact>
-        </HStack>
+        </RowFlex>
       </SettingRow>
       <SettingDivider />
       <SettingRow>
         <SettingRowTitle>{t('settings.data.siyuan.box_id')}</SettingRowTitle>
-        <HStack alignItems="center" gap="5px" style={{ width: 315 }}>
+        <RowFlex className="w-[315px] items-center gap-[5px]">
           <Input
             type="text"
             value={siyuanBoxId || ''}
             onChange={handleBoxIdChange}
-            style={{ width: 315 }}
             placeholder={t('settings.data.siyuan.box_id_placeholder')}
           />
-        </HStack>
+        </RowFlex>
       </SettingRow>
       <SettingDivider />
       <SettingRow>
         <SettingRowTitle>{t('settings.data.siyuan.root_path')}</SettingRowTitle>
-        <HStack alignItems="center" gap="5px" style={{ width: 315 }}>
+        <RowFlex className="w-[315px] items-center gap-[5px]">
           <Input
             type="text"
             value={siyuanRootPath || ''}
             onChange={handleRootPathChange}
-            style={{ width: 315 }}
             placeholder={t('settings.data.siyuan.root_path_placeholder')}
           />
-        </HStack>
+        </RowFlex>
       </SettingRow>
     </SettingGroup>
   )

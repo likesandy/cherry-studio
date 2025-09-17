@@ -1,7 +1,7 @@
 import { DeleteOutlined, FolderOpenOutlined, SaveOutlined, SyncOutlined, WarningOutlined } from '@ant-design/icons'
+import { RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
-import { HStack } from '@renderer/components/Layout'
 import { LocalBackupManager } from '@renderer/components/LocalBackupManager'
 import { LocalBackupModal, useLocalBackupModal } from '@renderer/components/LocalBackupModals'
 import Selector from '@renderer/components/Selector'
@@ -151,7 +151,7 @@ const LocalBackupSettings: React.FC = () => {
     }
 
     return (
-      <HStack gap="5px" alignItems="center">
+      <RowFlex className="items-center gap-[5px]">
         {localBackupSync.syncing && <SyncOutlined spin />}
         {!localBackupSync.syncing && localBackupSync.lastSyncError && (
           <Tooltip title={`${t('settings.data.local.syncError')}: ${localBackupSync.lastSyncError}`}>
@@ -163,7 +163,7 @@ const LocalBackupSettings: React.FC = () => {
             {t('settings.data.local.lastSync')}: {dayjs(localBackupSync.lastSyncTime).format('HH:mm:ss')}
           </span>
         )}
-      </HStack>
+      </RowFlex>
     )
   }
 
@@ -184,7 +184,7 @@ const LocalBackupSettings: React.FC = () => {
       <SettingDivider />
       <SettingRow>
         <SettingRowTitle>{t('settings.data.local.directory.label')}</SettingRowTitle>
-        <HStack gap="5px">
+        <RowFlex className="gap-[5px]">
           <Input
             value={localBackupDir}
             onChange={(e) => setLocalBackupDir(e.target.value)}
@@ -198,19 +198,19 @@ const LocalBackupSettings: React.FC = () => {
           <Button icon={<DeleteOutlined />} onClick={handleClearDirectory} disabled={!localBackupDir} danger>
             {t('common.clear')}
           </Button>
-        </HStack>
+        </RowFlex>
       </SettingRow>
       <SettingDivider />
       <SettingRow>
         <SettingRowTitle>{t('settings.general.backup.title')}</SettingRowTitle>
-        <HStack gap="5px" justifyContent="space-between">
+        <RowFlex className="justify-between gap-[5px]">
           <Button onClick={showBackupModal} icon={<SaveOutlined />} loading={backuping} disabled={!localBackupDir}>
             {t('settings.data.local.backup.button')}
           </Button>
           <Button onClick={showBackupManager} icon={<FolderOpenOutlined />} disabled={!localBackupDir}>
             {t('settings.data.local.restore.button')}
           </Button>
-        </HStack>
+        </RowFlex>
       </SettingRow>
       <SettingDivider />
       <SettingRow>

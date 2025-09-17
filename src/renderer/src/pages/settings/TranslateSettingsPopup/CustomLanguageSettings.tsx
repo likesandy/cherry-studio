@@ -1,6 +1,6 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
+import { RowFlex } from '@cherrystudio/ui'
 import { loggerService } from '@logger'
-import { HStack } from '@renderer/components/Layout'
 import { deleteCustomLanguage, getAllCustomLanguages } from '@renderer/services/TranslateService'
 import type { CustomTranslateLanguage } from '@renderer/types'
 import type { TableProps } from 'antd'
@@ -119,7 +119,7 @@ const CustomLanguageSettings = () => {
   return (
     <>
       <CustomLanguageSettingsContainer>
-        <HStack justifyContent="space-between" style={{ padding: '4px 0' }}>
+        <RowFlex className="justify-between py-1">
           <SettingRowTitle>{t('translate.custom.label')}</SettingRowTitle>
           <Button
             type="primary"
@@ -128,7 +128,7 @@ const CustomLanguageSettings = () => {
             style={{ marginBottom: 5, marginTop: -5 }}>
             {t('common.add')}
           </Button>
-        </HStack>
+        </RowFlex>
         <TableContainer>
           <Table<CustomTranslateLanguage>
             columns={columns}
