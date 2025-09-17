@@ -19,7 +19,7 @@ export const ProviderAvatar: React.FC<ProviderAvatarProps> = ({
   providerName,
   logoSrc,
   size = 'md',
-  className,
+  className = '',
   style,
   renderCustomLogo
 }) => {
@@ -51,7 +51,7 @@ export const ProviderAvatar: React.FC<ProviderAvatarProps> = ({
     if (customLogo) {
       return (
         <div
-          className={`flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 ${className || ''}`}
+          className={`flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 ${className}`}
           style={getCustomStyle()}>
           <div className="w-4/5 h-4/5 flex items-center justify-center">{customLogo}</div>
         </div>
@@ -65,7 +65,7 @@ export const ProviderAvatar: React.FC<ProviderAvatarProps> = ({
       <Avatar
         src={logoSrc}
         size={getAvatarSize()}
-        className={`border border-gray-200 dark:border-gray-700 ${className || ''}`}
+        className={`border border-gray-200 dark:border-gray-700 ${className}`}
         style={getCustomStyle()}
         imgProps={{ draggable: false }}
       />
@@ -80,7 +80,7 @@ export const ProviderAvatar: React.FC<ProviderAvatarProps> = ({
     <Avatar
       name={getFirstCharacter(providerName)}
       size={getAvatarSize()}
-      className={`border border-gray-200 dark:border-gray-700 ${className || ''}`}
+      className={`border border-gray-200 dark:border-gray-700 ${className}`}
       style={{
         backgroundColor,
         color,

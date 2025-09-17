@@ -42,7 +42,6 @@ export {
   WebSearchIcon,
   WrapIcon
 } from './icons/Icon'
-export { default as ReasoningIcon } from './icons/ReasoningIcon'
 export { default as SvgSpinners180Ring } from './icons/SvgSpinners180Ring'
 export { default as ToolsCallingIcon } from './icons/ToolsCallingIcon'
 

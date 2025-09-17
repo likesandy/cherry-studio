@@ -25,7 +25,22 @@ const meta: Meta<typeof IconShowcase> = {
   parameters: {
     layout: 'centered'
   },
-  tags: ['autodocs']
+  tags: ['autodocs'],
+  argTypes: {
+    size: {
+      description: '图标大小 (支持数字或字符串)',
+      control: { type: 'text' },
+      defaultValue: '1rem'
+    },
+    color: {
+      description: '图标颜色',
+      control: { type: 'color' }
+    },
+    className: {
+      description: '自定义 CSS 类名',
+      control: { type: 'text' }
+    }
+  }
 }
 
 export default meta
@@ -36,7 +51,7 @@ export const PredefinedIcons: Story = {
   render: () => (
     <div className="space-y-6">
       <div>
-        <h3 className="mb-3 font-semibold">Predefined Icons (Default Size: 1rem)</h3>
+        <h3 className="mb-3 font-semibold">预定义图标 (默认尺寸: 1rem)</h3>
         <div className="grid grid-cols-6 gap-4">
           <div className="flex flex-col items-center gap-2">
             <CopyIcon />
@@ -138,7 +153,7 @@ export const CustomIconCreation: Story = {
     return (
       <div className="space-y-6">
         <div>
-          <h3 className="mb-3 font-semibold">Custom Icons Created with Factory</h3>
+          <h3 className="mb-3 font-semibold">使用工厂函数创建的自定义图标</h3>
           <div className="flex items-center gap-6">
             <div className="flex flex-col items-center gap-2">
               <SettingsIcon />
@@ -160,7 +175,7 @@ export const CustomIconCreation: Story = {
         </div>
 
         <div>
-          <h3 className="mb-3 font-semibold">Override Default Size</h3>
+          <h3 className="mb-3 font-semibold">覆盖默认尺寸</h3>
           <div className="flex items-center gap-4">
             <SettingsIcon size={32} />
             <DownloadIcon size={32} />

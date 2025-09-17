@@ -1,4 +1,4 @@
-import CustomCollapse from '@renderer/components/CustomCollapse'
+import { CustomCollapse } from '@cherrystudio/ui'
 import { DynamicVirtualList, type DynamicVirtualListRef } from '@renderer/components/VirtualList'
 import type { Model } from '@renderer/types'
 import type { ModelWithStatus } from '@renderer/types/healthCheck'
@@ -47,6 +47,7 @@ const ModelListGroup: React.FC<ModelListGroupProps> = ({
   return (
     <CustomCollapseWrapper>
       <CustomCollapse
+        variant="shadow"
         defaultActiveKey={defaultOpen ? ['1'] : []}
         onChange={handleCollapseChange}
         label={
@@ -69,9 +70,7 @@ const ModelListGroup: React.FC<ModelListGroupProps> = ({
           </Tooltip>
         }
         styles={{
-          header: {
-            padding: '3px calc(6px + var(--scrollbar-width)) 3px 16px'
-          }
+          trigger: 'p-[3px_calc(6px_+_var(--scrollbar-width))_3px_16px]'
         }}>
         <DynamicVirtualList
           ref={listRef}
@@ -115,7 +114,8 @@ const CustomCollapseWrapper = styled.div`
   /* 移除 collapse 的 padding，转而在 scroller 内部调整 */
   .ant-collapse-content-box {
     padding: 0 !important;
-  }
+  }import { classNames } from '../../../../utils/style';
+
 `
 
 export default memo(ModelListGroup)

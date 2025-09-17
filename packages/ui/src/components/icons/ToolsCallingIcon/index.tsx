@@ -1,33 +1,26 @@
 // Original: src/renderer/src/components/Icons/ToolsCallingIcon.tsx
-import { ToolOutlined } from '@ant-design/icons'
-import { Tooltip } from 'antd'
-import type { FC } from 'react'
+import { Tooltip } from '@heroui/react'
+import { Wrench } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import styled from 'styled-components'
 
-const ToolsCallingIcon: FC<React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>> = (props) => {
+import { cn } from '../../../utils'
+
+interface ToolsCallingIconProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string
+  iconClassName?: string
+}
+
+const ToolsCallingIcon = ({ className, iconClassName, ...props }: ToolsCallingIconProps) => {
   const { t } = useTranslation()
 
   return (
-    <Container>
-      <Tooltip title={t('models.function_calling')} placement="top">
-        <Icon {...(props as any)} />
+    <div className={cn('flex justify-center items-center', className)} {...props}>
+      <Tooltip content={t('models.function_calling')} placement="top">
+        <Wrench className={cn('w-4 h-4 mr-1.5 text-[#00b96b]', iconClassName)} />
       </Tooltip>
-    </Container>
+    </div>
   )
 }
-
-const Container = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`
-
-const Icon = styled(ToolOutlined)`
-  color: var(--color-primary);
-  font-size: 15px;
-  margin-right: 6px;
-`
 
 export default ToolsCallingIcon

@@ -2653,6 +2653,7 @@ __metadata:
   dependencies:
     "@heroui/react": "npm:^2.8.4"
     "@storybook/addon-docs": "npm:^9.1.6"
+    "@storybook/addon-themes": "npm:^9.1.6"
     "@storybook/react-vite": "npm:^9.1.6"
     "@types/react": "npm:^19.0.12"
     "@types/react-dom": "npm:^19.0.4"
@@ -11839,6 +11840,17 @@ __metadata:
   peerDependencies:
     storybook: ^9.1.6
   checksum: 10c0/705d1ae124365d8bb7c1bfe77769255329b1cf105b6b94ba828b63841b466c3ca32bce0ef98a0c2309790b5d03083a8db917b68683ba8f8dd7d463c17bbc4a6c
+  languageName: node
+  linkType: hard
+
+"@storybook/addon-themes@npm:^9.1.6":
+  version: 9.1.6
+  resolution: "@storybook/addon-themes@npm:9.1.6"
+  dependencies:
+    ts-dedent: "npm:^2.0.0"
+  peerDependencies:
+    storybook: ^9.1.6
+  checksum: 10c0/3d5e17e19af70aee021537fcbf8782558de9abd85d96d813f66a510e217a58d1312af3e7aaf926f0f33eabf93d3ef2133581dd7e1f5fc28a2c5693ae7f33b5aa
   languageName: node
   linkType: hard
 
