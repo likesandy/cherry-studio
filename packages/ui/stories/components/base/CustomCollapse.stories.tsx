@@ -13,55 +13,17 @@ const meta: Meta<typeof CustomCollapse> = {
   },
   tags: ['autodocs'],
   argTypes: {
-    label: {
-      control: 'text',
-      description: '面板标题'
-    },
-    extra: {
-      control: false,
-      description: '额外内容（副标题）'
-    },
     children: {
       control: false,
       description: '面板内容'
     },
-    defaultActiveKey: {
+    accordionProps: {
       control: false,
-      description: '默认激活的面板键值'
+      description: 'Accordion 组件的属性'
     },
-    activeKey: {
+    accordionItemProps: {
       control: false,
-      description: '当前激活的面板键值（受控模式）'
-    },
-    onChange: {
-      control: false,
-      description: '面板状态变化回调'
-    },
-    collapsible: {
-      control: 'select',
-      options: ['header', 'icon', 'disabled'],
-      description: '折叠触发方式'
-    },
-    className: {
-      control: 'text',
-      description: '额外的 CSS 类名'
-    },
-    variant: {
-      control: 'select',
-      options: ['light', 'shadow', 'bordered', 'splitted'],
-      description: 'HeroUI 样式变体'
-    },
-    destroyInactivePanel: {
-      control: 'boolean',
-      description: '是否销毁非激活面板'
-    },
-    style: {
-      control: false,
-      description: '自定义样式'
-    },
-    styles: {
-      control: false,
-      description: '自定义头部和内容样式'
+      description: 'AccordionItem 组件的属性'
     }
   }
 }
@@ -72,7 +34,9 @@ type Story = StoryObj<typeof meta>
 // 基础用法
 export const Default: Story = {
   args: {
-    label: '默认折叠面板',
+    accordionItemProps: {
+      title: '默认折叠面板'
+    },
     children: (
       <div className="p-4">
         <p>这是折叠面板的内容。</p>
@@ -85,13 +49,17 @@ export const Default: Story = {
 // 带副标题
 export const WithSubtitle: Story = {
   args: {
-    label: '带副标题的折叠面板',
-    extra: <span className="text-sm text-gray-500">这是副标题内容</span>,
-    defaultActiveKey: ['1'],
+    accordionProps: {
+      defaultExpandedKeys: ['1']
+    },
+    accordionItemProps: {
+      title: '带副标题的折叠面板',
+      subtitle: <span className="text-sm text-gray-500">这是副标题内容</span>
+    },
     children: (
       <div className="p-4">
         <p>面板内容</p>
-        <p>可以在 extra 属性中设置副标题</p>
+        <p>可以在 subtitle 属性中设置副标题</p>
       </div>
     )
   }
@@ -100,8 +68,12 @@ export const WithSubtitle: Story = {
 // HeroUI 样式变体
 export const VariantLight: Story = {
   args: {
-    label: 'Light 变体',
-    variant: 'light',
+    accordionProps: {
+      variant: 'light'
+    },
+    accordionItemProps: {
+      title: 'Light 变体'
+    },
     children: (
       <div className="p-4">
         <p>这是 HeroUI 的 Light 变体样式。</p>
@@ -112,10 +84,14 @@ export const VariantLight: Story = {
 
 export const VariantShadow: Story = {
   args: {
-    label: 'Shadow 变体',
-    extra: '带阴影的面板样式',
-    variant: 'shadow',
-    className: 'p-2',
+    accordionProps: {
+      variant: 'shadow',
+      className: 'p-2'
+    },
+    accordionItemProps: {
+      title: 'Shadow 变体',
+      subtitle: '带阴影的面板样式'
+    },
     children: (
       <div className="p-4">
         <p>这是 HeroUI 的 Shadow 变体样式。</p>
@@ -126,8 +102,12 @@ export const VariantShadow: Story = {
 
 export const VariantBordered: Story = {
   args: {
-    label: 'Bordered 变体（默认）',
-    variant: 'bordered',
+    accordionProps: {
+      variant: 'bordered'
+    },
+    accordionItemProps: {
+      title: 'Bordered 变体（默认）'
+    },
     children: (
       <div className="p-4">
         <p>这是 HeroUI 的 Bordered 变体样式。</p>
@@ -138,8 +118,12 @@ export const VariantBordered: Story = {
 
 export const VariantSplitted: Story = {
   args: {
-    label: 'Splitted 变体',
-    variant: 'splitted',
+    accordionProps: {
+      variant: 'splitted'
+    },
+    accordionItemProps: {
+      title: 'Splitted 变体'
+    },
     children: (
       <div className="p-4">
         <p>这是 HeroUI 的 Splitted 变体样式。</p>
@@ -151,12 +135,14 @@ export const VariantSplitted: Story = {
 // 富内容标题
 export const RichLabel: Story = {
   args: {
-    label: (
-      <div className="flex items-center gap-2">
-        <Settings className="text-default-500" size={20} />
-        <span>设置面板</span>
-      </div>
-    ),
+    accordionItemProps: {
+      title: (
+        <div className="flex items-center gap-2">
+          <Settings className="text-default-500" size={20} />
+          <span>设置面板</span>
+        </div>
+      )
+    },
     children: (
       <div className="p-4">
         <div className="space-y-3">
@@ -181,17 +167,19 @@ export const RichLabel: Story = {
 // 带警告提示
 export const WithWarning: Story = {
   args: {
-    label: (
-      <div className="flex items-center gap-2">
-        <Monitor className="text-primary" size={20} />
-        <span>连接的设备</span>
-      </div>
-    ),
-    extra: (
-      <p className="flex">
-        2个问题需要<span className="text-primary ml-1">立即修复</span>
-      </p>
-    ),
+    accordionItemProps: {
+      title: (
+        <div className="flex items-center gap-2">
+          <Monitor className="text-primary" size={20} />
+          <span>连接的设备</span>
+        </div>
+      ),
+      subtitle: (
+        <p className="flex">
+          2个问题需要<span className="text-primary ml-1">立即修复</span>
+        </p>
+      )
+    },
     children: (
       <div className="p-4">
         <p className="text-small">检测到以下设备连接异常：</p>
@@ -207,9 +195,13 @@ export const WithWarning: Story = {
 // 禁用状态
 export const Disabled: Story = {
   args: {
-    label: '禁用的折叠面板',
-    collapsible: 'disabled',
-    defaultActiveKey: ['1'],
+    accordionProps: {
+      isDisabled: true,
+      defaultExpandedKeys: ['1']
+    },
+    accordionItemProps: {
+      title: '禁用的折叠面板'
+    },
     children: (
       <div className="p-4">
         <p>这个面板被禁用了，无法操作。</p>
@@ -221,28 +213,36 @@ export const Disabled: Story = {
 // 受控模式
 export const ControlledMode: Story = {
   render: function ControlledMode() {
-    const [activeKey, setActiveKey] = useState<string[]>(['1'])
+    const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set(['1']))
 
     return (
       <div className="space-y-4">
         <div className="flex gap-2">
-          <Button size="sm" onPress={() => setActiveKey(['1'])} color="primary">
+          <Button size="sm" onPress={() => setSelectedKeys(new Set(['1']))} color="primary">
             展开
           </Button>
-          <Button size="sm" onPress={() => setActiveKey([])} color="default">
+          <Button size="sm" onPress={() => setSelectedKeys(new Set())} color="default">
             收起
           </Button>
         </div>
         <CustomCollapse
-          label="受控的折叠面板"
-          activeKey={activeKey}
-          onChange={(keys) => setActiveKey(Array.isArray(keys) ? keys : [keys])}>
+          accordionProps={{
+            selectedKeys,
+            onSelectionChange: (keys) => {
+              if (keys !== 'all') {
+                setSelectedKeys(keys as Set<string>)
+              }
+            }
+          }}
+          accordionItemProps={{
+            title: '受控的折叠面板'
+          }}>
           <div className="p-4">
             <p>这是一个受控的折叠面板</p>
             <p>通过按钮控制展开和收起状态</p>
           </div>
         </CustomCollapse>
-        <div className="text-sm text-gray-600">当前状态：{activeKey.length > 0 ? '展开' : '收起'}</div>
+        <div className="text-sm text-gray-600">当前状态：{selectedKeys.size > 0 ? '展开' : '收起'}</div>
       </div>
     )
   }
@@ -252,17 +252,21 @@ export const ControlledMode: Story = {
 export const MultipleSinglePanels: Story = {
   render: () => (
     <div className="space-y-4">
-      <CustomCollapse label="第一个面板" defaultActiveKey={['1']}>
+      <CustomCollapse accordionProps={{ defaultExpandedKeys: ['1'] }} accordionItemProps={{ title: '第一个面板' }}>
         <div className="p-4">
           <p>第一个面板的内容</p>
         </div>
       </CustomCollapse>
-      <CustomCollapse label="第二个面板" extra="带副标题">
+      <CustomCollapse
+        accordionItemProps={{
+          title: '第二个面板',
+          subtitle: '带副标题'
+        }}>
         <div className="p-4">
           <p>第二个面板的内容</p>
         </div>
       </CustomCollapse>
-      <CustomCollapse label="第三个面板（禁用）" collapsible="disabled">
+      <CustomCollapse accordionProps={{ isDisabled: true }} accordionItemProps={{ title: '第三个面板（禁用）' }}>
         <div className="p-4">
           <p>这个面板被禁用了</p>
         </div>
@@ -330,22 +334,24 @@ export const NativeAccordionMultiple: Story = {
 // 富内容面板
 export const RichContent: Story = {
   args: {
-    label: (
-      <div className="flex items-center justify-between w-full">
-        <div className="flex items-center gap-2">
-          <Info className="text-default-500" size={20} />
-          <span>详细信息</span>
+    accordionItemProps: {
+      title: (
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-2">
+            <Info className="text-default-500" size={20} />
+            <span>详细信息</span>
+          </div>
+          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+            <Button size="sm" variant="flat" color="primary">
+              保存
+            </Button>
+            <Button size="sm" variant="flat">
+              取消
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-          <Button size="sm" variant="flat" color="primary">
-            保存
-          </Button>
-          <Button size="sm" variant="flat">
-            取消
-          </Button>
-        </div>
-      </div>
-    ),
+      )
+    },
     children: (
       <div className="p-4 space-y-4">
         <div>
@@ -371,11 +377,7 @@ export const RichContent: Story = {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">描述</label>
-          <textarea
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            rows={3}
-            placeholder="请输入描述"
-          />
+          <textarea className="w-full px-3 py-2 border border-gray-300 rounded-md" rows={3} placeholder="请输入描述" />
         </div>
       </div>
     )
@@ -385,15 +387,19 @@ export const RichContent: Story = {
 // 自定义样式
 export const CustomStyles: Story = {
   args: {
-    label: (
-      <div className="flex items-center gap-2">
-        <AlertTriangle className="text-warning" size={16} />
-        <span>警告面板</span>
-      </div>
-    ),
-    style: {
-      backgroundColor: 'rgba(255, 193, 7, 0.1)',
-      borderColor: 'var(--color-warning)'
+    accordionProps: {
+      style: {
+        backgroundColor: 'rgba(255, 193, 7, 0.1)',
+        borderColor: 'var(--color-warning)'
+      }
+    },
+    accordionItemProps: {
+      title: (
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="text-warning" size={16} />
+          <span>警告面板</span>
+        </div>
+      )
     },
     children: (
       <div className="p-4 bg-warning-50 dark:bg-warning-900/20">
@@ -425,7 +431,7 @@ export const NativeAccordionControlled: Story = {
           selectedKeys={activeKeys}
           onSelectionChange={(keys) => {
             if (keys !== 'all') {
-              setActiveKeys(keys)
+              setActiveKeys(keys as Set<string>)
             }
           }}>
           <AccordionItem key="1" title="受控面板 1">

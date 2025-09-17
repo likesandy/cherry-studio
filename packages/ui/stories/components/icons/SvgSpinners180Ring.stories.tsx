@@ -124,8 +124,7 @@ export const LoadingStatesInButtons: Story = {
           <button
             type="button"
             className="flex items-center gap-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-            disabled
-          >
+            disabled>
             <SvgSpinners180Ring size="16" />
             <span>加载中...</span>
           </button>
@@ -133,8 +132,7 @@ export const LoadingStatesInButtons: Story = {
           <button
             type="button"
             className="flex items-center gap-2 rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
-            disabled
-          >
+            disabled>
             <SvgSpinners180Ring size="16" />
             <span>保存中</span>
           </button>
@@ -142,8 +140,7 @@ export const LoadingStatesInButtons: Story = {
           <button
             type="button"
             className="flex items-center gap-2 rounded bg-orange-500 px-4 py-2 text-white hover:bg-orange-600"
-            disabled
-          >
+            disabled>
             <SvgSpinners180Ring size="16" />
             <span>上传中</span>
           </button>
@@ -151,8 +148,7 @@ export const LoadingStatesInButtons: Story = {
           <button
             type="button"
             className="flex items-center gap-2 rounded border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
-            disabled
-          >
+            disabled>
             <SvgSpinners180Ring size="16" className="text-gray-500" />
             <span>处理中</span>
           </button>
@@ -323,17 +319,14 @@ export const InteractiveLoadingDemo: Story = {
               onClick={() => {
                 // 演示用途 - 在实际应用中这里会触发真实的加载状态
                 alert(`触发 ${state.text} 加载状态`)
-              }}
-            >
+              }}>
               <SvgSpinners180Ring size="16" />
               <span>{state.text}中...</span>
             </button>
           ))}
         </div>
 
-        <p className="text-xs text-gray-500">
-          点击按钮查看加载状态的交互效果
-        </p>
+        <p className="text-xs text-gray-500">点击按钮查看加载状态的交互效果</p>
       </div>
     )
   }

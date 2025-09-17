@@ -1,88 +1,42 @@
-import { Accordion, AccordionItem } from '@heroui/react'
+import { Accordion, AccordionItem, type AccordionItemProps, type AccordionProps } from '@heroui/react'
 import type { FC } from 'react'
-import { memo, useEffect, useState } from 'react'
+import { memo } from 'react'
 
 // 重新导出 HeroUI 的组件，方便直接使用
 export { Accordion, AccordionItem } from '@heroui/react'
 
 interface CustomCollapseProps {
-  label: React.ReactNode
-  extra?: React.ReactNode
   children: React.ReactNode
-  destroyInactivePanel?: boolean
-  defaultActiveKey?: string[]
-  activeKey?: string[]
-  collapsible?: 'header' | 'icon' | 'disabled'
-  onChange?: (activeKeys: string | string[]) => void
-  style?: React.CSSProperties
-  classNames?: {
-    trigger?: string
-    content?: string
-  }
-  className?: string
-  variant?: 'light' | 'shadow' | 'bordered' | 'splitted'
+  accordionProps?: Omit<AccordionProps, 'children'>
+  accordionItemProps?: Omit<AccordionItemProps, 'children'>
 }
 
-const CustomCollapse: FC<CustomCollapseProps> = ({
-  label,
-  extra,
-  children,
-  defaultActiveKey = ['1'],
-  activeKey,
-  collapsible,
-  onChange,
-  style,
-  classNames,
-  className = '',
-  variant = 'bordered'
-}) => {
-  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => {
-    if (activeKey !== undefined) {
-      return new Set(activeKey)
-    }
-    return new Set(defaultActiveKey)
-  })
+const CustomCollapse: FC<CustomCollapseProps> = ({ children, accordionProps = {}, accordionItemProps = {} }) => {
+  // 解构 Accordion 的 props
+  const {
+    defaultExpandedKeys = ['1'],
+    variant = 'bordered',
+    className = '',
+    isDisabled = false,
+    ...restAccordionProps
+  } = accordionProps
 
-  useEffect(() => {
-    if (activeKey !== undefined) {
-      setExpandedKeys(new Set(activeKey))
-    }
-  }, [activeKey])
-
-  const handleSelectionChange = (keys: 'all' | Set<React.Key>) => {
-    if (keys === 'all') return
-
-    const stringKeys = Array.from(keys).map((key) => String(key))
-    const newExpandedKeys = new Set(stringKeys)
-
-    if (activeKey === undefined) {
-      setExpandedKeys(newExpandedKeys)
-    }
-
-    onChange?.(stringKeys.length === 1 ? stringKeys[0] : stringKeys)
-  }
-
-  const isDisabled = collapsible === 'disabled'
+  // 解构 AccordionItem 的 props
+  const { title = 'Collapse Panel', ...restAccordionItemProps } = accordionItemProps
 
   return (
     <Accordion
-      className={className}
-      style={style}
+      defaultExpandedKeys={defaultExpandedKeys}
       variant={variant}
-      defaultExpandedKeys={activeKey === undefined ? defaultActiveKey : undefined}
-      selectedKeys={activeKey !== undefined ? expandedKeys : undefined}
-      onSelectionChange={handleSelectionChange}
+      className={className}
       isDisabled={isDisabled}
-      selectionMode="multiple">
+      selectionMode="multiple"
+      {...restAccordionProps}>
       <AccordionItem
         key="1"
-        aria-label={typeof label === 'string' ? label : 'collapse-item'}
-        title={label}
-        startContent={extra}
-        classNames={{
-          trigger: classNames?.trigger ?? '',
-          content: classNames?.content ?? ''
-        }}>
+        aria-label={typeof title === 'string' ? title : 'collapse-item'}
+        title={title}
+        {...restAccordionItemProps}>
         {children}
       </AccordionItem>
     </Accordion>

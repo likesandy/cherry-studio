@@ -33,9 +33,7 @@ export const BasicToolsCallingIcon: Story = {
         <div className="flex items-center gap-4">
           <ToolsCallingIcon />
         </div>
-        <p className="mt-2 text-sm text-gray-600">
-          悬停图标查看工具提示，显示"函数调用"文本
-        </p>
+        <p className="mt-2 text-sm text-gray-600">悬停图标查看工具提示，显示"函数调用"文本</p>
       </div>
     </div>
   )
@@ -123,9 +121,7 @@ export const ModelFeaturesContext: Story = {
             <h4 className="font-medium">GPT-4 Turbo</h4>
             <ToolsCallingIcon />
           </div>
-          <p className="text-sm text-gray-600">
-            支持函数调用的先进模型，可以调用外部工具和API
-          </p>
+          <p className="text-sm text-gray-600">支持函数调用的先进模型，可以调用外部工具和API</p>
           <div className="mt-2 flex gap-2">
             <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">函数调用</span>
             <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">多模态</span>
@@ -137,9 +133,7 @@ export const ModelFeaturesContext: Story = {
             <h4 className="font-medium">Claude 3.5 Sonnet</h4>
             <ToolsCallingIcon />
           </div>
-          <p className="text-sm text-gray-600">
-            Anthropic的高性能模型，具备强大的工具使用能力
-          </p>
+          <p className="text-sm text-gray-600">Anthropic的高性能模型，具备强大的工具使用能力</p>
           <div className="mt-2 flex gap-2">
             <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">函数调用</span>
             <span className="rounded bg-orange-100 px-2 py-1 text-xs text-orange-800">推理</span>
@@ -151,9 +145,7 @@ export const ModelFeaturesContext: Story = {
             <h4 className="font-medium">Llama 3.1 8B</h4>
             {/* 不支持函数调用 */}
           </div>
-          <p className="text-sm text-gray-600">
-            Meta的开源模型，适用于基础对话任务
-          </p>
+          <p className="text-sm text-gray-600">Meta的开源模型，适用于基础对话任务</p>
           <div className="mt-2 flex gap-2">
             <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-800">文本生成</span>
           </div>
@@ -175,9 +167,7 @@ export const ChatMessageContext: Story = {
             <ToolsCallingIcon iconClassName="w-3.5 h-3.5 mr-1 text-[#00b96b]" />
             <span className="font-medium">调用工具: weather_api</span>
           </div>
-          <p className="text-sm text-blue-700">
-            正在获取北京的天气信息...
-          </p>
+          <p className="text-sm text-blue-700">正在获取北京的天气信息...</p>
         </div>
 
         <div className="rounded-lg bg-green-50 p-3">
@@ -185,9 +175,7 @@ export const ChatMessageContext: Story = {
             <ToolsCallingIcon iconClassName="w-3.5 h-3.5 mr-1 text-[#00b96b]" />
             <span className="font-medium">调用工具: search_web</span>
           </div>
-          <p className="text-sm text-green-700">
-            正在搜索最新的AI新闻...
-          </p>
+          <p className="text-sm text-green-700">正在搜索最新的AI新闻...</p>
         </div>
 
         <div className="rounded-lg bg-orange-50 p-3">
@@ -195,9 +183,7 @@ export const ChatMessageContext: Story = {
             <ToolsCallingIcon iconClassName="w-3.5 h-3.5 mr-1 text-[#00b96b]" />
             <span className="font-medium">调用工具: code_interpreter</span>
           </div>
-          <p className="text-sm text-orange-700">
-            正在执行Python代码计算结果...
-          </p>
+          <p className="text-sm text-orange-700">正在执行Python代码计算结果...</p>
         </div>
       </div>
     </div>
@@ -278,12 +264,9 @@ export const InteractiveToolSelection: Story = {
                   ? 'border-gray-200 hover:border-blue-500'
                   : 'border-gray-200 opacity-60 cursor-not-allowed'
               }`}
-              disabled={!tool.available}
-            >
+              disabled={!tool.available}>
               <ToolsCallingIcon
-                iconClassName={`w-4 h-4 mr-1.5 ${
-                  tool.available ? 'text-[#00b96b]' : 'text-gray-400'
-                }`}
+                iconClassName={`w-4 h-4 mr-1.5 ${tool.available ? 'text-[#00b96b]' : 'text-gray-400'}`}
               />
               <div className="flex-1">
                 <div className="font-medium">{tool.name}</div>
@@ -326,9 +309,7 @@ export const LoadingToolCalls: Story = {
             <span className="font-medium text-green-800">工具调用完成</span>
             <span className="text-green-600">✓</span>
           </div>
-          <p className="mt-1 text-sm text-green-700">
-            已获取北京天气信息：晴天，温度 22°C
-          </p>
+          <p className="mt-1 text-sm text-green-700">已获取北京天气信息：晴天，温度 22°C</p>
         </div>
 
         <div className="rounded-lg border border-red-200 bg-red-50 p-3">
@@ -337,9 +318,7 @@ export const LoadingToolCalls: Story = {
             <span className="font-medium text-red-800">工具调用失败</span>
             <span className="text-red-600">✗</span>
           </div>
-          <p className="mt-1 text-sm text-red-700">
-            API密钥无效，请检查配置
-          </p>
+          <p className="mt-1 text-sm text-red-700">API密钥无效，请检查配置</p>
         </div>
       </div>
     </div>
