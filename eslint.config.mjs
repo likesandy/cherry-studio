@@ -163,7 +163,7 @@ export default defineConfig([
             {
               name: 'antd',
               // TODO: migrate message again
-              importNames: ['Flex', 'Switch'],
+              importNames: ['Flex', 'Switch', 'Button'],
               message:
                 '❌ Do not import this component from antd. Use our custom components instead: import { ... } from "@cherrystudio/ui"'
             },
