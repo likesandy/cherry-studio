@@ -4,7 +4,7 @@ import { usePreference } from '@data/hooks/usePreference'
 import { DEFAULT_MIN_APPS } from '@renderer/config/minapps'
 import { useMinapps } from '@renderer/hooks/useMinapps'
 import { SettingDescription, SettingDivider, SettingRowTitle, SettingTitle } from '@renderer/pages/settings'
-import { Button, message, Slider, Tooltip } from 'antd'
+import { Button, Slider, Tooltip } from 'antd'
 import type { FC } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -28,7 +28,6 @@ const MiniAppSettings: FC = () => {
 
   const [visibleMiniApps, setVisibleMiniApps] = useState(minapps)
   const [disabledMiniApps, setDisabledMiniApps] = useState(disabled || [])
-  const [messageApi, contextHolder] = message.useMessage()
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleResetMinApps = useCallback(() => {
@@ -47,8 +46,8 @@ const MiniAppSettings: FC = () => {
   // 恢复默认缓存数量
   const handleResetCacheLimit = useCallback(() => {
     setMaxKeepAliveMinapps(DEFAULT_MAX_KEEPALIVE)
-    messageApi.info(t('settings.miniapps.cache_change_notice'))
-  }, [messageApi, t, setMaxKeepAliveMinapps])
+    window.toast.info(t('settings.miniapps.cache_change_notice'))
+  }, [t, setMaxKeepAliveMinapps])
 
   // 处理缓存数量变更
   const handleCacheChange = useCallback(
@@ -60,11 +59,11 @@ const MiniAppSettings: FC = () => {
       }
 
       debounceTimerRef.current = setTimeout(() => {
-        messageApi.info(t('settings.miniapps.cache_change_notice'))
+        window.toast.info(t('settings.miniapps.cache_change_notice'))
         debounceTimerRef.current = null
       }, 500)
     },
-    [messageApi, t, setMaxKeepAliveMinapps]
+    [t, setMaxKeepAliveMinapps]
   )
 
   // 组件卸载时清除定时器
@@ -78,7 +77,6 @@ const MiniAppSettings: FC = () => {
 
   return (
     <Container>
-      {contextHolder} {/* 添加消息上下文 */}
       <SettingTitle style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' }}>
         <ButtonWrapper>
           <Button onClick={handleSwapMinApps}>{t('common.swap')}</Button>
