@@ -2,7 +2,7 @@ import { DeleteOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-
 import { Button, Flex } from '@cherrystudio/ui'
 import { restoreFromLocal } from '@renderer/services/BackupService'
 import { formatFileSize } from '@renderer/utils'
-import { message, Modal, Table, Tooltip } from 'antd'
+import { Modal, Table, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -69,7 +69,7 @@ export function LocalBackupManager({ visible, onClose, localBackupDir, restoreMe
 
   const handleDeleteSelected = async () => {
     if (selectedRowKeys.length === 0) {
-      message.warning(t('settings.data.local.backup.manager.select.files.delete'))
+      window.toast.warning(t('settings.data.local.backup.manager.select.files.delete'))
       return
     }
 
@@ -121,7 +121,7 @@ export function LocalBackupManager({ visible, onClose, localBackupDir, restoreMe
         setDeleting(true)
         try {
           await window.api.backup.deleteLocalBackupFile(fileName, localBackupDir)
-          message.success(t('settings.data.local.backup.manager.delete.success.single'))
+          window.toast.success(t('settings.data.local.backup.manager.delete.success.single'))
           await fetchBackupFiles()
         } catch (error: any) {
           window.toast.error(`${t('settings.data.local.backup.manager.delete.error')}: ${error.message}`)
@@ -148,7 +148,7 @@ export function LocalBackupManager({ visible, onClose, localBackupDir, restoreMe
         setRestoring(true)
         try {
           await (restoreMethod || restoreFromLocal)(fileName)
-          message.success(t('settings.data.local.backup.manager.restore.success'))
+          window.toast.success(t('settings.data.local.backup.manager.restore.success'))
           onClose() // Close the modal
         } catch (error: any) {
           window.toast.error(`${t('settings.data.local.backup.manager.restore.error')}: ${error.message}`)

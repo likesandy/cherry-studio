@@ -5,7 +5,7 @@ import { useTheme } from '@renderer/context/ThemeProvider'
 import { useNotesSettings } from '@renderer/hooks/useNotesSettings'
 import { initWorkSpace } from '@renderer/services/NotesService'
 import type { EditorView } from '@renderer/types'
-import { Button, Input, message, Slider } from 'antd'
+import { Button, Input, Slider } from 'antd'
 import { FolderOpen } from 'lucide-react'
 import type { FC } from 'react'
 import { useEffect, useState } from 'react'
@@ -50,7 +50,7 @@ const NotesSettings: FC = () => {
       }
     } catch (error) {
       logger.error('Failed to select directory:', error as Error)
-      message.error(t('notes.settings.data.select_directory_failed'))
+      window.toast.error(t('notes.settings.data.select_directory_failed'))
     } finally {
       setIsSelecting(false)
     }
@@ -58,7 +58,7 @@ const NotesSettings: FC = () => {
 
   const handleApplyPath = async () => {
     if (!tempPath) {
-      message.error(t('notes.settings.data.path_required'))
+      window.toast.error(t('notes.settings.data.path_required'))
       return
     }
 
@@ -67,7 +67,7 @@ const NotesSettings: FC = () => {
       const isValidDir = await window.api.file.validateNotesDirectory(tempPath)
 
       if (!isValidDir) {
-        message.error(t('notes.settings.data.invalid_directory'))
+        window.toast.error(t('notes.settings.data.invalid_directory'))
         return
       }
 
