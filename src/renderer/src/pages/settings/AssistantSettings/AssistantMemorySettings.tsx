@@ -1,7 +1,7 @@
-import { InfoCircleOutlined } from '@ant-design/icons'
 import { Box } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
 import { loggerService } from '@logger'
+import { InfoTooltip } from "@cherrystudio/ui"
 import MemoriesSettingsModal from '@renderer/pages/memory/settings-modal'
 import MemoryService from '@renderer/services/MemoryService'
 import { selectGlobalMemoryEnabled, selectMemoryConfig } from '@renderer/store/memory'
@@ -77,9 +77,10 @@ const AssistantMemorySettings: React.FC<Props> = ({ assistant, updateAssistant, 
       <HeaderContainer>
         <Box style={{ fontWeight: 'bold', fontSize: '14px' }}>
           {t('memory.title')}
-          <Tooltip title={t('memory.description')}>
-            <InfoIcon />
-          </Tooltip>
+          <InfoTooltip
+            title={t('memory.description')}
+            iconStyle={{ marginLeft: 6, fontSize: 14, color: 'var(--color-text-2)', cursor: 'help' }}
+          />
         </Box>
         <Space>
           <Button type="text" icon={<Settings2 size={15} />} onClick={handleNavigateToMemory} />
@@ -170,11 +171,5 @@ const HeaderContainer = styled.div`
   margin-bottom: 16px;
 `
 
-const InfoIcon = styled(InfoCircleOutlined)`
-  margin-left: 6px;
-  font-size: 14px;
-  color: var(--color-text-2);
-  cursor: help;
-`
 
 export default AssistantMemorySettings

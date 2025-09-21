@@ -9,7 +9,7 @@ import {
   VisionTag,
   WebSearchTag
 } from '@renderer/components/Tags/Model'
-import { WarnTooltip } from '@renderer/components/TooltipIcons'
+import { WarnTooltip } from "@cherrystudio/ui"
 import { endpointTypeOptions } from '@renderer/config/endpointTypes'
 import {
   isEmbeddingModel,

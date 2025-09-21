@@ -1,5 +1,6 @@
 // Original path: src/renderer/src/components/TooltipIcons/HelpTooltip.tsx
 import type { TooltipProps } from 'antd'
+// eslint-disable-next-line no-restricted-imports
 import { Tooltip } from 'antd'
 import { HelpCircle } from 'lucide-react'
 

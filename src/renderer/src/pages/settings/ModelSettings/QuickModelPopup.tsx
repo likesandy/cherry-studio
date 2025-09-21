@@ -1,5 +1,5 @@
-import { QuestionCircleOutlined } from '@ant-design/icons'
 import { ColFlex, Flex, RowFlex } from '@cherrystudio/ui'
+import { HelpTooltip } from "@cherrystudio/ui"
 import { Switch } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { ResetIcon } from '@renderer/components/Icons'
@@ -65,7 +65,7 @@ const PopupContainer: React.FC<Props> = ({ resolve }) => {
           <Flex className="mb-1 h-[30px] items-center gap-1">
             <div>{t('settings.models.topic_naming.prompt')}</div>
             <Popover title={t('agents.add.prompt.variables.tip.title')} content={promptVarsContent}>
-              <QuestionCircleOutlined size={14} style={{ color: 'var(--color-text-2)' }} />
+              <HelpTooltip iconSize={14} iconStyle={{ color: 'var(--color-text-2)' }} />
             </Popover>
             {topicNamingPrompt && <Button icon={<ResetIcon size={14} />} onClick={handleReset} type="text" />}
           </Flex>

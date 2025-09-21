@@ -1,8 +1,7 @@
 import { RedoOutlined } from '@ant-design/icons'
-import { RowFlex } from '@cherrystudio/ui'
+import { InfoTooltip, RowFlex } from "@cherrystudio/ui";
 import { usePreference } from '@data/hooks/usePreference'
 import ModelSelector from '@renderer/components/ModelSelector'
-import { InfoTooltip } from '@renderer/components/TooltipIcons'
 import { isEmbeddingModel, isRerankModel, isTextToImageModel } from '@renderer/config/models'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useDefaultModel } from '@renderer/hooks/useAssistant'

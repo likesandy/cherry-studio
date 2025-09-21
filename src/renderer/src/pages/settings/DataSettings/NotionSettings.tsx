@@ -1,11 +1,9 @@
-import { InfoCircleOutlined } from '@ant-design/icons'
-import { RowFlex } from '@cherrystudio/ui'
+import { InfoTooltip, RowFlex } from "@cherrystudio/ui";
 import { Switch } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { Client } from '@notionhq/client'
 import { useTheme } from '@renderer/context/ThemeProvider'
-import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
-import { Button, Space, Tooltip } from 'antd'
+import { Button, Space } from 'antd'
 import { Input } from 'antd'
 import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -19,7 +17,6 @@ const NotionSettings: FC = () => {
 
   const { t } = useTranslation()
   const { theme } = useTheme()
-  const { openMinapp } = useMinappPopup()
 
   const handleNotionTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNotionApiKey(e.target.value)
@@ -59,14 +56,6 @@ const NotionSettings: FC = () => {
       })
   }
 
-  const handleNotionTitleClick = () => {
-    openMinapp({
-      id: 'notion-help',
-      name: 'Notion Help',
-      url: 'https://docs.cherry-ai.com/advanced-basic/notion'
-    })
-  }
-
   const handleNotionExportReasoningChange = (checked: boolean) => {
     setNotionExportReasoning(checked)
   }
@@ -75,12 +64,11 @@ const NotionSettings: FC = () => {
     <SettingGroup theme={theme}>
       <SettingTitle style={{ justifyContent: 'flex-start', gap: 10 }}>
         {t('settings.data.notion.title')}
-        <Tooltip title={t('settings.data.notion.help')} placement="right">
-          <InfoCircleOutlined
-            style={{ color: 'var(--color-text-2)', cursor: 'pointer' }}
-            onClick={handleNotionTitleClick}
-          />
-        </Tooltip>
+        <InfoTooltip
+          title={t('settings.data.notion.help')}
+          placement="right"
+          iconStyle={{ color: 'var(--color-text-2)', cursor: 'pointer' }}
+        />
       </SettingTitle>
       <SettingDivider />
       <SettingRow>

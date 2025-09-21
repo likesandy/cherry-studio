@@ -1,9 +1,7 @@
-import { InfoCircleOutlined } from '@ant-design/icons'
-import { RowFlex } from '@cherrystudio/ui'
+import { InfoTooltip, RowFlex } from "@cherrystudio/ui";
 import { usePreference } from '@data/hooks/usePreference'
 import { useTheme } from '@renderer/context/ThemeProvider'
-import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
-import { Button, Space, Tooltip } from 'antd'
+import { Button, Space } from 'antd'
 import { Input } from 'antd'
 import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -13,7 +11,6 @@ import { SettingDivider, SettingGroup, SettingRow, SettingRowTitle, SettingTitle
 const YuqueSettings: FC = () => {
   const { t } = useTranslation()
   const { theme } = useTheme()
-  const { openMinapp } = useMinappPopup()
 
   const [yuqueToken, setYuqueToken] = usePreference('data.integration.yuque.token')
   const [yuqueUrl, setYuqueUrl] = usePreference('data.integration.yuque.url')
@@ -62,14 +59,6 @@ const YuqueSettings: FC = () => {
     window.toast.success(t('settings.data.yuque.check.success'))
   }
 
-  const handleYuqueHelpClick = () => {
-    openMinapp({
-      id: 'yuque-help',
-      name: 'Yuque Help',
-      url: 'https://www.yuque.com/settings/tokens'
-    })
-  }
-
   return (
     <SettingGroup theme={theme}>
       <SettingTitle>{t('settings.data.yuque.title')}</SettingTitle>
@@ -89,12 +78,11 @@ const YuqueSettings: FC = () => {
       <SettingRow>
         <SettingRowTitle>
           {t('settings.data.yuque.token')}
-          <Tooltip title={t('settings.data.yuque.help')} placement="left">
-            <InfoCircleOutlined
-              style={{ color: 'var(--color-text-2)', cursor: 'pointer', marginLeft: 4 }}
-              onClick={handleYuqueHelpClick}
-            />
-          </Tooltip>
+          <InfoTooltip
+            title={t('settings.data.yuque.help')}
+            placement="left"
+            iconStyle={{ color: 'var(--color-text-2)', cursor: 'pointer', marginLeft: 4 }}
+          />
         </SettingRowTitle>
         <RowFlex className="w-[315px] items-center gap-[5px]">
           <Space.Compact style={{ width: '100%' }}>

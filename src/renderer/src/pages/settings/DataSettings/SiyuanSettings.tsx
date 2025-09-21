@@ -1,10 +1,8 @@
-import { InfoCircleOutlined } from '@ant-design/icons'
-import { RowFlex } from '@cherrystudio/ui'
+import { InfoTooltip, RowFlex } from "@cherrystudio/ui";
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import { useTheme } from '@renderer/context/ThemeProvider'
-import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
-import { Button, Space, Tooltip } from 'antd'
+import { Button, Space } from 'antd'
 import { Input } from 'antd'
 import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -19,7 +17,6 @@ const SiyuanSettings: FC = () => {
   const [siyuanBoxId, setSiyuanBoxId] = usePreference('data.integration.siyuan.box_id')
   const [siyuanRootPath, setSiyuanRootPath] = usePreference('data.integration.siyuan.root_path')
 
-  const { openMinapp } = useMinappPopup()
   const { t } = useTranslation()
   const { theme } = useTheme()
 
@@ -37,14 +34,6 @@ const SiyuanSettings: FC = () => {
 
   const handleRootPathChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSiyuanRootPath(e.target.value)
-  }
-
-  const handleSiyuanHelpClick = () => {
-    openMinapp({
-      id: 'siyuan-help',
-      name: 'Siyuan Help',
-      url: 'https://docs.cherry-ai.com/advanced-basic/siyuan'
-    })
   }
 
   const handleCheckConnection = async () => {
@@ -99,12 +88,11 @@ const SiyuanSettings: FC = () => {
       <SettingRow>
         <SettingRowTitle style={{ display: 'flex', alignItems: 'center' }}>
           <span>{t('settings.data.siyuan.token.label')}</span>
-          <Tooltip title={t('settings.data.siyuan.token.help')} placement="left">
-            <InfoCircleOutlined
-              style={{ color: 'var(--color-text-2)', cursor: 'pointer', marginLeft: 4 }}
-              onClick={handleSiyuanHelpClick}
-            />
-          </Tooltip>
+          <InfoTooltip
+            title={t('settings.data.siyuan.token.help')}
+            placement="left"
+            iconStyle={{ color: 'var(--color-text-2)', cursor: 'pointer', marginLeft: 4 }}
+          />
         </SettingRowTitle>
         <RowFlex className="w-[315px] items-center gap-[5px]">
           <Space.Compact style={{ width: '100%' }}>

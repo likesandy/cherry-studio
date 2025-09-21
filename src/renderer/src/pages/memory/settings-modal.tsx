@@ -3,7 +3,7 @@ import { loggerService } from '@logger'
 import AiProvider from '@renderer/aiCore'
 import InputEmbeddingDimension from '@renderer/components/InputEmbeddingDimension'
 import ModelSelector from '@renderer/components/ModelSelector'
-import { InfoTooltip } from '@renderer/components/TooltipIcons'
+import { InfoTooltip } from "@cherrystudio/ui"
 import { isEmbeddingModel, isRerankModel } from '@renderer/config/models'
 import { useModel } from '@renderer/hooks/useModel'
 import { useProviders } from '@renderer/hooks/useProvider'

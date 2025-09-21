@@ -1,5 +1,6 @@
 // Original: src/renderer/src/components/TooltipIcons/InfoTooltip.tsx
 import type { TooltipProps } from 'antd'
+// eslint-disable-next-line no-restricted-imports
 import { Tooltip } from 'antd'
 import { Info } from 'lucide-react'
 
