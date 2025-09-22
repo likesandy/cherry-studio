@@ -45,6 +45,7 @@ export function tracedInvoke(channel: string, spanContext: SpanContext | undefin
 const api = {
   getAppInfo: () => ipcRenderer.invoke(IpcChannel.App_Info),
   reload: () => ipcRenderer.invoke(IpcChannel.App_Reload),
+  quit: () => ipcRenderer.invoke(IpcChannel.App_Quit),
   setProxy: (proxy: string | undefined, bypassRules?: string) =>
     ipcRenderer.invoke(IpcChannel.App_Proxy, proxy, bypassRules),
   checkForUpdate: () => ipcRenderer.invoke(IpcChannel.App_CheckForUpdate),
