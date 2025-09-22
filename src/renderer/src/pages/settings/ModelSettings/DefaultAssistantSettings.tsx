@@ -3,6 +3,7 @@ import { RowFlex } from '@cherrystudio/ui'
 import { HelpTooltip } from "@cherrystudio/ui"
 import { Flex } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
+import { Tooltip } from '@cherrystudio/ui'
 import EmojiPicker from '@renderer/components/EmojiPicker'
 import { ResetIcon } from '@renderer/components/Icons'
 import { TopView } from '@renderer/components/TopView'
@@ -11,7 +12,7 @@ import { useTheme } from '@renderer/context/ThemeProvider'
 import { useDefaultAssistant } from '@renderer/hooks/useAssistant'
 import type { AssistantSettings as AssistantSettingsType } from '@renderer/types'
 import { getLeadingEmoji, modalConfirm } from '@renderer/utils'
-import { Button, Col, Input, InputNumber, Modal, Popover, Row, Slider, Tooltip } from 'antd'
+import { Button, Col, Input, InputNumber, Modal, Popover, Row, Slider } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import type { Dispatch, FC, SetStateAction } from 'react'
 import { useState } from 'react'
@@ -160,7 +161,7 @@ const AssistantSettings: FC = () => {
           marginTop: 0
         }}>
         {t('settings.assistant.model_params')}
-        <Tooltip title={t('common.reset')} mouseLeaveDelay={0}>
+        <Tooltip placement="top" title={t('common.reset')}>
           <Button type="text" onClick={onReset} icon={<ResetIcon size={16} />} />
         </Tooltip>
       </SettingSubtitle>

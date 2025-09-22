@@ -1,5 +1,6 @@
 import { PlusOutlined, SendOutlined, SwapOutlined } from '@ant-design/icons'
 import { Flex } from '@cherrystudio/ui'
+import { Tooltip } from '@cherrystudio/ui'
 import { loggerService } from '@logger'
 import { Navbar, NavbarCenter } from '@renderer/components/app/Navbar'
 import { CopyIcon } from '@renderer/components/Icons'
@@ -41,7 +42,7 @@ import {
   determineTargetLanguage
 } from '@renderer/utils/translate'
 import { imageExts, MB, textExts } from '@shared/config/constant'
-import { Button, FloatButton, Popover, Tooltip, Typography } from 'antd'
+import { Button, FloatButton, Popover, Typography } from 'antd'
 import type { TextAreaRef } from 'antd/es/input/TextArea'
 import TextArea from 'antd/es/input/TextArea'
 import { isEmpty, throttle } from 'lodash'
@@ -334,8 +335,7 @@ const TranslatePage: FC = () => {
       window.toast.error(t('translate.error.detect.unknown'))
       return
     }
-    const target = targetLanguage
-    setSourceLanguage(target)
+    setSourceLanguage(targetLanguage)
     setTargetLanguage(source)
   }, [couldExchangeAuto, detectedLanguage, sourceLanguage, t, targetLanguage])
 
@@ -717,7 +717,7 @@ const TranslatePage: FC = () => {
                 }
               ]}
             />
-            <Tooltip title={t('translate.exchange.label')} placement="bottom">
+            <Tooltip placement="top" title={t('translate.exchange.label')}>
               <Button
                 type="text"
                 icon={<SwapOutlined />}
@@ -739,7 +739,6 @@ const TranslatePage: FC = () => {
               model={translateModel}
               onSelectModel={handleModelChange}
               modelFilter={modelPredicate}
-              tooltipProps={{ placement: 'bottom' }}
             />
             <Button type="text" icon={<Settings2 size={18} />} onClick={() => setSettingsVisible(true)} />
           </InnerOperationBar>
@@ -980,9 +979,7 @@ const TranslateButton = ({
   const { t } = useTranslation()
   return (
     <Tooltip
-      mouseEnterDelay={0.5}
-      placement="bottom"
-      styles={{ body: { fontSize: '12px' } }}
+      placement="top"
       title={
         <div style={{ textAlign: 'center' }}>
           Enter: {t('translate.button.translate')}

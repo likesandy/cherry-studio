@@ -1,5 +1,5 @@
-import { FolderOpenOutlined, SaveOutlined, SyncOutlined, WarningOutlined } from '@ant-design/icons'
-import { InfoTooltip, RowFlex } from "@cherrystudio/ui";
+import { FolderOpenOutlined, SaveOutlined, SyncOutlined } from '@ant-design/icons'
+import { InfoTooltip, RowFlex, WarnTooltip } from "@cherrystudio/ui";
 import { Switch } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { S3BackupManager } from '@renderer/components/S3BackupManager'
@@ -8,7 +8,7 @@ import Selector from '@renderer/components/Selector'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { startAutoSync, stopAutoSync } from '@renderer/services/BackupService'
 import { useAppSelector } from '@renderer/store'
-import { Button, Input, Tooltip } from 'antd'
+import { Button, Input } from 'antd'
 import dayjs from 'dayjs'
 import type { FC } from 'react'
 import { useState } from 'react'
@@ -65,9 +65,7 @@ const S3Settings: FC = () => {
       <RowFlex className="items-center gap-[5px]">
         {s3Sync?.syncing && <SyncOutlined spin />}
         {!s3Sync?.syncing && s3Sync?.lastSyncError && (
-          <Tooltip title={t('settings.data.s3.syncStatus.error', { message: s3Sync.lastSyncError })}>
-            <WarningOutlined style={{ color: 'red' }} />
-          </Tooltip>
+          <WarnTooltip title={t('settings.data.s3.syncStatus.error', { message: s3Sync.lastSyncError })} iconColor="red" />
         )}
         {s3Sync?.lastSyncTime && (
           <span style={{ color: 'var(--text-secondary)' }}>

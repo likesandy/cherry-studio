@@ -1,11 +1,11 @@
 import { RowFlex } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
+import { HelpTooltip } from "@cherrystudio/ui"
 import ModelAvatar from '@renderer/components/Avatar/ModelAvatar'
 import EditableNumber from '@renderer/components/EditableNumber'
 import { DeleteIcon, ResetIcon } from '@renderer/components/Icons'
 import SelectModelPopup from '@renderer/components/Popups/SelectModelPopup'
 import Selector from '@renderer/components/Selector'
-import { HelpTooltip } from "@cherrystudio/ui"
 import { DEFAULT_CONTEXTCOUNT, DEFAULT_TEMPERATURE, MAX_CONTEXT_COUNT } from '@renderer/config/constant'
 import { isEmbeddingModel, isRerankModel } from '@renderer/config/models'
 import { useTimer } from '@renderer/hooks/useTimer'

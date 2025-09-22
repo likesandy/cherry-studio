@@ -1,9 +1,10 @@
 import { Box } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
 import { InfoTooltip } from "@cherrystudio/ui"
+import { Tooltip } from '@cherrystudio/ui'
 import { useMCPServers } from '@renderer/hooks/useMCPServers'
 import type { Assistant, AssistantSettings } from '@renderer/types'
-import { Empty, Tooltip } from 'antd'
+import { Empty } from 'antd'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 

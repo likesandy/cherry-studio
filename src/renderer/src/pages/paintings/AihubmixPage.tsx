@@ -1,6 +1,7 @@
 import { PlusOutlined, RedoOutlined } from '@ant-design/icons'
 import { RowFlex } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
+import { InfoTooltip } from '@cherrystudio/ui'
 import { useCache } from '@data/hooks/useCache'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
@@ -21,9 +22,8 @@ import { translateText } from '@renderer/services/TranslateService'
 import type { FileMetadata } from '@renderer/types'
 import type { PaintingAction, PaintingsState } from '@renderer/types'
 import { getErrorMessage, uuid } from '@renderer/utils'
-import { Avatar, Button, Input, InputNumber, Radio, Segmented, Select, Slider, Tooltip, Upload } from 'antd'
+import { Avatar, Button, Input, InputNumber, Radio, Segmented, Select, Slider, Upload } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
-import { Info } from 'lucide-react'
 import type { FC } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -788,9 +788,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
         <SettingTitle style={{ marginBottom: 5, marginTop: 15 }}>
           {t(item.title!)}
           {item.tooltip && (
-            <Tooltip title={t(item.tooltip)}>
-              <InfoIcon />
-            </Tooltip>
+            <InfoTooltip title={t(item.tooltip)} />
           )}
         </SettingTitle>
         {renderConfigForm(item)}
@@ -994,18 +992,6 @@ const ToolbarMenu = styled.div`
   gap: 6px;
 `
 
-const InfoIcon = styled(Info)`
-  margin-left: 5px;
-  cursor: help;
-  color: var(--color-text-2);
-  opacity: 0.6;
-  width: 14px;
-  height: 16px;
-
-  &:hover {
-    opacity: 1;
-  }
-`
 
 const SliderContainer = styled.div`
   display: flex;

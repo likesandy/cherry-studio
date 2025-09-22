@@ -1,4 +1,5 @@
 import { Flex } from '@cherrystudio/ui'
+import { Tooltip } from '@cherrystudio/ui'
 import ExpandableText from '@renderer/components/ExpandableText'
 import ModelIdWithTags from '@renderer/components/ModelIdWithTags'
 import CustomTag from '@renderer/components/Tags/CustomTag'
@@ -7,7 +8,7 @@ import { getModelLogo } from '@renderer/config/models'
 import FileItem from '@renderer/pages/files/FileItem'
 import NewApiBatchAddModelPopup from '@renderer/pages/settings/ProviderSettings/ModelList/NewApiBatchAddModelPopup'
 import type { Model, Provider } from '@renderer/types'
-import { Button, Tooltip } from 'antd'
+import { Button } from 'antd'
 import { Avatar } from 'antd'
 import { ChevronRight, Minus, Plus } from 'lucide-react'
 import React, { memo, useCallback, useMemo, useState } from 'react'
@@ -110,13 +111,11 @@ const ManageModelsList: React.FC<ManageModelsListProps> = ({ modelGroups, provid
 
       return (
         <Tooltip
-          destroyOnHidden
           title={
             isAllInProvider
               ? t('settings.models.manage.remove_whole_group')
               : t('settings.models.manage.add_whole_group')
           }
-          mouseLeaveDelay={0}
           placement="top">
           <Button
             type="text"
