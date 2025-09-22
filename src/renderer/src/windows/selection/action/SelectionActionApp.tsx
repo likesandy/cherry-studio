@@ -216,9 +216,7 @@ const SelectionActionApp: FC = () => {
               className={isPinned ? 'pinned' : ''}
             />
           </Tooltip>
-          <Tooltip
-            title={t('selection.action.window.opacity')}
-            placement="bottom">
+          <Tooltip title={t('selection.action.window.opacity')} placement="bottom">
             <WinButton
               type="text"
               icon={<Droplet size={14} />}

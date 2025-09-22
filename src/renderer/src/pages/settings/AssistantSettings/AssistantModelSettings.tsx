@@ -1,6 +1,6 @@
 import { RowFlex } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
-import { HelpTooltip } from "@cherrystudio/ui"
+import { HelpTooltip } from '@cherrystudio/ui'
 import ModelAvatar from '@renderer/components/Avatar/ModelAvatar'
 import EditableNumber from '@renderer/components/EditableNumber'
 import { DeleteIcon, ResetIcon } from '@renderer/components/Icons'
@@ -525,7 +525,6 @@ const Label = styled.p`
   gap: 5px;
   flex-shrink: 0;
 `
-
 
 const ModelSelectButton = styled(Button)`
   max-width: 300px;

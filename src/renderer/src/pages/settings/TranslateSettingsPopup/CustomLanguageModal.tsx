@@ -1,4 +1,4 @@
-import { InfoTooltip } from "@cherrystudio/ui"
+import { InfoTooltip } from '@cherrystudio/ui'
 import { loggerService } from '@logger'
 import EmojiPicker from '@renderer/components/EmojiPicker'
 import useTranslate from '@renderer/hooks/useTranslate'

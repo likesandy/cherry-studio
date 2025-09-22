@@ -177,7 +177,10 @@ const NutstoreSettings: FC = () => {
       <RowFlex className="items-center gap-[5px]">
         {nutstoreSyncState.syncing && <SyncOutlined spin />}
         {!nutstoreSyncState.syncing && nutstoreSyncState.lastSyncError && (
-          <WarnTooltip title={`${t('settings.data.webdav.syncError')}: ${nutstoreSyncState.lastSyncError}`} iconColor="red" />
+          <WarnTooltip
+            title={`${t('settings.data.webdav.syncError')}: ${nutstoreSyncState.lastSyncError}`}
+            iconColor="red"
+          />
         )}
         {nutstoreSyncState.lastSyncTime && (
           <span style={{ color: 'var(--text-secondary)' }}>

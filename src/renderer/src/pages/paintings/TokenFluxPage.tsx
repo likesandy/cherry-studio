@@ -461,9 +461,7 @@ const TokenFluxPage: FC<{ Options: string[] }> = ({ Options }) => {
                           {readI18nContext(property, 'title')}
                           {isRequired && <RequiredIndicator> *</RequiredIndicator>}
                         </ParameterName>
-                        {property.description && (
-                          <InfoTooltip title={readI18nContext(property, 'description')} />
-                        )}
+                        {property.description && <InfoTooltip title={readI18nContext(property, 'description')} />}
                       </ParameterLabel>
                       <DynamicFormRender
                         schemaProperty={property}
@@ -747,7 +745,6 @@ const ToolbarMenu = styled.div`
   align-items: center;
   gap: 6px;
 `
-
 
 const ProviderLogo = styled(Avatar)`
   border: 0.5px solid var(--color-border);

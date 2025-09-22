@@ -47,7 +47,11 @@ const CopyButton: FC<CopyButtonProps> = ({
   )
 
   if (tooltip) {
-    return <Tooltip placement="top" title={tooltip}>{button}</Tooltip>
+    return (
+      <Tooltip placement="top" title={tooltip}>
+        {button}
+      </Tooltip>
+    )
   }
 
   return button

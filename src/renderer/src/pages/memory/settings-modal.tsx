@@ -1,5 +1,5 @@
 import { Flex } from '@cherrystudio/ui'
-import { InfoTooltip } from "@cherrystudio/ui"
+import { InfoTooltip } from '@cherrystudio/ui'
 import { loggerService } from '@logger'
 import AiProvider from '@renderer/aiCore'
 import InputEmbeddingDimension from '@renderer/components/InputEmbeddingDimension'

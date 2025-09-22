@@ -240,7 +240,13 @@ const WebSearchProviderSetting: FC<Props> = ({ providerId }) => {
           <SettingDivider style={{ marginTop: 12, marginBottom: 12 }} />
           <SettingSubtitle style={{ marginTop: 5, marginBottom: 10 }}>
             {t('settings.provider.basic_auth.label')}
-            <InfoTooltip placement="right" title={t('settings.provider.basic_auth.tip')} iconSize={16} iconColor="var(--color-icon)" iconStyle={{ marginLeft: 5, cursor: 'pointer' }} />
+            <InfoTooltip
+              placement="right"
+              title={t('settings.provider.basic_auth.tip')}
+              iconSize={16}
+              iconColor="var(--color-icon)"
+              iconStyle={{ marginLeft: 5, cursor: 'pointer' }}
+            />
           </SettingSubtitle>
           <Flex>
             <Form

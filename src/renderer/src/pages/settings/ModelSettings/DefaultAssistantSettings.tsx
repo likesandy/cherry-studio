@@ -1,6 +1,6 @@
 import { CloseCircleFilled } from '@ant-design/icons'
 import { RowFlex } from '@cherrystudio/ui'
-import { HelpTooltip } from "@cherrystudio/ui"
+import { HelpTooltip } from '@cherrystudio/ui'
 import { Flex } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
 import { Tooltip } from '@cherrystudio/ui'
@@ -398,4 +398,3 @@ const Label = styled.p`
   font-size: 14px;
   margin-right: 5px;
 `
-

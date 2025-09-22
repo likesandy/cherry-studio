@@ -28,7 +28,13 @@ const CutoffSettings = () => {
     <SettingRow>
       <SettingRowTitle>
         {t('settings.tool.websearch.compression.cutoff.limit.label')}
-        <InfoTooltip placement="right" title={t('settings.tool.websearch.compression.cutoff.limit.tooltip')} iconSize={16} iconColor="var(--color-icon)" iconStyle={{ marginLeft: 5, cursor: 'pointer' }} />
+        <InfoTooltip
+          placement="right"
+          title={t('settings.tool.websearch.compression.cutoff.limit.tooltip')}
+          iconSize={16}
+          iconColor="var(--color-icon)"
+          iconStyle={{ marginLeft: 5, cursor: 'pointer' }}
+        />
       </SettingRowTitle>
       <Space.Compact style={{ width: INPUT_BOX_WIDTH }}>
         <Input

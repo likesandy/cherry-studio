@@ -8,12 +8,7 @@ interface TooltipProps {
   [key: string]: any
 }
 
-const Tooltip = ({
-                   title,
-                   placement,
-                   children,
-                   ...rest
-                 }: TooltipProps) => {
+const Tooltip = ({ title, placement, children, ...rest }: TooltipProps) => {
   return (
     <HeroUITooltip
       classNames={{
@@ -24,8 +19,7 @@ const Tooltip = ({
       showArrow={true}
       closeDelay={0}
       delay={500}
-      {...rest}
-    >
+      {...rest}>
       {children}
     </HeroUITooltip>
   )

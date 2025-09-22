@@ -5,7 +5,19 @@ import Tooltip from '../../base/Tooltip'
 
 interface WarnTooltipProps {
   title: React.ReactNode
-  placement?: 'top' | 'bottom' | 'left' | 'right' | 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end' | 'left-start' | 'left-end' | 'right-start' | 'right-end'
+  placement?:
+    | 'top'
+    | 'bottom'
+    | 'left'
+    | 'right'
+    | 'top-start'
+    | 'top-end'
+    | 'bottom-start'
+    | 'bottom-end'
+    | 'left-start'
+    | 'left-end'
+    | 'right-start'
+    | 'right-end'
   iconColor?: string
   iconSize?: string | number
   iconStyle?: React.CSSProperties

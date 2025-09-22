@@ -735,11 +735,7 @@ const TranslatePage: FC = () => {
             />
           </InnerOperationBar>
           <InnerOperationBar style={{ justifyContent: 'flex-end' }}>
-            <ModelSelectButton
-              model={translateModel}
-              onSelectModel={handleModelChange}
-              modelFilter={modelPredicate}
-            />
+            <ModelSelectButton model={translateModel} onSelectModel={handleModelChange} modelFilter={modelPredicate} />
             <Button type="text" icon={<Settings2 size={18} />} onClick={() => setSettingsVisible(true)} />
           </InnerOperationBar>
         </OperationBar>

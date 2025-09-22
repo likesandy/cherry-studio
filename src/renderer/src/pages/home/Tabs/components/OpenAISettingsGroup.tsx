@@ -1,4 +1,4 @@
-import { HelpTooltip } from "@cherrystudio/ui"
+import { HelpTooltip } from '@cherrystudio/ui'
 import Selector from '@renderer/components/Selector'
 import {
   isSupportedReasoningEffortOpenAIModel,
@@ -165,8 +165,7 @@ const OpenAISettingsGroup: FC<Props> = ({ model, providerId, SettingGroup, Setti
           <>
             <SettingRow>
               <SettingRowTitleSmall>
-                {t('settings.openai.service_tier.title')}{' '}
-                <HelpTooltip title={t('settings.openai.service_tier.tip')} />
+                {t('settings.openai.service_tier.title')} <HelpTooltip title={t('settings.openai.service_tier.tip')} />
               </SettingRowTitleSmall>
               <Selector
                 value={serviceTierMode}
@@ -201,8 +200,7 @@ const OpenAISettingsGroup: FC<Props> = ({ model, providerId, SettingGroup, Setti
         {isSupportVerbosity && (
           <SettingRow>
             <SettingRowTitleSmall>
-              {t('settings.openai.verbosity.title')}{' '}
-              <HelpTooltip title={t('settings.openai.verbosity.tip')} />
+              {t('settings.openai.verbosity.title')} <HelpTooltip title={t('settings.openai.verbosity.tip')} />
             </SettingRowTitleSmall>
             <Selector
               value={verbosity}

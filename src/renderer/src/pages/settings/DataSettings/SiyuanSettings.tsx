@@ -1,4 +1,4 @@
-import { InfoTooltip, RowFlex } from "@cherrystudio/ui";
+import { InfoTooltip, RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import { useTheme } from '@renderer/context/ThemeProvider'

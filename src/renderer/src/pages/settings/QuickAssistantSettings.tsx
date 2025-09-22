@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
-import { InfoTooltip, RowFlex } from "@cherrystudio/ui";
+import { InfoTooltip, RowFlex } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import ModelAvatar from '@renderer/components/Avatar/ModelAvatar'
@@ -69,7 +69,11 @@ const QuickAssistantSettings: FC = () => {
         <SettingRow>
           <SettingRowTitle style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span>{t('settings.quickAssistant.enable_quick_assistant')}</span>
-            <InfoTooltip title={t('settings.quickAssistant.use_shortcut_to_show')} placement="right" iconStyle={{ cursor: 'pointer' }} />
+            <InfoTooltip
+              title={t('settings.quickAssistant.use_shortcut_to_show')}
+              placement="right"
+              iconStyle={{ cursor: 'pointer' }}
+            />
           </SettingRowTitle>
           <Switch isSelected={enableQuickAssistant} onValueChange={handleEnableQuickAssistant} />
         </SettingRow>
@@ -97,7 +101,11 @@ const QuickAssistantSettings: FC = () => {
           <RowFlex className="items-center justify-between">
             <RowFlex className="items-center gap-2.5">
               {t('settings.models.quick_assistant_model')}
-              <InfoTooltip title={t('selection.settings.user_modal.model.tooltip')} arrow iconStyle={{ cursor: 'pointer' }} />
+              <InfoTooltip
+                title={t('selection.settings.user_modal.model.tooltip')}
+                arrow
+                iconStyle={{ cursor: 'pointer' }}
+              />
               <Spacer />
             </RowFlex>
             <RowFlex className="items-center gap-2.5">

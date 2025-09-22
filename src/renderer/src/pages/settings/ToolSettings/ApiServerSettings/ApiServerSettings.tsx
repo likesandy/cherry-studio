@@ -171,7 +171,9 @@ const ApiServerSettings: FC = () => {
             />
           )}
 
-          <Tooltip placement="top" title={apiServerRunning ? t('apiServer.actions.stop') : t('apiServer.actions.start')}>
+          <Tooltip
+            placement="top"
+            title={apiServerRunning ? t('apiServer.actions.stop') : t('apiServer.actions.start')}>
             {apiServerRunning ? (
               <StopButton
                 $loading={apiServerLoading}

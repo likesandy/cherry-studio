@@ -1,6 +1,6 @@
 import { Box } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
-import { InfoTooltip } from "@cherrystudio/ui"
+import { InfoTooltip } from '@cherrystudio/ui'
 import { Tooltip } from '@cherrystudio/ui'
 import { loggerService } from '@logger'
 import MemoriesSettingsModal from '@renderer/pages/memory/settings-modal'
@@ -171,6 +171,5 @@ const HeaderContainer = styled.div`
   align-items: center;
   margin-bottom: 16px;
 `
-
 
 export default AssistantMemorySettings

@@ -1,5 +1,5 @@
 import { ColFlex, Flex, RowFlex } from '@cherrystudio/ui'
-import { HelpTooltip } from "@cherrystudio/ui"
+import { HelpTooltip } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { ResetIcon } from '@renderer/components/Icons'

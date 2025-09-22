@@ -1,4 +1,4 @@
-import { InfoTooltip } from "@cherrystudio/ui"
+import { InfoTooltip } from '@cherrystudio/ui'
 import type { KnowledgeBase } from '@renderer/types'
 import { Alert, InputNumber } from 'antd'
 import { TriangleAlert } from 'lucide-react'

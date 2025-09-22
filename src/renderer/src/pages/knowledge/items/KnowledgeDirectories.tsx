@@ -96,7 +96,9 @@ const KnowledgeDirectories: FC<KnowledgeContentProps> = ({ selectedBase, progres
                 name: (
                   <ClickableSpan onClick={() => window.api.file.openPath(item.content as string)}>
                     <Ellipsis>
-                      <Tooltip placement="top" title={item.content as string}>{item.content as string}</Tooltip>
+                      <Tooltip placement="top" title={item.content as string}>
+                        {item.content as string}
+                      </Tooltip>
                     </Ellipsis>
                   </ClickableSpan>
                 ),

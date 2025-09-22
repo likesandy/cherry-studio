@@ -88,9 +88,7 @@ const WindowControls: React.FC = () => {
           <Minus size={14} />
         </ControlButton>
       </Tooltip>
-      <Tooltip
-        placement="bottom"
-        title={isMaximized ? t('navbar.window.restore') : t('navbar.window.maximize')}>
+      <Tooltip placement="bottom" title={isMaximized ? t('navbar.window.restore') : t('navbar.window.maximize')}>
         <ControlButton onClick={handleMaximize} aria-label={isMaximized ? 'Restore' : 'Maximize'}>
           {isMaximized ? <WindowRestoreIcon size={14} /> : <Square size={14} />}
         </ControlButton>

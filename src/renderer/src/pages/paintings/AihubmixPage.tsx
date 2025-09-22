@@ -787,9 +787,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
       <div key={index}>
         <SettingTitle style={{ marginBottom: 5, marginTop: 15 }}>
           {t(item.title!)}
-          {item.tooltip && (
-            <InfoTooltip title={t(item.tooltip)} />
-          )}
+          {item.tooltip && <InfoTooltip title={t(item.tooltip)} />}
         </SettingTitle>
         {renderConfigForm(item)}
       </div>
@@ -991,7 +989,6 @@ const ToolbarMenu = styled.div`
   align-items: center;
   gap: 6px;
 `
-
 
 const SliderContainer = styled.div`
   display: flex;

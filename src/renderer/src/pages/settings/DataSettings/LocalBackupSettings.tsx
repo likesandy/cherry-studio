@@ -155,7 +155,10 @@ const LocalBackupSettings: React.FC = () => {
       <RowFlex className="items-center gap-[5px]">
         {localBackupSync.syncing && <SyncOutlined spin />}
         {!localBackupSync.syncing && localBackupSync.lastSyncError && (
-          <WarnTooltip title={`${t('settings.data.local.syncError')}: ${localBackupSync.lastSyncError}`} iconColor="red" />
+          <WarnTooltip
+            title={`${t('settings.data.local.syncError')}: ${localBackupSync.lastSyncError}`}
+            iconColor="red"
+          />
         )}
         {localBackupSync.lastSyncTime && (
           <span style={{ color: 'var(--text-secondary)' }}>

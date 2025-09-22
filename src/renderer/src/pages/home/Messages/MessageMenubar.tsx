@@ -664,9 +664,7 @@ const MessageMenubar: FC<Props> = (props) => {
               className="message-action-button"
               onClick={(e) => e.stopPropagation()}
               $softHoverBg={softHoverBg}>
-              <Tooltip
-                title={t('common.delete')}
-                placement="top">
+              <Tooltip title={t('common.delete')} placement="top">
                 <DeleteIcon size={15} />
               </Tooltip>
             </ActionButton>

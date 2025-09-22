@@ -70,7 +70,12 @@ const RagSettings = () => {
       <SettingRow>
         <SettingRowTitle>
           {t('models.embedding_dimensions')}
-          <InfoTooltip title={t('knowledge.dimensions_size_tooltip')} iconSize={16} iconColor="var(--color-icon)" iconStyle={{ marginLeft: 5, cursor: 'pointer' }} />
+          <InfoTooltip
+            title={t('knowledge.dimensions_size_tooltip')}
+            iconSize={16}
+            iconColor="var(--color-icon)"
+            iconStyle={{ marginLeft: 5, cursor: 'pointer' }}
+          />
         </SettingRowTitle>
         <InputEmbeddingDimension
           value={compressionConfig?.embeddingDimensions}
@@ -99,7 +104,13 @@ const RagSettings = () => {
       <SettingRow>
         <SettingRowTitle>
           {t('settings.tool.websearch.compression.rag.document_count.label')}
-          <InfoTooltip title={t('settings.tool.websearch.compression.rag.document_count.tooltip')} placement="top" iconSize={16} iconColor="var(--color-icon)" iconStyle={{ marginLeft: 5, cursor: 'pointer' }} />
+          <InfoTooltip
+            title={t('settings.tool.websearch.compression.rag.document_count.tooltip')}
+            placement="top"
+            iconSize={16}
+            iconColor="var(--color-icon)"
+            iconStyle={{ marginLeft: 5, cursor: 'pointer' }}
+          />
         </SettingRowTitle>
         <div style={{ width: INPUT_BOX_WIDTH }}>
           <Slider

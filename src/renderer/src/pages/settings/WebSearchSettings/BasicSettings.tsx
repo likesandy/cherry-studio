@@ -30,7 +30,13 @@ const BasicSettings: FC = () => {
           <SettingRowTitle style={{ minWidth: 120 }}>
             {t('settings.tool.websearch.search_max_result.label')}
             {maxResults > 20 && compressionConfig?.method === 'none' && (
-              <InfoTooltip placement="top" title={t('settings.tool.websearch.search_max_result.tooltip')} iconSize={16} iconColor="var(--color-icon)" iconStyle={{ marginLeft: 5, cursor: 'pointer' }} />
+              <InfoTooltip
+                placement="top"
+                title={t('settings.tool.websearch.search_max_result.tooltip')}
+                iconSize={16}
+                iconColor="var(--color-icon)"
+                iconStyle={{ marginLeft: 5, cursor: 'pointer' }}
+              />
             )}
           </SettingRowTitle>
           <Slider

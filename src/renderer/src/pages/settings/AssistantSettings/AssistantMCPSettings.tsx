@@ -1,6 +1,6 @@
 import { Box } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
-import { InfoTooltip } from "@cherrystudio/ui"
+import { InfoTooltip } from '@cherrystudio/ui'
 import { Tooltip } from '@cherrystudio/ui'
 import { useMCPServers } from '@renderer/hooks/useMCPServers'
 import type { Assistant, AssistantSettings } from '@renderer/types'
@@ -122,7 +122,6 @@ const HeaderContainer = styled.div`
   align-items: center;
   margin-bottom: 16px;
 `
-
 
 const EnabledCount = styled.span`
   font-size: 12px;

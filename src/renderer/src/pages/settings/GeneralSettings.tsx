@@ -1,4 +1,4 @@
-import { InfoTooltip, RowFlex } from "@cherrystudio/ui";
+import { InfoTooltip, RowFlex } from '@cherrystudio/ui'
 import { Flex } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
 import { useMultiplePreferences, usePreference } from '@data/hooks/usePreference'

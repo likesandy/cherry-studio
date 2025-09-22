@@ -615,7 +615,6 @@ const RadioButton = styled(Radio.Button)`
   align-items: center;
 `
 
-
 const SliderContainer = styled.div`
   display: flex;
   align-items: center;

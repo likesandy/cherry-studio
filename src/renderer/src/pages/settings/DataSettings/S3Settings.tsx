@@ -1,5 +1,5 @@
 import { FolderOpenOutlined, SaveOutlined, SyncOutlined } from '@ant-design/icons'
-import { InfoTooltip, RowFlex, WarnTooltip } from "@cherrystudio/ui";
+import { InfoTooltip, RowFlex, WarnTooltip } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { S3BackupManager } from '@renderer/components/S3BackupManager'
@@ -65,7 +65,10 @@ const S3Settings: FC = () => {
       <RowFlex className="items-center gap-[5px]">
         {s3Sync?.syncing && <SyncOutlined spin />}
         {!s3Sync?.syncing && s3Sync?.lastSyncError && (
-          <WarnTooltip title={t('settings.data.s3.syncStatus.error', { message: s3Sync.lastSyncError })} iconColor="red" />
+          <WarnTooltip
+            title={t('settings.data.s3.syncStatus.error', { message: s3Sync.lastSyncError })}
+            iconColor="red"
+          />
         )}
         {s3Sync?.lastSyncTime && (
           <span style={{ color: 'var(--text-secondary)' }}>

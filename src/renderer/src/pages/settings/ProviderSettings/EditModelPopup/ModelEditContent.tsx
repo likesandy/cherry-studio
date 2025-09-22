@@ -1,6 +1,6 @@
 import { Flex } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
-import { WarnTooltip } from "@cherrystudio/ui"
+import { WarnTooltip } from '@cherrystudio/ui'
 import { Tooltip } from '@cherrystudio/ui'
 import CopyIcon from '@renderer/components/Icons/CopyIcon'
 import {
