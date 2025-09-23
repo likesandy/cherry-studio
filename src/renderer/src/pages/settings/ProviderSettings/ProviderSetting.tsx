@@ -332,7 +332,7 @@ const ProviderSetting: FC<Props> = ({ providerId }) => {
             />
             <Button
               color={isApiKeyConnectable ? 'primary' : undefined}
-              ghost={isApiKeyConnectable}
+              variant={isApiKeyConnectable ? 'ghost' : undefined}
               onPress={onCheckApi}
               startContent={
                 apiKeyConnectivity.checking ? (

@@ -285,9 +285,9 @@ export function S3BackupManager({ visible, onClose, s3Config, restoreMethod }: S
         dataSource={backupFiles}
         rowSelection={rowSelection}
         pagination={pagination}
-        isLoading={loading}
+        loading={loading}
         onChange={handleTableChange}
-        size="md"
+        size="middle"
       />
     </Modal>
   )
