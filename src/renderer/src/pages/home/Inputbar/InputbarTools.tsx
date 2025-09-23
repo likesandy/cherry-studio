@@ -42,10 +42,16 @@ interface ToolButtonConfig {
   visible?: boolean
   label?: string
   icon?: React.ReactNode
+  tool?: ToolDefinition
 }
 
 const DraggablePortal = ({ children, isDragging }: { children: React.ReactNode; isDragging: boolean }) => {
   return isDragging ? createPortal(children, document.body) : children
+}
+
+// Component to render tool buttons outside of useMemo
+const ToolButton = ({ tool, context }: { tool: ToolDefinition; context: ToolRenderContext }) => {
+  return <>{tool.render(context)}</>
 }
 
 const InputbarTools = ({ scope, assistantId }: InputbarToolsNewProps) => {
@@ -115,10 +121,11 @@ const InputbarTools = ({ scope, assistantId }: InputbarToolsNewProps) => {
     return availableTools.map((tool) => ({
       key: tool.key,
       label: typeof tool.label === 'function' ? tool.label(t) : tool.label,
-      component: tool.render(buildRenderContext(tool)),
-      condition: true // Already filtered by getToolsForScope
+      component: null, // Will be rendered later
+      condition: true, // Already filtered by getToolsForScope
+      tool // Store the tool definition for later rendering
     }))
-  }, [availableTools, buildRenderContext, t])
+  }, [availableTools, t])
 
   const visibleTools = useMemo(() => {
     return toolOrder.visible
@@ -253,7 +260,11 @@ const InputbarTools = ({ scope, assistantId }: InputbarToolsNewProps) => {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           style={provided.draggableProps.style}>
-                          {tool.component}
+                          {tool.tool ? (
+                            <ToolButton tool={tool.tool} context={buildRenderContext(tool.tool)} />
+                          ) : (
+                            tool.component
+                          )}
                         </ToolWrapper>
                       </DraggablePortal>
                     )}
@@ -284,7 +295,11 @@ const InputbarTools = ({ scope, assistantId }: InputbarToolsNewProps) => {
                             ...provided.draggableProps.style,
                             transitionDelay: `${index * 0.02}s`
                           }}>
-                          {tool.component}
+                          {tool.tool ? (
+                            <ToolButton tool={tool.tool} context={buildRenderContext(tool.tool)} />
+                          ) : (
+                            tool.component
+                          )}
                         </ToolWrapper>
                       </DraggablePortal>
                     )}

@@ -1,5 +1,3 @@
-import '@renderer/pages/home/Inputbar/tools'
-
 import { HolderOutlined } from '@ant-design/icons'
 import { loggerService } from '@logger'
 import { ActionIconButton } from '@renderer/components/Buttons'
