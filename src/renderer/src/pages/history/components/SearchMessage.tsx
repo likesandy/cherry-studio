@@ -7,7 +7,7 @@ import NavigationService from '@renderer/services/NavigationService'
 import type { Topic } from '@renderer/types'
 import type { Message } from '@renderer/types/newMessage'
 import { runAsyncFunction } from '@renderer/utils'
-import { Button } from 'antd'
+import { Button } from '@cherrystudio/ui'
 import { Forward } from 'lucide-react'
 import type { FC } from 'react'
 import { useEffect, useState } from 'react'
@@ -46,14 +46,14 @@ const SearchMessage: FC<Props> = ({ message, ...props }) => {
         <ContainerWrapper>
           <MessageItem message={message} topic={topic} hideMenuBar={true} />
           <Button
-            type="text"
-            size="middle"
-            style={{ color: 'var(--color-text-3)', position: 'absolute', right: 16, top: 16 }}
-            onClick={() => locateToMessage(navigate, message)}
-            icon={<Forward size={16} />}
+            variant="light"
+            size="md"
+            className="text-[var(--color-text-3)] absolute right-4 top-4"
+            onPress={() => locateToMessage(navigate, message)}
+            startContent={<Forward size={16} />}
           />
           <RowFlex className="mt-[10px] justify-center">
-            <Button onClick={() => locateToMessage(navigate, message)} icon={<Forward size={16} />}>
+            <Button onPress={() => locateToMessage(navigate, message)} startContent={<Forward size={16} />}>
               {t('history.locate.message')}
             </Button>
           </RowFlex>
