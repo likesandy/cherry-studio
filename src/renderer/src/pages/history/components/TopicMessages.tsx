@@ -13,7 +13,8 @@ import { locateToMessage } from '@renderer/services/MessagesService'
 import NavigationService from '@renderer/services/NavigationService'
 import type { Topic } from '@renderer/types'
 import { classNames, runAsyncFunction } from '@renderer/utils'
-import { Button, Divider, Empty } from 'antd'
+import { Button } from '@cherrystudio/ui'
+import { Divider, Empty } from 'antd'
 import { t } from 'i18next'
 import { Forward } from 'lucide-react'
 import type { FC } from 'react'
@@ -64,11 +65,11 @@ const TopicMessages: FC<Props> = ({ topic: _topic, ...props }) => {
             <MessageWrapper key={message.id} className={classNames([messageStyle, message.role])}>
               <MessageItem message={message} topic={topic} hideMenuBar={true} />
               <Button
-                type="text"
-                size="middle"
-                style={{ color: 'var(--color-text-3)', position: 'absolute', right: 0, top: 5 }}
-                onClick={() => locateToMessage(navigate, message)}
-                icon={<Forward size={16} />}
+                variant="light"
+                size="md"
+                className="text-[var(--color-text-3)] absolute right-0 top-[5px]"
+                onPress={() => locateToMessage(navigate, message)}
+                startContent={<Forward size={16} />}
               />
               <Divider style={{ margin: '8px auto 15px' }} variant="dashed" />
             </MessageWrapper>
@@ -76,7 +77,7 @@ const TopicMessages: FC<Props> = ({ topic: _topic, ...props }) => {
           {isEmpty && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
           {!isEmpty && (
             <RowFlex className="justify-center">
-              <Button onClick={() => onContinueChat(topic)} icon={<MessageOutlined />}>
+              <Button onPress={() => onContinueChat(topic)} startContent={<MessageOutlined />}>
                 {t('history.continue_chat')}
               </Button>
             </RowFlex>
