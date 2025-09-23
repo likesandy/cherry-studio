@@ -50,9 +50,21 @@ const DraggablePortal = ({ children, isDragging }: { children: React.ReactNode; 
 }
 
 // Component to render tool buttons outside of useMemo
-const ToolButton = ({ tool, context }: { tool: ToolDefinition; context: ToolRenderContext }) => {
-  return <>{tool.render(context)}</>
-}
+const ToolButton = React.memo(
+  ({
+    tool,
+    context
+  }: {
+    tool: ToolDefinition
+    context: ToolRenderContext<readonly ToolStateKey[], readonly ToolActionKey[]>
+  }) => {
+    return <>{tool.render(context)}</>
+  },
+  (prevProps, nextProps) => {
+    // Only re-render if tool key changes
+    return prevProps.tool.key === nextProps.tool.key
+  }
+)
 
 const InputbarTools = ({ scope, assistantId }: InputbarToolsNewProps) => {
   const { t } = useTranslation()

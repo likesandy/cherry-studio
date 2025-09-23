@@ -87,16 +87,23 @@ export const InputbarToolsProvider: React.FC<InputbarToolsProviderProps> = ({ ch
   // Quick panel menu registry
   const rootMenuRegistryRef = useRef(new Map<string, QuickPanelListItem[]>())
   const [quickPanelRootMenu, setQuickPanelRootMenu] = useState<QuickPanelListItem[]>([])
+  const [menuVersion, setMenuVersion] = useState(0)
 
   const registerQuickPanelRootMenu = useCallback((toolKey: string, entries: QuickPanelListItem[]) => {
     rootMenuRegistryRef.current.set(toolKey, entries)
-    setQuickPanelRootMenu(Array.from(rootMenuRegistryRef.current.values()).flat())
+    setMenuVersion((v) => v + 1) // Trigger effect to update menu
 
     return () => {
       rootMenuRegistryRef.current.delete(toolKey)
-      setQuickPanelRootMenu(Array.from(rootMenuRegistryRef.current.values()).flat())
+      setMenuVersion((v) => v + 1) // Trigger effect to update menu
     }
   }, [])
+
+  // Update menu when registry changes
+  useEffect(() => {
+    const newMenu = Array.from(rootMenuRegistryRef.current.values()).flat()
+    setQuickPanelRootMenu(newMenu)
+  }, [menuVersion])
 
   // Quick panel trigger registry
   const triggerRegistryRef = useRef(new Map<QuickPanelReservedSymbol, Map<string, QuickPanelTriggerHandler>>())
