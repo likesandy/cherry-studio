@@ -1,5 +1,6 @@
 import { MessageOutlined } from '@ant-design/icons'
 import { RowFlex } from '@cherrystudio/ui'
+import { Button } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import SearchPopup from '@renderer/components/Popups/SearchPopup'
 import { MessageEditingProvider } from '@renderer/context/MessageEditingContext'
@@ -13,7 +14,6 @@ import { locateToMessage } from '@renderer/services/MessagesService'
 import NavigationService from '@renderer/services/NavigationService'
 import type { Topic } from '@renderer/types'
 import { classNames, runAsyncFunction } from '@renderer/utils'
-import { Button } from '@cherrystudio/ui'
 import { Divider, Empty } from 'antd'
 import { t } from 'i18next'
 import { Forward } from 'lucide-react'
@@ -67,7 +67,7 @@ const TopicMessages: FC<Props> = ({ topic: _topic, ...props }) => {
               <Button
                 variant="light"
                 size="md"
-                className="text-[var(--color-text-3)] absolute right-0 top-[5px]"
+                className="absolute top-[5px] right-0 text-[var(--color-text-3)]"
                 onPress={() => locateToMessage(navigate, message)}
                 startContent={<Forward size={16} />}
               />

@@ -6,10 +6,10 @@ import {
   VerticalAlignBottomOutlined,
   VerticalAlignTopOutlined
 } from '@ant-design/icons'
-import { usePreference } from '@data/hooks/usePreference'
-import type { RootState } from '@renderer/store'
 // import { selectCurrentTopicId } from '@renderer/store/newMessage'
 import { Button } from '@cherrystudio/ui'
+import { usePreference } from '@data/hooks/usePreference'
+import type { RootState } from '@renderer/store'
 import { Drawer, Tooltip } from 'antd'
 import type { FC } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'

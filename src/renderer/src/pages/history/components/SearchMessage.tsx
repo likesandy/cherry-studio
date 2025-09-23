@@ -1,4 +1,5 @@
 import { RowFlex } from '@cherrystudio/ui'
+import { Button } from '@cherrystudio/ui'
 import { MessageEditingProvider } from '@renderer/context/MessageEditingContext'
 import { getTopicById } from '@renderer/hooks/useTopic'
 import { default as MessageItem } from '@renderer/pages/home/Messages/Message'
@@ -7,7 +8,6 @@ import NavigationService from '@renderer/services/NavigationService'
 import type { Topic } from '@renderer/types'
 import type { Message } from '@renderer/types/newMessage'
 import { runAsyncFunction } from '@renderer/utils'
-import { Button } from '@cherrystudio/ui'
 import { Forward } from 'lucide-react'
 import type { FC } from 'react'
 import { useEffect, useState } from 'react'
@@ -48,7 +48,7 @@ const SearchMessage: FC<Props> = ({ message, ...props }) => {
           <Button
             variant="light"
             size="md"
-            className="text-[var(--color-text-3)] absolute right-4 top-4"
+            className="absolute top-4 right-4 text-[var(--color-text-3)]"
             onPress={() => locateToMessage(navigate, message)}
             startContent={<Forward size={16} />}
           />
