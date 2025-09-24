@@ -6,7 +6,8 @@ import { useKnowledge } from '@renderer/hooks/useKnowledge'
 import { NavbarIcon } from '@renderer/pages/home/ChatNavbar'
 import { getProviderName } from '@renderer/services/ProviderService'
 import type { KnowledgeBase } from '@renderer/types'
-import { Button, Empty, Tabs, Tag, Tooltip } from 'antd'
+import { Button } from '@cherrystudio/ui'
+import { Empty, Tabs, Tag, Tooltip } from 'antd'
 import { Book, Folder, Globe, Link, Notebook, Search, Settings, Video } from 'lucide-react'
 import type { FC } from 'react'
 import { useEffect, useState } from 'react'
@@ -144,12 +145,9 @@ const KnowledgeContent: FC<KnowledgeContentProps> = ({ selectedBase }) => {
     <MainContainer>
       <HeaderContainer>
         <ModelInfo>
-          <Button
-            type="text"
-            icon={<Settings size={18} color="var(--color-icon)" />}
-            onClick={() => EditKnowledgeBasePopup.show({ base })}
-            size="small"
-          />
+          <Button variant="light" isIconOnly onPress={() => EditKnowledgeBasePopup.show({ base })} size="sm">
+            <Settings size={18} color="var(--color-icon)" />
+          </Button>
           <div className="model-row">
             <div className="label-column">
               <label>{t('models.embedding_model')}</label>
@@ -339,7 +337,7 @@ export const FlexAlignCenter = styled.div`
 
 export const ResponsiveButton = styled(Button)`
   @media (max-width: 1080px) {
-    .ant-btn-icon + span {
+    [data-slot="icon"] + [data-slot="label"] {
       display: none;
     }
   }
