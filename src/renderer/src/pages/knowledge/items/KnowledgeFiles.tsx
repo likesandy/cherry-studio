@@ -10,7 +10,8 @@ import type { FileMetadata, FileTypes, KnowledgeBase, KnowledgeItem } from '@ren
 import { isKnowledgeFileItem } from '@renderer/types'
 import { formatFileSize, uuid } from '@renderer/utils'
 import { bookExts, documentExts, textExts, thirdPartyApplicationExts } from '@shared/config/constant'
-import { Button, Tooltip, Upload } from 'antd'
+import { Button } from '@cherrystudio/ui'
+import { Tooltip, Upload } from 'antd'
 import dayjs from 'dayjs'
 import type { FC } from 'react'
 import { useCallback, useEffect, useState } from 'react'
@@ -142,13 +143,11 @@ const KnowledgeFiles: FC<KnowledgeContentProps> = ({ selectedBase, progressMap, 
     <ItemContainer>
       <ItemHeader>
         <ResponsiveButton
-          type="primary"
-          icon={<PlusIcon size={16} />}
-          onClick={(e) => {
-            e.stopPropagation()
-            handleAddFile()
-          }}
-          disabled={disabled}>
+          variant="solid"
+          color="primary"
+          startContent={<PlusIcon size={16} />}
+          onPress={handleAddFile}
+          isDisabled={disabled}>
           {t('knowledge.add_file')}
         </ResponsiveButton>
       </ItemHeader>
@@ -202,7 +201,9 @@ const KnowledgeFiles: FC<KnowledgeContentProps> = ({ selectedBase, progressMap, 
                       actions: (
                         <FlexAlignCenter>
                           {item.uniqueId && (
-                            <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />
+                            <Button variant="light" isIconOnly onPress={() => refreshItem(item)}>
+                              <RefreshIcon />
+                            </Button>
                           )}
                           {showPreprocessIcon(item) && (
                             <StatusIconWrapper>
@@ -224,12 +225,9 @@ const KnowledgeFiles: FC<KnowledgeContentProps> = ({ selectedBase, progressMap, 
                               type="file"
                             />
                           </StatusIconWrapper>
-                          <Button
-                            type="text"
-                            danger
-                            onClick={() => removeItem(item)}
-                            icon={<DeleteIcon size={14} className="lucide-custom" />}
-                          />
+                          <Button variant="light" color="danger" isIconOnly onPress={() => removeItem(item)}>
+                            <DeleteIcon size={14} className="lucide-custom" />
+                          </Button>
                         </FlexAlignCenter>
                       )
                     }}
