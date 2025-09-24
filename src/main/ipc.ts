@@ -6,7 +6,7 @@ import { PreferenceService } from '@data/PreferenceService'
 import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
 import { isLinux, isMac, isPortable, isWin } from '@main/constant'
-import { generateSignature } from '@main/integration/cherryin'
+import { generateSignature } from '@main/integration/cherryai'
 import anthropicService from '@main/services/AnthropicService'
 import { getBinaryPath, isBinaryExists, runInstallScript } from '@main/utils/process'
 import { handleZoomFactor } from '@main/utils/zoom'
@@ -129,6 +129,7 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   })
 
   ipcMain.handle(IpcChannel.App_Reload, () => mainWindow.reload())
+  ipcMain.handle(IpcChannel.App_Quit, () => app.quit())
   ipcMain.handle(IpcChannel.Open_Website, (_, url: string) => shell.openExternal(url))
 
   // Update
@@ -841,8 +842,8 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
     ocrService.ocr(file, provider)
   )
 
-  // CherryIN
-  ipcMain.handle(IpcChannel.Cherryin_GetSignature, (_, params) => generateSignature(params))
+  // CherryAI
+  ipcMain.handle(IpcChannel.Cherryai_GetSignature, (_, params) => generateSignature(params))
 
   // Preference handlers
   PreferenceService.registerIpcHandler()
