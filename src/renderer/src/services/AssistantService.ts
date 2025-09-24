@@ -7,7 +7,10 @@ import {
   MAX_CONTEXT_COUNT,
   UNLIMITED_CONTEXT_COUNT
 } from '@renderer/config/constant'
+import { isQwenMTModel } from '@renderer/config/models'
+import { CHERRYAI_PROVIDER } from '@renderer/config/providers'
 import { UNKNOWN } from '@renderer/config/translate'
+import { getStoreProviders } from '@renderer/hooks/useStore'
 import i18n from '@renderer/i18n'
 import store from '@renderer/store'
 import { addAssistant } from '@renderer/store/assistants'
@@ -73,11 +76,20 @@ export async function getDefaultTranslateAssistant(
     temperature: 0.7
   }
 
-  const translateModelPrompt = await preferenceService.get('feature.translate.model_prompt')
-  const content = translateModelPrompt
-    .replaceAll('{{target_language}}', targetLanguage.value)
-    .replaceAll('{{text}}', text)
+  const getTranslateContent = async (
+    model: Model,
+    text: string,
+    targetLanguage: TranslateLanguage
+  ): Promise<string> => {
+    if (isQwenMTModel(model)) {
+      return text // QwenMT models handle raw text directly
+    }
 
+    const translateModelPrompt = await preferenceService.get('feature.translate.model_prompt')
+    return translateModelPrompt.replaceAll('{{target_language}}', targetLanguage.value).replaceAll('{{text}}', text)
+  }
+
+  const content = await getTranslateContent(model, text, targetLanguage)
   const translateAssistant = {
     ...assistant,
     model,
@@ -122,26 +134,25 @@ export function getTranslateModel() {
 }
 
 export function getAssistantProvider(assistant: Assistant): Provider {
-  const providers = store.getState().llm.providers
+  const providers = getStoreProviders()
   const provider = providers.find((p) => p.id === assistant.model?.provider)
   return provider || getDefaultProvider()
 }
 
 export function getProviderByModel(model?: Model): Provider {
-  const providers = store.getState().llm.providers
+  const providers = getStoreProviders()
   const provider = providers.find((p) => p.id === model?.provider)
 
   if (!provider) {
     const defaultProvider = providers.find((p) => p.id === getDefaultModel()?.provider)
-    const cherryinProvider = providers.find((p) => p.id === 'cherryin')
-    return defaultProvider || cherryinProvider || providers[0]
+    return defaultProvider || CHERRYAI_PROVIDER || providers[0]
   }
 
   return provider
 }
 
 export function getProviderByModelId(modelId?: string) {
-  const providers = store.getState().llm.providers
+  const providers = getStoreProviders()
   const _modelId = modelId || getDefaultModel().id
   return providers.find((p) => p.models.find((m) => m.id === _modelId)) as Provider
 }

@@ -1,6 +1,7 @@
 import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
 import { isWin } from '@main/constant'
+import { configManager } from '@main/services/ConfigManager'
 import { getIpCountry } from '@main/utils/ipService'
 import { getI18n } from '@main/utils/language'
 import { generateUserAgent } from '@main/utils/systemInfo'
@@ -34,7 +35,8 @@ export default class AppUpdater {
     autoUpdater.autoInstallOnAppQuit = preferenceService.get('app.dist.auto_update.enabled')
     autoUpdater.requestHeaders = {
       ...autoUpdater.requestHeaders,
-      'User-Agent': generateUserAgent()
+      'User-Agent': generateUserAgent(),
+      'X-Client-Id': configManager.getClientId()
     }
 
     autoUpdater.on('error', (error) => {

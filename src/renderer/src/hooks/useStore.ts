@@ -1,6 +1,7 @@
-//FIXME 这个文件有必要存在吗？ fullex@data refactor
-
+//FIXME @deprecated this file will be removed after data refactor
 import { usePreference } from '@data/hooks/usePreference'
+import { CHERRYAI_PROVIDER } from '@renderer/config/providers'
+import store from '@renderer/store'
 
 export function useShowAssistants() {
   const [showAssistants, setShowAssistants] = usePreference('assistant.tab.show')
@@ -29,4 +30,8 @@ export function useAssistantsTabSortType() {
     assistantsTabSortType,
     setAssistantsTabSortType
   }
+}
+
+export function getStoreProviders() {
+  return store.getState().llm.providers.concat([CHERRYAI_PROVIDER])
 }
