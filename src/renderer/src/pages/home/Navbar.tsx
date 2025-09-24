@@ -2,7 +2,7 @@ import { RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { Navbar, NavbarLeft, NavbarRight } from '@renderer/components/app/Navbar'
 import SearchPopup from '@renderer/components/Popups/SearchPopup'
-import { isLinux, isWin } from '@renderer/config/constant'
+import { isLinux, isMac, isWin } from '@renderer/config/constant'
 import { useAssistant } from '@renderer/hooks/useAssistant'
 import { modelGenerating } from '@renderer/hooks/useModel'
 import { useShortcut } from '@renderer/hooks/useShortcuts'
@@ -84,7 +84,14 @@ const HeaderNavbar: FC<Props> = ({ activeAssistant, setActiveAssistant, activeTo
         )}
       </AnimatePresence>
       {!showAssistants && (
-        <NavbarLeft style={{ justifyContent: 'flex-start', borderRight: 'none', padding: '0 10px', minWidth: 'auto' }}>
+        <NavbarLeft
+          style={{
+            justifyContent: 'flex-start',
+            borderRight: 'none',
+            paddingLeft: 0,
+            paddingRight: 10,
+            minWidth: 'auto'
+          }}>
           <Tooltip title={t('navbar.show_sidebar')} mouseEnterDelay={0.8}>
             <NavbarIcon onClick={() => toggleShowAssistants()}>
               <PanelRightClose size={18} />
@@ -104,7 +111,7 @@ const HeaderNavbar: FC<Props> = ({ activeAssistant, setActiveAssistant, activeTo
           </AnimatePresence>
         </NavbarLeft>
       )}
-      <RowFlex className="items-center gap-1.5">
+      <RowFlex className="items-center gap-1.5" style={{ marginLeft: !isMac ? 16 : 0 }}>
         <SelectModelButton assistant={assistant} />
       </RowFlex>
       <NavbarRight
@@ -112,7 +119,7 @@ const HeaderNavbar: FC<Props> = ({ activeAssistant, setActiveAssistant, activeTo
           justifyContent: 'flex-end',
           flex: 1,
           position: 'relative',
-          paddingRight: isWin || isLinux ? '144px' : '6px'
+          paddingRight: isWin || isLinux ? '144px' : '15px'
         }}
         className="home-navbar-right">
         <RowFlex className="items-center gap-1.5">

@@ -1,6 +1,7 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
 import { RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
+import { AppLogo } from '@renderer/config/env'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { Button, Space, Tooltip } from 'antd'
@@ -13,7 +14,7 @@ import { SettingDivider, SettingGroup, SettingRow, SettingRowTitle, SettingTitle
 const YuqueSettings: FC = () => {
   const { t } = useTranslation()
   const { theme } = useTheme()
-  const { openMinapp } = useMinappPopup()
+  const { openSmartMinapp } = useMinappPopup()
 
   const [yuqueToken, setYuqueToken] = usePreference('data.integration.yuque.token')
   const [yuqueUrl, setYuqueUrl] = usePreference('data.integration.yuque.url')
@@ -63,10 +64,11 @@ const YuqueSettings: FC = () => {
   }
 
   const handleYuqueHelpClick = () => {
-    openMinapp({
+    openSmartMinapp({
       id: 'yuque-help',
       name: 'Yuque Help',
-      url: 'https://www.yuque.com/settings/tokens'
+      url: 'https://www.yuque.com/settings/tokens',
+      logo: AppLogo
     })
   }
 

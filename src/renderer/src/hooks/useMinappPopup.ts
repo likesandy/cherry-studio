@@ -1,11 +1,14 @@
 import { usePreference } from '@data/hooks/usePreference'
 import { DEFAULT_MIN_APPS } from '@renderer/config/minapps'
 import { useMinapps } from '@renderer/hooks/useMinapps'
+import NavigationService from '@renderer/services/NavigationService'
 import TabsService from '@renderer/services/TabsService'
 import type { MinAppType } from '@renderer/types'
 import { clearWebviewState } from '@renderer/utils/webviewStateManager'
 import { LRUCache } from 'lru-cache'
 import { useCallback } from 'react'
+
+import { useNavbarPosition } from './useNavbar'
 
 let minAppsCache: LRUCache<string, MinAppType>
 
@@ -34,6 +37,7 @@ export const useMinappPopup = () => {
     setMinappShow
   } = useMinapps()
   const [maxKeepAliveMinapps] = usePreference('feature.minapp.max_keep_alive')
+  const { isTopNavbar } = useNavbarPosition()
 
   const createLRUCache = useCallback(() => {
     return new LRUCache<string, MinAppType>({
@@ -165,6 +169,33 @@ export const useMinappPopup = () => {
     setMinappShow(false)
   }, [minappShow, openedOneOffMinapp, setOpenedOneOffMinapp, setCurrentMinappId, setMinappShow])
 
+  /** Smart open minapp that adapts to navbar position */
+  const openSmartMinapp = useCallback(
+    (config: MinAppType, keepAlive: boolean = false) => {
+      if (isTopNavbar) {
+        // For top navbar mode, need to add to cache first for temporary apps
+        const cacheApp = minAppsCache.get(config.id)
+        if (!cacheApp) {
+          // Add temporary app to cache so MinAppPage can find it
+          minAppsCache.set(config.id, config)
+        }
+
+        // Set current minapp and show state
+        setCurrentMinappId(config.id)
+        setMinappShow(true)
+
+        // Then navigate to the app tab using NavigationService
+        if (NavigationService.navigate) {
+          NavigationService.navigate(`/apps/${config.id}`)
+        }
+      } else {
+        // For side navbar, use the traditional popup system
+        openMinapp(config, keepAlive)
+      }
+    },
+    [isTopNavbar, openMinapp, setCurrentMinappId, setMinappShow]
+  )
+
   return {
     openMinapp,
     openMinappKeepAlive,
@@ -172,6 +203,7 @@ export const useMinappPopup = () => {
     closeMinapp,
     hideMinappPopup,
     closeAllMinapps,
+    openSmartMinapp,
     // Expose cache instance for TabsService integration
     minAppsCache
   }

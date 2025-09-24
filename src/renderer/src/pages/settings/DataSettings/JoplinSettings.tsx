@@ -2,6 +2,7 @@ import { InfoCircleOutlined } from '@ant-design/icons'
 import { RowFlex } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
+import { AppLogo } from '@renderer/config/env'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { Button, Space, Tooltip } from 'antd'
@@ -18,7 +19,7 @@ const JoplinSettings: FC = () => {
 
   const { t } = useTranslation()
   const { theme } = useTheme()
-  const { openMinapp } = useMinappPopup()
+  const { openSmartMinapp } = useMinappPopup()
 
   const handleJoplinTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setJoplinToken(e.target.value)
@@ -64,10 +65,11 @@ const JoplinSettings: FC = () => {
   }
 
   const handleJoplinHelpClick = () => {
-    openMinapp({
+    openSmartMinapp({
       id: 'joplin-help',
       name: 'Joplin Help',
-      url: 'https://joplinapp.org/help/apps/clipper'
+      url: 'https://joplinapp.org/help/apps/clipper',
+      logo: AppLogo
     })
   }
 

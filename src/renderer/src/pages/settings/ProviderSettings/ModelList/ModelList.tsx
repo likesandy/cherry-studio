@@ -3,7 +3,7 @@ import { Flex } from '@cherrystudio/ui'
 import CollapsibleSearchBar from '@renderer/components/CollapsibleSearchBar'
 import { LoadingIcon, StreamlineGoodHealthAndWellBeing } from '@renderer/components/Icons'
 import CustomTag from '@renderer/components/Tags/CustomTag'
-import { PROVIDER_URLS } from '@renderer/config/providers'
+import { isNewApiProvider, PROVIDER_URLS } from '@renderer/config/providers'
 import { useProvider } from '@renderer/hooks/useProvider'
 import { getProviderLabel } from '@renderer/i18n/label'
 import { SettingHelpLink, SettingHelpText, SettingHelpTextRow, SettingSubtitle } from '@renderer/pages/settings'
@@ -87,7 +87,7 @@ const ModelList: React.FC<ModelListProps> = ({ providerId }) => {
   }, [provider.id])
 
   const onAddModel = useCallback(() => {
-    if (provider.id === 'new-api') {
+    if (isNewApiProvider(provider)) {
       NewApiAddModelPopup.show({ title: t('settings.models.add.add_model'), provider })
     } else {
       AddModelPopup.show({ title: t('settings.models.add.add_model'), provider })

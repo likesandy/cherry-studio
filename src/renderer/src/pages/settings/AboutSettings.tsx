@@ -16,7 +16,7 @@ import { UpgradeChannel } from '@shared/data/preference/preferenceTypes'
 import { ThemeMode } from '@shared/data/preference/preferenceTypes'
 import { Avatar, Button, Progress, Radio, Row, Tag, Tooltip } from 'antd'
 import { debounce } from 'lodash'
-import { Bug, FileCheck, Github, Globe, Mail, Rss } from 'lucide-react'
+import { Bug, FileCheck, Globe, Mail, Rss } from 'lucide-react'
 import { BadgeQuestionMark } from 'lucide-react'
 import type { FC } from 'react'
 import { useEffect, useState } from 'react'
@@ -38,7 +38,7 @@ const AboutSettings: FC = () => {
   const { theme } = useTheme()
   // const dispatch = useAppDispatch()
   // const { update } = useRuntime()
-  const { openMinapp } = useMinappPopup()
+  const { openSmartMinapp } = useMinappPopup()
 
   const { appUpdateState, updateAppUpdateState } = useAppUpdateState()
 
@@ -87,7 +87,7 @@ const AboutSettings: FC = () => {
 
   const showLicense = async () => {
     const { appPath } = await window.api.getAppInfo()
-    openMinapp({
+    openSmartMinapp({
       id: 'cherrystudio-license',
       name: t('settings.about.license.title'),
       url: `file://${appPath}/resources/cherry-studio/license.html`,
@@ -97,7 +97,7 @@ const AboutSettings: FC = () => {
 
   const showReleases = async () => {
     const { appPath } = await window.api.getAppInfo()
-    openMinapp({
+    openSmartMinapp({
       id: 'cherrystudio-releases',
       name: t('settings.about.releases.title'),
       url: `file://${appPath}/resources/cherry-studio/releases.html?theme=${theme === ThemeMode.dark ? 'dark' : 'light'}`,
@@ -313,7 +313,7 @@ const AboutSettings: FC = () => {
         <SettingDivider />
         <SettingRow>
           <SettingRowTitle>
-            <Github size={18} />
+            <GithubOutlined size={18} />
             {t('settings.about.feedback.title')}
           </SettingRowTitle>
           <Button onClick={() => onOpenWebsite('https://github.com/CherryHQ/cherry-studio/issues/new/choose')}>
