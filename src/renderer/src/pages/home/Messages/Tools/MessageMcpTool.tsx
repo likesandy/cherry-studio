@@ -10,7 +10,8 @@ import { isToolAutoApproved } from '@renderer/utils/mcp-tools'
 import { cancelToolAction, confirmToolAction } from '@renderer/utils/userConfirmation'
 import type { MCPProgressEvent } from '@shared/config/types'
 import { IpcChannel } from '@shared/IpcChannel'
-import { Button, Collapse, ConfigProvider, Dropdown, Modal, Progress, Tabs, Tooltip } from 'antd'
+import { Button } from '@cherrystudio/ui'
+import { Collapse, ConfigProvider, Dropdown, Modal, Progress, Tabs, Tooltip } from 'antd'
 import {
   Check,
   ChevronDown,
@@ -399,26 +400,26 @@ const MessageMcpTool: FC<Props> = ({ block }) => {
                   {isWaitingConfirmation && (
                     <Button
                       color="danger"
-                      variant="filled"
-                      size="small"
-                      onClick={() => {
+                      variant="solid"
+                      size="sm"
+                      onPress={() => {
                         handleCancelTool()
-                      }}>
-                      <CircleX size={15} className="lucide-custom" />
+                      }}
+                      startContent={<CircleX size={15} className="lucide-custom" />}>
                       {t('common.cancel')}
                     </Button>
                   )}
                   {isExecuting && toolResponse?.id ? (
                     <Button
-                      size="small"
+                      size="sm"
                       color="danger"
                       variant="solid"
                       className="abort-button"
-                      onClick={(e) => {
+                      onPress={(e) => {
                         e.stopPropagation()
                         handleAbortTool()
-                      }}>
-                      <PauseCircle size={14} className="lucide-custom" />
+                      }}
+                      startContent={<PauseCircle size={14} className="lucide-custom" />}>
                       {t('chat.input.pause')}
                     </Button>
                   ) : (
