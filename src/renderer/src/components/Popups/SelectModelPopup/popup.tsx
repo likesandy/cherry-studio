@@ -1,6 +1,6 @@
 import { PushpinOutlined } from '@ant-design/icons'
+import { Flex } from '@cherrystudio/ui'
 import { FreeTrialModelTag } from '@renderer/components/FreeTrialModelTag'
-import { HStack } from '@renderer/components/Layout'
 import ModelTagsWithLabel from '@renderer/components/ModelTagsWithLabel'
 import { TopView } from '@renderer/components/TopView'
 import { DynamicVirtualList, type DynamicVirtualListRef } from '@renderer/components/VirtualList'
@@ -111,10 +111,10 @@ const PopupContainer: React.FC<Props> = ({ model, filter: baseFilter, showTagFil
         type: 'model',
         name: (
           <ModelName>
-            <HStack alignItems="center">
+            <Flex className="items-center">
               {model.name}
               {isPinned && <span style={{ color: 'var(--color-text-3)' }}> | {groupName}</span>}
-            </HStack>
+            </Flex>
             {isCherryAi && <FreeTrialModelTag model={model} showLabel={false} />}
           </ModelName>
         ),
