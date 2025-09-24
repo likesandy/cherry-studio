@@ -605,7 +605,14 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
 
       prevTextRef.current = newText
     },
-    [emitQuickPanelTrigger, features.enableMentionModels, quickPanel, setText]
+    [
+      config.enableQuickPanel,
+      emitQuickPanelTrigger,
+      enableQuickPanelTriggers,
+      features.enableMentionModels,
+      quickPanel,
+      setText
+    ]
   )
 
   const handleDragOver = useCallback(
