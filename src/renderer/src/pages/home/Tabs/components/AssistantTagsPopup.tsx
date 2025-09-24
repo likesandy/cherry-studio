@@ -4,7 +4,8 @@ import { DeleteIcon } from '@renderer/components/Icons'
 import { TopView } from '@renderer/components/TopView'
 import { useAssistants } from '@renderer/hooks/useAssistant'
 import { useTags } from '@renderer/hooks/useTags'
-import { Button, Empty, Modal } from 'antd'
+import { Button } from '@cherrystudio/ui'
+import { Empty, Modal } from 'antd'
 import { isEmpty } from 'lodash'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -93,14 +94,15 @@ const PopupContainer: React.FC<Props> = ({ title, resolve }) => {
                         <TagItem ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
                           <Box className="mr-2">{tag}</Box>
                           <Button
-                            type="text"
-                            icon={<DeleteIcon size={16} className="lucide-custom" />}
-                            danger
-                            onClick={(e) => {
+                            variant="light"
+                            color="danger"
+                            isIconOnly
+                            onPress={(e) => {
                               e.stopPropagation()
                               onDelete(tag)
-                            }}
-                          />
+                            }}>
+                            <DeleteIcon size={16} className="lucide-custom" />
+                          </Button>
                         </TagItem>
                       )}
                     </Draggable>
