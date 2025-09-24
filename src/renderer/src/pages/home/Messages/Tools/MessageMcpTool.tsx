@@ -1,4 +1,5 @@
 import { Flex } from '@cherrystudio/ui'
+import { Button } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import { CopyIcon, LoadingIcon } from '@renderer/components/Icons'
@@ -10,7 +11,6 @@ import { isToolAutoApproved } from '@renderer/utils/mcp-tools'
 import { cancelToolAction, confirmToolAction } from '@renderer/utils/userConfirmation'
 import type { MCPProgressEvent } from '@shared/config/types'
 import { IpcChannel } from '@shared/IpcChannel'
-import { Button } from '@cherrystudio/ui'
 import { Collapse, ConfigProvider, Dropdown, Modal, Progress, Tabs, Tooltip } from 'antd'
 import {
   Check,
@@ -415,8 +415,7 @@ const MessageMcpTool: FC<Props> = ({ block }) => {
                       color="danger"
                       variant="solid"
                       className="abort-button"
-                      onPress={(e) => {
-                        e.stopPropagation()
+                      onPress={() => {
                         handleAbortTool()
                       }}
                       startContent={<PauseCircle size={14} className="lucide-custom" />}>

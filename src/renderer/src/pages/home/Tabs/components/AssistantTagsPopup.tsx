@@ -1,10 +1,10 @@
 import { Box } from '@cherrystudio/ui'
+import { Button } from '@cherrystudio/ui'
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd'
 import { DeleteIcon } from '@renderer/components/Icons'
 import { TopView } from '@renderer/components/TopView'
 import { useAssistants } from '@renderer/hooks/useAssistant'
 import { useTags } from '@renderer/hooks/useTags'
-import { Button } from '@cherrystudio/ui'
 import { Empty, Modal } from 'antd'
 import { isEmpty } from 'lodash'
 import { useState } from 'react'
@@ -97,8 +97,7 @@ const PopupContainer: React.FC<Props> = ({ title, resolve }) => {
                             variant="light"
                             color="danger"
                             isIconOnly
-                            onPress={(e) => {
-                              e.stopPropagation()
+                            onPress={() => {
                               onDelete(tag)
                             }}>
                             <DeleteIcon size={16} className="lucide-custom" />
