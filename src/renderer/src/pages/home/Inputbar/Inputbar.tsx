@@ -49,7 +49,7 @@ import { IpcChannel } from '@shared/IpcChannel'
 import { Tooltip } from 'antd'
 import TextArea, { TextAreaRef } from 'antd/es/input/TextArea'
 import { debounce, isEmpty } from 'lodash'
-import { CirclePause, Languages } from 'lucide-react'
+import { CirclePause } from 'lucide-react'
 import React, { CSSProperties, FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -141,7 +141,6 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
     setIsExpanded,
     setCouldAddImageFile,
     setExtensions,
-    quickPanelRootMenu,
     emitQuickPanelTrigger
   } = useInputbarTools()
 
@@ -230,9 +229,24 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
     return []
   }, [canAddImageFile, canAddTextFile, features.enableAttachments])
 
+  const prevTextRef = useRef(text)
+
   useEffect(() => {
     setCouldAddImageFile(canAddImageFile)
   }, [canAddImageFile, setCouldAddImageFile])
+
+  useEffect(() => {
+    prevTextRef.current = text
+  }, [text])
+
+  const placeholderText = enableQuickPanelTriggers
+    ? t('chat.input.placeholder', { key: getSendMessageShortcutLabel(sendMessageShortcut) })
+    : t('chat.input.placeholder_without_triggers', {
+        key: getSendMessageShortcutLabel(sendMessageShortcut),
+        defaultValue: t('chat.input.placeholder', {
+          key: getSendMessageShortcutLabel(sendMessageShortcut)
+        })
+      })
 
   useEffect(() => {
     setExtensions(supportedExts)
@@ -371,27 +385,27 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
     }
   }, [config.showTokenCount, contextCount, estimateTokenCount, showInputEstimatedTokens])
 
-  const quickPanelRootMenuItems = useMemo(() => {
-    if (!config.enableQuickPanel) {
-      return []
-    }
+  // const quickPanelRootMenuItems = useMemo(() => {
+  //   if (!config.enableQuickPanel) {
+  //     return []
+  //   }
 
-    const baseMenu = [...quickPanelRootMenu]
+  //   const baseMenu = [...quickPanelRootMenu]
 
-    if (features.enableTranslate) {
-      baseMenu.push({
-        label: t('translate.title'),
-        description: t('translate.menu.description'),
-        icon: <Languages size={16} />,
-        action: () => {
-          if (!text) return
-          translate()
-        }
-      })
-    }
+  //   if (features.enableTranslate) {
+  //     baseMenu.push({
+  //       label: t('translate.title'),
+  //       description: t('translate.menu.description'),
+  //       icon: <Languages size={16} />,
+  //       action: () => {
+  //         if (!text) return
+  //         translate()
+  //       }
+  //     })
+  //   }
 
-    return baseMenu
-  }, [config.enableQuickPanel, features.enableTranslate, quickPanelRootMenu, t, text, translate])
+  //   return baseMenu
+  // }, [config.enableQuickPanel, features.enableTranslate, quickPanelRootMenu, t, text, translate])
 
   const onToggleExpanded = useCallback(() => {
     if (!features.enableExpand) {
@@ -532,29 +546,51 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
       const newText = e.target.value
       setText(newText)
 
+      const prevText = prevTextRef.current
+      const isDeletion = newText.length < prevText.length
+
       const textArea = textareaRef.current?.resizableTextArea?.textArea
-      const cursorPosition = textArea?.selectionStart ?? 0
+      const cursorPosition = textArea?.selectionStart ?? newText.length
       const lastSymbol = newText[cursorPosition - 1]
+      const previousChar = newText[cursorPosition - 2]
+      const isCursorAtTextStart = cursorPosition <= 1
+      const hasValidTriggerBoundary = previousChar === ' ' || isCursorAtTextStart
 
-      const quickPanelEnabled = enableQuickPanelTriggers && config.enableQuickPanel
+      const textBeforeCursor = newText.slice(0, cursorPosition)
+      const lastRootIndex = textBeforeCursor.lastIndexOf(QuickPanelReservedSymbol.Root)
+      const lastMentionIndex = textBeforeCursor.lastIndexOf(QuickPanelReservedSymbol.MentionModels)
+      const lastTriggerIndex = Math.max(lastRootIndex, lastMentionIndex)
 
-      if (quickPanelEnabled && lastSymbol === QuickPanelReservedSymbol.Root) {
-        if (quickPanel.isVisible && quickPanel.symbol !== QuickPanelReservedSymbol.Root) {
-          quickPanel.close('switch-symbol')
-        }
-        if (
-          (!quickPanel.isVisible || quickPanel.symbol !== QuickPanelReservedSymbol.Root) &&
-          quickPanelRootMenuItems.length
-        ) {
-          quickPanel.open({
-            title: t('settings.quickPanel.title'),
-            list: quickPanelRootMenuItems,
-            symbol: QuickPanelReservedSymbol.Root
-          })
+      if (lastTriggerIndex !== -1 && cursorPosition > lastTriggerIndex) {
+        const triggerChar = newText[lastTriggerIndex]
+        const boundaryChar = newText[lastTriggerIndex - 1] ?? ''
+        const hasBoundary = lastTriggerIndex === 0 || /\s/.test(boundaryChar)
+        const searchSegment = newText.slice(lastTriggerIndex + 1, cursorPosition)
+        const hasSearchContent = searchSegment.trim().length > 0
+
+        if (hasBoundary && (!hasSearchContent || isDeletion)) {
+          if (triggerChar === QuickPanelReservedSymbol.Root) {
+            emitQuickPanelTrigger(QuickPanelReservedSymbol.Root, {
+              type: 'input',
+              position: lastTriggerIndex
+            })
+          } else if (triggerChar === QuickPanelReservedSymbol.MentionModels) {
+            emitQuickPanelTrigger(QuickPanelReservedSymbol.MentionModels, {
+              type: 'input',
+              position: lastTriggerIndex
+            })
+          }
         }
       }
 
-      if (quickPanelEnabled && features.enableMentionModels && lastSymbol === QuickPanelReservedSymbol.MentionModels) {
+      // 触发符号为 '/'：若当前未打开或符号不同，则切换/打开
+      if (
+        enableQuickPanelTriggers &&
+        config.enableQuickPanel &&
+        features.enableMentionModels &&
+        lastSymbol === QuickPanelReservedSymbol.MentionModels &&
+        hasValidTriggerBoundary
+      ) {
         if (quickPanel.isVisible && quickPanel.symbol !== QuickPanelReservedSymbol.MentionModels) {
           quickPanel.close('switch-symbol')
         }
@@ -566,17 +602,10 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
           })
         }
       }
+
+      prevTextRef.current = newText
     },
-    [
-      config.enableQuickPanel,
-      enableQuickPanelTriggers,
-      emitQuickPanelTrigger,
-      features.enableMentionModels,
-      quickPanel,
-      quickPanelRootMenuItems,
-      setText,
-      t
-    ]
+    [emitQuickPanelTrigger, features.enableMentionModels, quickPanel, setText]
   )
 
   const handleDragOver = useCallback(
@@ -998,13 +1027,17 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
           )}
 
           <Textarea
-            ref={textareaRef}
             value={text}
-            styles={{ textarea: TextareaStyle }}
-            variant="borderless"
-            autoFocus
-            onChange={handleTextareaChange}
             onKeyDown={handleKeyDown}
+            placeholder={isTranslating ? t('chat.input.translating') : config.placeholder || placeholderText}
+            autoFocus
+            variant="borderless"
+            spellCheck={enableSpellCheck}
+            rows={2}
+            autoSize={textareaHeight ? false : { minRows: 2, maxRows: 20 }}
+            ref={textareaRef}
+            styles={{ textarea: TextareaStyle }}
+            onChange={handleTextareaChange}
             onPaste={handlePaste}
             onFocus={() => {
               setInputFocus(true)
@@ -1019,19 +1052,11 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
               }
               quickPanel.close()
             }}
-            placeholder={
-              isTranslating
-                ? t('chat.input.translating')
-                : config.placeholder ||
-                  t('chat.input.placeholder', { key: getSendMessageShortcutLabel(sendMessageShortcut) })
-            }
-            autoSize={textareaHeight ? false : { minRows: config.minRows || 1, maxRows: config.maxRows || 8 }}
             style={{
               fontSize,
               height: textareaHeight,
               minHeight: '30px'
             }}
-            spellCheck={enableSpellCheck}
             disabled={loading || searching}
           />
 

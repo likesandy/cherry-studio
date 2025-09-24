@@ -77,7 +77,7 @@ const MentionModelsButton: FC<Props> = ({
       if (start === -1) {
         if (typeof fallbackPosition === 'number' && currentText[fallbackPosition] === '@') {
           let endPos = fallbackPosition + 1
-          while (endPos < currentText.length && currentText[endPos] !== ' ' && currentText[endPos] !== '\n') {
+          while (endPos < currentText.length && !/\s/.test(currentText[endPos])) {
             endPos++
           }
           return currentText.slice(0, fallbackPosition) + currentText.slice(endPos)
@@ -86,7 +86,7 @@ const MentionModelsButton: FC<Props> = ({
       }
 
       let endPos = start + 1
-      while (endPos < currentText.length && currentText[endPos] !== ' ' && currentText[endPos] !== '\n') {
+      while (endPos < currentText.length && !/\s/.test(currentText[endPos])) {
         endPos++
       }
       return currentText.slice(0, start) + currentText.slice(endPos)

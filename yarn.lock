@@ -416,7 +416,7 @@ __metadata:
 
 "@anthropic-ai/claude-code@patch:@anthropic-ai/claude-code@npm%3A1.0.118#~/.yarn/patches/@anthropic-ai-claude-code-npm-1.0.118-bbf4e9e59f.patch":
   version: 1.0.118
-  resolution: "@anthropic-ai/claude-code@patch:@anthropic-ai/claude-code@npm%3A1.0.118#~/.yarn/patches/@anthropic-ai-claude-code-npm-1.0.118-bbf4e9e59f.patch::version=1.0.118&hash=d3554c"
+  resolution: "@anthropic-ai/claude-code@patch:@anthropic-ai/claude-code@npm%3A1.0.118#~/.yarn/patches/@anthropic-ai-claude-code-npm-1.0.118-bbf4e9e59f.patch::version=1.0.118&hash=d20711"
   dependencies:
     "@img/sharp-darwin-arm64": "npm:^0.33.5"
     "@img/sharp-darwin-x64": "npm:^0.33.5"
@@ -439,7 +439,7 @@ __metadata:
       optional: true
   bin:
     claude: cli.js
-  checksum: 10c0/3d230f6e785e5c4fdcca30dc134ecaab09d1de11f020183b04bbd6b2cbc97593d2d9224a87a47546718d1795bd159be395a9af3f35ff3652e4b87804741223a1
+  checksum: 10c0/6a6261562c25ceb83b7c8c976fddadb782f03e50bb73580446f0ca49ac8e9f9a6158fa1b5bf93f070be49bf3a0e8e06adefdea49f71706258e4c9200a3fa52e7
   languageName: node
   linkType: hard
 
