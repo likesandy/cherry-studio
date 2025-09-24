@@ -3,7 +3,7 @@ import { useTheme } from '@renderer/context/ThemeProvider'
 import { EventEmitter } from '@renderer/services/EventService'
 import { EVENT_NAMES } from '@renderer/services/EventService'
 import { ThemeMode } from '@shared/data/preference/preferenceTypes'
-import { Button as AntdButton } from 'antd'
+import { Button } from '@cherrystudio/ui'
 import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -18,9 +18,15 @@ const NewTopicButton: FC = () => {
 
   return (
     <Container>
-      <Button size="small" color="primary" icon={<FormOutlined />} onClick={addNewTopic} $theme={theme}>
+      <StyledButton
+        size="sm"
+        variant="light"
+        color="primary"
+        startContent={<FormOutlined />}
+        onPress={addNewTopic}
+        $theme={theme}>
         {t('chat.topics.new')}
-      </Button>
+      </StyledButton>
     </Container>
   )
 }
@@ -35,7 +41,7 @@ const Container = styled.div`
   min-height: auto;
 `
 
-const Button = styled(AntdButton)<{ $theme: ThemeMode }>`
+const StyledButton = styled(Button)<{ $theme: ThemeMode }>`
   border-radius: 20px;
   padding: 0 12px;
   height: 34px !important;
