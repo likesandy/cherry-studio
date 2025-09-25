@@ -11,7 +11,8 @@ import { usePromptProcessor } from '@renderer/hooks/usePromptProcessor'
 import { estimateTextTokens } from '@renderer/services/TokenService'
 import type { Assistant, AssistantSettings } from '@renderer/types'
 import { getLeadingEmoji } from '@renderer/utils'
-import { Button, Input, Popover } from 'antd'
+import { Input, Popover } from 'antd'
+import { Button } from '@cherrystudio/ui'
 import { Edit, HelpCircle, Save } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -77,15 +78,7 @@ const AssistantPromptSettings: React.FC<Props> = ({ assistant, updateAssistant }
       <RowFlex className="items-center gap-2">
         <Popover content={<EmojiPicker onEmojiClick={handleEmojiSelect} />} arrow trigger="click">
           <EmojiButtonWrapper>
-            <Button
-              style={{
-                fontSize: 18,
-                padding: '4px',
-                minWidth: '28px',
-                height: '28px'
-              }}>
-              {emoji}
-            </Button>
+            <Button className="h-7 min-w-7 p-1 text-lg">{emoji}</Button>
             {emoji && (
               <CloseCircleFilled
                 className="delete-icon"
@@ -151,9 +144,10 @@ const AssistantPromptSettings: React.FC<Props> = ({ assistant, updateAssistant }
       <SpaceBetweenRowFlex className="mt-2.5 w-full justify-end">
         <TokenCount>Tokens: {tokenCount}</TokenCount>
         <Button
-          type="primary"
-          icon={showPreview ? <Edit size={14} /> : <Save size={14} />}
-          onClick={() => {
+          variant="solid"
+          color="primary"
+          startContent={showPreview ? <Edit size={14} /> : <Save size={14} />}
+          onPress={() => {
             const currentScrollTop = editorRef.current?.getScrollTop?.() || 0
             if (showPreview) {
               setShowPreview(false)
