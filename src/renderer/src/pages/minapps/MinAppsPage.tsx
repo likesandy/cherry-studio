@@ -56,9 +56,13 @@ const AppsPage: FC = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <Button variant="light" className="nodrag" isIconOnly onPress={MinappSettingsPopup.show}>
-            <SettingsIcon size={18} color="var(--color-text-2)" />
-          </Button>
+          <Button
+            variant="light"
+            className="nodrag"
+            startContent={<SettingsIcon size={18} color="var(--color-text-2)" />}
+            isIconOnly
+            onPress={MinappSettingsPopup.show}
+          />
         </NavbarMain>
       </Navbar>
       <ContentContainer id="content-container">
@@ -75,9 +79,13 @@ const AppsPage: FC = () => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
-                <Button variant="light" className="nodrag" isIconOnly onPress={() => MinappSettingsPopup.show()}>
-                  <SettingsIcon size={18} color="var(--color-text-2)" />
-                </Button>
+                <Button
+                  variant="light"
+                  className="nodrag"
+                  startContent={<SettingsIcon size={18} color="var(--color-text-2)" />}
+                  isIconOnly
+                  onPress={() => MinappSettingsPopup.show()}
+                />
               </HeaderContainer>
             )}
             <AppsContainerWrapper>
