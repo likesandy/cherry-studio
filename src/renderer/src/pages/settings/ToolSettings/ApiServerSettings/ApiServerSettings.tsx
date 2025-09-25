@@ -1,4 +1,5 @@
 // TODO: Refactor this component to use HeroUI
+import { Button } from '@cherrystudio/ui'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { loggerService } from '@renderer/services/LoggerService'
 import type { RootState } from '@renderer/store'
@@ -6,7 +7,7 @@ import { useAppDispatch } from '@renderer/store'
 import { setApiServerApiKey, setApiServerEnabled, setApiServerPort } from '@renderer/store/settings'
 import { formatErrorMessage } from '@renderer/utils/error'
 import { IpcChannel } from '@shared/IpcChannel'
-import { Button, Input, InputNumber, Tooltip, Typography } from 'antd'
+import { Input, InputNumber, Tooltip, Typography } from 'antd'
 import { Copy, ExternalLink, Play, RotateCcw, Square } from 'lucide-react'
 import type { FC } from 'react'
 import { useEffect, useState } from 'react'
@@ -125,7 +126,7 @@ const ApiServerSettings: FC = () => {
           <Text type="secondary">{t('apiServer.description')}</Text>
         </HeaderContent>
         {apiServerRunning && (
-          <Button type="primary" icon={<ExternalLink size={14} />} onClick={openApiDocs}>
+          <Button color="primary" startContent={<ExternalLink size={14} />} onPress={openApiDocs}>
             {t('apiServer.documentation.title')}
           </Button>
         )}
@@ -201,12 +202,16 @@ const ApiServerSettings: FC = () => {
           suffix={
             <InputButtonContainer>
               {!apiServerRunning && (
-                <RegenerateButton onClick={regenerateApiKey} disabled={apiServerRunning} type="link">
+                <RegenerateButton onPress={regenerateApiKey} isDisabled={apiServerRunning} variant="light">
                   {t('apiServer.actions.regenerate')}
                 </RegenerateButton>
               )}
               <Tooltip title={t('apiServer.fields.apiKey.copyTooltip')}>
-                <InputButton icon={<Copy size={14} />} onClick={copyApiKey} disabled={!apiServerConfig.apiKey} />
+                <InputButton
+                  startContent={<Copy size={14} />}
+                  onPress={copyApiKey}
+                  isDisabled={!apiServerConfig.apiKey}
+                />
               </Tooltip>
             </InputButtonContainer>
           }
