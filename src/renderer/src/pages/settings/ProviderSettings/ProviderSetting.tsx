@@ -365,6 +365,7 @@ const ProviderSetting: FC<Props> = ({ providerId }) => {
                   variant="light"
                   onPress={() => CustomHeaderPopup.show({ provider })}
                   startContent={<Settings2 size={16} />}
+                  isIconOnly
                 />
               </SettingSubtitle>
               <Space.Compact style={{ width: '100%', marginTop: 5 }}>
