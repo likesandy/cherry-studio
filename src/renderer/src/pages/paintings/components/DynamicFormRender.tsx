@@ -2,7 +2,8 @@ import { CloseOutlined, LinkOutlined, RedoOutlined, UploadOutlined } from '@ant-
 import { Switch } from '@cherrystudio/ui'
 import { loggerService } from '@logger'
 import { convertToBase64 } from '@renderer/utils'
-import { Button, Input, InputNumber, Select, Upload } from 'antd'
+import { Input, InputNumber, Select, Upload } from 'antd'
+import { Button } from '@cherrystudio/ui'
 import TextArea from 'antd/es/input/TextArea'
 import { useCallback } from 'react'
 
@@ -76,7 +77,7 @@ export const DynamicFormRender: React.FC<DynamicFormRenderProps> = ({
               return false
             }}>
             <Button
-              icon={<UploadOutlined />}
+              startContent={<UploadOutlined />}
               title="Upload image file"
               style={{
                 borderTopLeftRadius: 0,
@@ -123,10 +124,10 @@ export const DynamicFormRender: React.FC<DynamicFormRenderProps> = ({
               {value.startsWith('data:') ? 'Uploaded image' : 'Image URL'}
             </div>
             <Button
-              size="small"
-              danger
-              icon={<CloseOutlined />}
-              onClick={() => onChange(propertyName, '')}
+              size="sm"
+              color="danger"
+              startContent={<CloseOutlined />}
+              onPress={() => onChange(propertyName, '')}
               title="Remove image"
               style={{ flexShrink: 0, minWidth: 'auto', padding: '0 8px' }}
             />
@@ -180,9 +181,9 @@ export const DynamicFormRender: React.FC<DynamicFormRenderProps> = ({
           max={schemaProperty.maximum}
         />
         <Button
-          size="small"
-          icon={<RedoOutlined />}
-          onClick={() => onChange(propertyName, generateRandomSeed())}
+          size="sm"
+          startContent={<RedoOutlined />}
+          onPress={() => onChange(propertyName, generateRandomSeed())}
           title="Generate random seed"
         />
       </div>
