@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 
 import type { ToastUtilities } from '@cherrystudio/ui'
-import type KeyvStorage from '@kangfenmao/keyv-storage'
 import type { HookAPI } from 'antd/es/modal/useModal'
 import type { NavigateFunction } from 'react-router-dom'
 
@@ -17,7 +16,6 @@ declare global {
   interface Window {
     root: HTMLElement
     modal: HookAPI
-    keyv: KeyvStorage
     store: any
     navigate: NavigateFunction
     toast: ToastUtilities
