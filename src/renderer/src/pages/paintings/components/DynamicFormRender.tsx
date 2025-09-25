@@ -1,9 +1,9 @@
 import { CloseOutlined, LinkOutlined, RedoOutlined, UploadOutlined } from '@ant-design/icons'
 import { Switch } from '@cherrystudio/ui'
+import { Button } from '@cherrystudio/ui'
 import { loggerService } from '@logger'
 import { convertToBase64 } from '@renderer/utils'
 import { Input, InputNumber, Select, Upload } from 'antd'
-import { Button } from '@cherrystudio/ui'
 import TextArea from 'antd/es/input/TextArea'
 import { useCallback } from 'react'
 
@@ -76,15 +76,7 @@ export const DynamicFormRender: React.FC<DynamicFormRenderProps> = ({
               handleImageUpload(propertyName, file, onChange)
               return false
             }}>
-            <Button
-              startContent={<UploadOutlined />}
-              title="Upload image file"
-              style={{
-                borderTopLeftRadius: 0,
-                borderBottomLeftRadius: 0,
-                height: '32px'
-              }}
-            />
+            <Button startContent={<UploadOutlined />} title="Upload image file" className="h-8 rounded-l-none" />
           </Upload>
         </div>
 
@@ -129,7 +121,7 @@ export const DynamicFormRender: React.FC<DynamicFormRenderProps> = ({
               startContent={<CloseOutlined />}
               onPress={() => onChange(propertyName, '')}
               title="Remove image"
-              style={{ flexShrink: 0, minWidth: 'auto', padding: '0 8px' }}
+              className="min-w-0 shrink-0 px-2"
             />
           </div>
         )}
