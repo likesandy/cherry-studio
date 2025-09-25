@@ -4,7 +4,6 @@ import '@ant-design/v5-patch-for-react-19'
 
 import { getToastUtilities } from '@cherrystudio/ui'
 import { preferenceService } from '@data/PreferenceService'
-import KeyvStorage from '@kangfenmao/keyv-storage'
 import { loggerService } from '@logger'
 import { ToastPortal } from '@renderer/components/ToastPortal'
 import AntdProvider from '@renderer/context/AntdProvider'
@@ -32,17 +31,6 @@ await preferenceService.preload([
   'feature.selection.auto_pin',
   'feature.selection.action_window_opacity'
 ])
-
-/**
- * fetchChatCompletion depends on this,
- * which is not a good design, but we have to add it for now
- */
-function initKeyv() {
-  window.keyv = new KeyvStorage()
-  window.keyv.init()
-}
-
-initKeyv()
 
 //subscribe to store sync
 storeSyncService.subscribe()

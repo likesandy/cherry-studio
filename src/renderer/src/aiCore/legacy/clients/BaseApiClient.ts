@@ -1,3 +1,4 @@
+import { cacheService } from '@data/CacheService'
 import { loggerService } from '@logger'
 import {
   isFunctionCallingModel,
@@ -53,7 +54,6 @@ import { isEmpty } from 'lodash'
 
 import type { CompletionsContext } from '../middleware/types'
 import type { ApiClient, RequestTransformer, ResponseChunkTransformer } from './types'
-
 const logger = loggerService.withContext('BaseApiClient')
 
 /**
@@ -166,16 +166,16 @@ export abstract class BaseApiClient<
       return keys[0]
     }
 
-    const lastUsedKey = window.keyv.get(keyName)
-    if (!lastUsedKey) {
-      window.keyv.set(keyName, keys[0])
+    const lastUsedKey = cacheService.getShared(keyName) as string | undefined
+    if (lastUsedKey === undefined) {
+      cacheService.setShared(keyName, keys[0])
       return keys[0]
     }
 
     const currentIndex = keys.indexOf(lastUsedKey)
     const nextIndex = (currentIndex + 1) % keys.length
     const nextKey = keys[nextIndex]
-    window.keyv.set(keyName, nextKey)
+    cacheService.setShared(keyName, nextKey)
 
     return nextKey
   }
@@ -331,7 +331,7 @@ export abstract class BaseApiClient<
   }
 
   private getMemoryReferencesFromCache(message: Message) {
-    const memories = window.keyv.get(`memory-search-${message.id}`) as MemoryItem[] | undefined
+    const memories = cacheService.get(`memory-search-${message.id}`) as MemoryItem[] | undefined
     if (memories) {
       const memoryReferences: KnowledgeReference[] = memories.map((mem, index) => ({
         id: index + 1,
@@ -349,10 +349,10 @@ export abstract class BaseApiClient<
     if (isEmpty(content)) {
       return []
     }
-    const webSearch: WebSearchResponse = window.keyv.get(`web-search-${message.id}`)
+    const webSearch: WebSearchResponse | undefined = cacheService.get(`web-search-${message.id}`)
 
     if (webSearch) {
-      window.keyv.remove(`web-search-${message.id}`)
+      cacheService.delete(`web-search-${message.id}`)
       return (webSearch.results as WebSearchProviderResponse).results.map(
         (result, index) =>
           ({
@@ -375,10 +375,10 @@ export abstract class BaseApiClient<
     if (isEmpty(content)) {
       return []
     }
-    const knowledgeReferences: KnowledgeReference[] = window.keyv.get(`knowledge-search-${message.id}`)
+    const knowledgeReferences: KnowledgeReference[] | undefined = cacheService.get(`knowledge-search-${message.id}`)
 
-    if (!isEmpty(knowledgeReferences)) {
-      window.keyv.remove(`knowledge-search-${message.id}`)
+    if (knowledgeReferences && !isEmpty(knowledgeReferences)) {
+      cacheService.delete(`knowledge-search-${message.id}`)
       logger.debug(`Found ${knowledgeReferences.length} knowledge base references in cache for ID: ${message.id}`)
       return knowledgeReferences
     }

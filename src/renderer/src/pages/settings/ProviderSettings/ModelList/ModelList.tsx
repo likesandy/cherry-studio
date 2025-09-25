@@ -4,7 +4,7 @@ import { Tooltip } from '@cherrystudio/ui'
 import CollapsibleSearchBar from '@renderer/components/CollapsibleSearchBar'
 import { LoadingIcon, StreamlineGoodHealthAndWellBeing } from '@renderer/components/Icons'
 import CustomTag from '@renderer/components/Tags/CustomTag'
-import { PROVIDER_URLS } from '@renderer/config/providers'
+import { isNewApiProvider, PROVIDER_URLS } from '@renderer/config/providers'
 import { useProvider } from '@renderer/hooks/useProvider'
 import { getProviderLabel } from '@renderer/i18n/label'
 import { SettingHelpLink, SettingHelpText, SettingHelpTextRow, SettingSubtitle } from '@renderer/pages/settings'
@@ -52,7 +52,6 @@ const ModelList: React.FC<ModelListProps> = ({ providerId }) => {
   const providerConfig = PROVIDER_URLS[provider.id]
   const docsWebsite = providerConfig?.websites?.docs
   const modelsWebsite = providerConfig?.websites?.models
-  const editable = provider.id !== 'cherryin'
 
   const [searchText, _setSearchText] = useState('')
   const [displayedModelGroups, setDisplayedModelGroups] = useState<ModelGroups | null>(() => {
@@ -89,7 +88,7 @@ const ModelList: React.FC<ModelListProps> = ({ providerId }) => {
   }, [provider.id])
 
   const onAddModel = useCallback(() => {
-    if (provider.id === 'new-api') {
+    if (isNewApiProvider(provider)) {
       NewApiAddModelPopup.show({ title: t('settings.models.add.add_model'), provider })
     } else {
       AddModelPopup.show({ title: t('settings.models.add.add_model'), provider })
@@ -115,17 +114,15 @@ const ModelList: React.FC<ModelListProps> = ({ providerId }) => {
               tooltip={t('models.search.tooltip')}
             />
           </RowFlex>
-          {editable && (
-            <RowFlex>
-              <Tooltip placement="top" title={t('settings.models.check.button_caption')}>
-                <Button
-                  type="text"
-                  onClick={runHealthCheck}
-                  icon={<StreamlineGoodHealthAndWellBeing size={16} isActive={isHealthChecking} />}
-                />
-              </Tooltip>
-            </RowFlex>
-          )}
+          <RowFlex>
+            <Tooltip placement="top" title={t('settings.models.check.button_caption')}>
+              <Button
+                type="text"
+                onClick={runHealthCheck}
+                icon={<StreamlineGoodHealthAndWellBeing size={16} isActive={isHealthChecking} />}
+              />
+            </Tooltip>
+          </RowFlex>
         </RowFlex>
       </SettingSubtitle>
       <Spin spinning={isLoading} indicator={<LoadingIcon color="var(--color-text-2)" />}>
@@ -141,7 +138,6 @@ const ModelList: React.FC<ModelListProps> = ({ providerId }) => {
                 onEditModel={(model) => EditModelPopup.show({ provider, model })}
                 onRemoveModel={removeModel}
                 onRemoveGroup={() => displayedModelGroups[group].forEach((model) => removeModel(model))}
-                disabled={!editable}
               />
             ))}
           </ColFlex>
@@ -169,16 +165,14 @@ const ModelList: React.FC<ModelListProps> = ({ providerId }) => {
           <div className="h-[5px]" />
         )}
       </Flex>
-      {editable && (
-        <Flex className="mt-3 gap-2.5">
-          <Button type="primary" onClick={onManageModel} icon={<ListCheck size={16} />} disabled={isHealthChecking}>
-            {t('button.manage')}
-          </Button>
-          <Button type="default" onClick={onAddModel} icon={<Plus size={16} />} disabled={isHealthChecking}>
-            {t('button.add')}
-          </Button>
-        </Flex>
-      )}
+      <Flex className="mt-3 gap-2.5">
+        <Button type="primary" onClick={onManageModel} icon={<ListCheck size={16} />} disabled={isHealthChecking}>
+          {t('button.manage')}
+        </Button>
+        <Button type="default" onClick={onAddModel} icon={<Plus size={16} />} disabled={isHealthChecking}>
+          {t('button.add')}
+        </Button>
+      </Flex>
     </>
   )
 }

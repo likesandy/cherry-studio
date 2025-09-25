@@ -140,7 +140,6 @@
     "@google/genai": "patch:@google/genai@npm%3A1.0.1#~/.yarn/patches/@google-genai-npm-1.0.1-e26f0f9af7.patch",
     "@hello-pangea/dnd": "^18.0.1",
     "@heroui/react": "^2.8.3",
-    "@kangfenmao/keyv-storage": "^0.1.0",
     "@langchain/community": "^0.3.50",
     "@mistralai/mistralai": "^1.7.5",
     "@modelcontextprotocol/sdk": "^1.17.5",

@@ -1,8 +1,8 @@
 import { cacheService } from '@data/CacheService'
 import i18n from '@renderer/i18n'
-import store from '@renderer/store'
 
 import { useProviders } from './useProvider'
+import { getStoreProviders } from './useStore'
 
 export function useModel(id?: string, providerId?: string) {
   const { providers } = useProviders()
@@ -17,7 +17,7 @@ export function useModel(id?: string, providerId?: string) {
 }
 
 export function getModel(id?: string, providerId?: string) {
-  const providers = store.getState().llm.providers
+  const providers = getStoreProviders()
   const allModels = providers.map((p) => p.models).flat()
   return allModels.find((m) => {
     if (providerId) {

@@ -305,7 +305,7 @@ const ZhipuPage: FC<{ Options: string[] }> = ({ Options }) => {
     }
   }
 
-  const createNewPainting = () => {
+  const handleAddPainting = () => {
     if (generating) return
     const newPainting = getNewPainting()
     const addedPainting = addPainting('zhipu_paintings', newPainting)
@@ -340,12 +340,12 @@ const ZhipuPage: FC<{ Options: string[] }> = ({ Options }) => {
   return (
     <Container>
       <Navbar>
-        <NavbarCenter>
-          <Title>{t('title.paintings')}</Title>
-        </NavbarCenter>
+        <NavbarCenter style={{ borderRight: 'none' }}>{t('paintings.title')}</NavbarCenter>
         {isMac && (
-          <NavbarRight>
-            <Button type="text" icon={<PlusOutlined />} onClick={createNewPainting} disabled={generating} />
+          <NavbarRight style={{ justifyContent: 'flex-end' }}>
+            <Button size="small" className="nodrag" icon={<PlusOutlined />} onClick={handleAddPainting}>
+              {t('paintings.button.new.image')}
+            </Button>
           </NavbarRight>
         )}
       </Navbar>
@@ -480,7 +480,7 @@ const ZhipuPage: FC<{ Options: string[] }> = ({ Options }) => {
           selectedPainting={painting}
           onSelectPainting={onSelectPainting}
           onDeletePainting={onDeletePainting}
-          onNewPainting={createNewPainting}
+          onNewPainting={handleAddPainting}
         />
       </ContentContainer>
     </Container>
@@ -552,12 +552,6 @@ const Toolbar = styled.div`
 const ToolbarMenu = styled.div`
   display: flex;
   gap: 8px;
-`
-
-const Title = styled.h1`
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
 `
 
 const ProviderTitleContainer = styled.div`

@@ -5,7 +5,9 @@ import {
   type ProviderId,
   type ProviderSettingsMap
 } from '@cherrystudio/ai-core/provider'
+import { cacheService } from '@data/CacheService'
 import { isOpenAIChatCompletionOnlyModel } from '@renderer/config/models'
+import { isNewApiProvider } from '@renderer/config/providers'
 import {
   getAwsBedrockAccessKeyId,
   getAwsBedrockRegion,
@@ -21,7 +23,6 @@ import { cloneDeep, isEmpty } from 'lodash'
 
 import { aihubmixProviderCreator, newApiResolverCreator, vertexAnthropicProviderCreator } from './config'
 import { getAiSdkProviderId } from './factory'
-
 const logger = loggerService.withContext('ProviderConfigProcessor')
 
 /**
@@ -36,16 +37,16 @@ function getRotatedApiKey(provider: Provider): string {
     return keys[0]
   }
 
-  const lastUsedKey = window.keyv.get(keyName)
-  if (!lastUsedKey) {
-    window.keyv.set(keyName, keys[0])
+  const lastUsedKey = cacheService.getShared(keyName) as string | undefined
+  if (lastUsedKey === undefined) {
+    cacheService.setShared(keyName, keys[0])
     return keys[0]
   }
 
   const currentIndex = keys.indexOf(lastUsedKey)
   const nextIndex = (currentIndex + 1) % keys.length
   const nextKey = keys[nextIndex]
-  window.keyv.set(keyName, nextKey)
+  cacheService.setShared(keyName, nextKey)
 
   return nextKey
 }
@@ -65,7 +66,7 @@ function handleSpecialProviders(model: Model, provider: Provider): Provider {
     if (provider.id === 'aihubmix') {
       return aihubmixProviderCreator(model, provider)
     }
-    if (provider.id === 'new-api') {
+    if (isNewApiProvider(provider)) {
       return newApiResolverCreator(model, provider)
     }
     if (provider.id === 'vertexai') {
@@ -213,7 +214,8 @@ export function providerToAiSdkConfig(
     options: {
       ...options,
       name: actualProvider.id,
-      ...extraOptions
+      ...extraOptions,
+      includeUsage: true
     }
   }
 }
@@ -249,10 +251,10 @@ export async function prepareSpecialProviderConfig(
       config.options.apiKey = token
       break
     }
-    case 'cherryin': {
+    case 'cherryai': {
       config.options.fetch = async (url, options) => {
         // 在这里对最终参数进行签名
-        const signature = await window.api.cherryin.generateSignature({
+        const signature = await window.api.cherryai.generateSignature({
           method: 'POST',
           path: '/chat/completions',
           query: '',
