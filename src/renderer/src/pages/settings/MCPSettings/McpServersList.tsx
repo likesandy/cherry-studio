@@ -257,7 +257,8 @@ const McpServersList: FC = () => {
         onSortEnd={onSortEnd}
         layout="list"
         horizontal={false}
-        listStyle={{ display: 'flex', flexDirection: 'column' }}
+        listStyle={{ display: 'flex', flexDirection: 'column', width: '100%' }}
+        itemStyle={{ width: '100%' }}
         gap="12px"
         restrictions={{ scrollableAncestor: true }}
         useDragOverlay

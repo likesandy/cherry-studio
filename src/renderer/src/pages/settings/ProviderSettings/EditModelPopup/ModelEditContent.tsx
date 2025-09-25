@@ -20,6 +20,7 @@ import {
   isVisionModel,
   isWebSearchModel
 } from '@renderer/config/models'
+import { isNewApiProvider } from '@renderer/config/providers'
 import { useDynamicLabelWidth } from '@renderer/hooks/useDynamicLabelWidth'
 import type { Model, ModelCapability, ModelType, Provider } from '@renderer/types'
 import { getDefaultGroupName, getDifference, getUnion, uniqueObjectArray } from '@renderer/utils'
@@ -70,7 +71,7 @@ const ModelEditContent: FC<ModelEditContentProps & ModalProps> = ({ provider, mo
       id: formValues.id || model.id,
       name: formValues.name || model.name,
       group: formValues.group || model.group,
-      endpoint_type: provider.id === 'new-api' ? formValues.endpointType : model.endpoint_type,
+      endpoint_type: isNewApiProvider(provider) ? formValues.endpointType : model.endpoint_type,
       capabilities: overrides?.capabilities ?? modelCapabilities,
       supported_text_delta: overrides?.supported_text_delta ?? supportedTextDelta,
       pricing: {
@@ -89,7 +90,7 @@ const ModelEditContent: FC<ModelEditContentProps & ModalProps> = ({ provider, mo
       id: values.id || model.id,
       name: values.name || model.name,
       group: values.group || model.group,
-      endpoint_type: provider.id === 'new-api' ? values.endpointType : model.endpoint_type,
+      endpoint_type: isNewApiProvider(provider) ? values.endpointType : model.endpoint_type,
       capabilities: modelCapabilities,
       supported_text_delta: supportedTextDelta,
       pricing: {
@@ -245,7 +246,7 @@ const ModelEditContent: FC<ModelEditContentProps & ModalProps> = ({ provider, mo
     <Modal title={t('models.edit')} footer={null} transitionName="animation-move-down" centered {...props}>
       <Form
         form={form}
-        labelCol={{ flex: provider.id === 'new-api' ? labelWidth : '110px' }}
+        labelCol={{ flex: isNewApiProvider(provider) ? labelWidth : '110px' }}
         labelAlign="left"
         colon={false}
         style={{ marginTop: 15 }}
@@ -307,7 +308,7 @@ const ModelEditContent: FC<ModelEditContentProps & ModalProps> = ({ provider, mo
           tooltip={t('settings.models.add.group_name.tooltip')}>
           <Input placeholder={t('settings.models.add.group_name.placeholder')} spellCheck={false} />
         </Form.Item>
-        {provider.id === 'new-api' && (
+        {isNewApiProvider(provider) && (
           <Form.Item
             name="endpointType"
             label={t('settings.models.add.endpoint_type.label')}

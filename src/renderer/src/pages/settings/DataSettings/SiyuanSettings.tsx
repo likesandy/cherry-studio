@@ -3,6 +3,7 @@ import { RowFlex } from '@cherrystudio/ui'
 import { Button } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
+import { AppLogo } from '@renderer/config/env'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { Space, Tooltip } from 'antd'
@@ -20,7 +21,7 @@ const SiyuanSettings: FC = () => {
   const [siyuanBoxId, setSiyuanBoxId] = usePreference('data.integration.siyuan.box_id')
   const [siyuanRootPath, setSiyuanRootPath] = usePreference('data.integration.siyuan.root_path')
 
-  const { openMinapp } = useMinappPopup()
+  const { openSmartMinapp } = useMinappPopup()
   const { t } = useTranslation()
   const { theme } = useTheme()
 
@@ -41,10 +42,11 @@ const SiyuanSettings: FC = () => {
   }
 
   const handleSiyuanHelpClick = () => {
-    openMinapp({
+    openSmartMinapp({
       id: 'siyuan-help',
       name: 'Siyuan Help',
-      url: 'https://docs.cherry-ai.com/advanced-basic/siyuan'
+      url: 'https://docs.cherry-ai.com/advanced-basic/siyuan',
+      logo: AppLogo
     })
   }
 

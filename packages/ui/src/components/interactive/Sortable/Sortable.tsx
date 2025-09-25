@@ -65,6 +65,8 @@ interface SortableProps<T> {
   className?: string
   /** Item list style */
   listStyle?: React.CSSProperties
+  /** Item style */
+  itemStyle?: React.CSSProperties
   /** Item gap */
   gap?: number | string
   /** Restrictions, shortcuts for some modifiers */
@@ -91,6 +93,7 @@ function Sortable<T>({
   showGhost = false,
   className,
   listStyle,
+  itemStyle,
   gap,
   restrictions,
   modifiers: customModifiers
@@ -199,19 +202,19 @@ function Sortable<T>({
               renderItem={renderItem}
               useDragOverlay={useDragOverlay}
               showGhost={showGhost}
+              itemStyle={itemStyle}
             />
           ))}
         </ListWrapper>
       </SortableContext>
 
-      {useDragOverlay
-        ? createPortal(
-            <DragOverlay adjustScale dropAnimation={dropAnimation}>
-              {activeItem ? <ItemRenderer item={activeItem} renderItem={renderItem} dragOverlay /> : null}
-            </DragOverlay>,
-            document.body
-          )
-        : null}
+      {useDragOverlay &&
+        createPortal(
+          <DragOverlay adjustScale dropAnimation={dropAnimation}>
+            {activeItem && <ItemRenderer item={activeItem} renderItem={renderItem} itemStyle={itemStyle} dragOverlay />}
+          </DragOverlay>,
+          document.body
+        )}
     </DndContext>
   )
 }
