@@ -485,6 +485,7 @@ const AssistantModelSettings: FC<Props> = ({ assistant, updateAssistant, updateA
           <Col span={10}>{renderParameterValueInput(param, index)}</Col>
           <Col span={2} style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
+              size="sm"
               color="danger"
               variant="solid"
               isIconOnly
