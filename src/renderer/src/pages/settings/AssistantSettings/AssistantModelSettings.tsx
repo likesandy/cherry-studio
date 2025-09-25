@@ -12,7 +12,8 @@ import { useTimer } from '@renderer/hooks/useTimer'
 import { SettingRow } from '@renderer/pages/settings'
 import type { Assistant, AssistantSettingCustomParameters, AssistantSettings, Model } from '@renderer/types'
 import { modalConfirm } from '@renderer/utils'
-import { Button, Col, Divider, Input, InputNumber, Row, Select, Slider, Tooltip } from 'antd'
+import { Col, Divider, Input, InputNumber, Row, Select, Slider, Tooltip } from 'antd'
+import { Button } from '@cherrystudio/ui'
 import { isNull } from 'lodash'
 import { PlusIcon } from 'lucide-react'
 import type { FC } from 'react'
@@ -221,16 +222,17 @@ const AssistantModelSettings: FC<Props> = ({ assistant, updateAssistant, updateA
         <Label>{t('assistants.settings.default_model')}</Label>
         <RowFlex className="items-center gap-[5px]">
           <ModelSelectButton
-            icon={defaultModel ? <ModelAvatar model={defaultModel} size={20} /> : <PlusIcon size={18} />}
-            onClick={onSelectModel}>
+            startContent={defaultModel ? <ModelAvatar model={defaultModel} size={20} /> : <PlusIcon size={18} />}
+            onPress={onSelectModel}>
             <ModelName>{defaultModel ? defaultModel.name : t('agents.edit.model.select.title')}</ModelName>
           </ModelSelectButton>
           {defaultModel && (
             <Button
               color="danger"
-              variant="filled"
-              icon={<DeleteIcon size={14} className="lucide-custom" />}
-              onClick={() => {
+              variant="solid"
+              isIconOnly
+              startContent={<DeleteIcon size={14} className="lucide-custom" />}
+              onPress={() => {
                 setDefaultModel(undefined)
                 updateAssistant({ ...assistant, defaultModel: undefined })
               }}
@@ -457,7 +459,7 @@ const AssistantModelSettings: FC<Props> = ({ assistant, updateAssistant, updateA
       <Divider style={{ margin: '10px 0' }} />
       <SettingRow style={{ minHeight: 30 }}>
         <Label>{t('models.custom_parameters')}</Label>
-        <Button icon={<PlusIcon size={18} />} onClick={onAddCustomParameter}>
+        <Button startContent={<PlusIcon size={18} />} onPress={onAddCustomParameter}>
           {t('models.add_parameter')}
         </Button>
       </SettingRow>
@@ -485,16 +487,17 @@ const AssistantModelSettings: FC<Props> = ({ assistant, updateAssistant, updateA
           <Col span={2} style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               color="danger"
-              variant="filled"
-              icon={<DeleteIcon size={14} className="lucide-custom" />}
-              onClick={() => onDeleteCustomParameter(index)}
+              variant="solid"
+              isIconOnly
+              startContent={<DeleteIcon size={14} className="lucide-custom" />}
+              onPress={() => onDeleteCustomParameter(index)}
             />
           </Col>
         </Row>
       ))}
       <Divider style={{ margin: '15px 0' }} />
       <RowFlex className="justify-end">
-        <Button onClick={onReset} danger type="primary" icon={<ResetIcon size={16} />}>
+        <Button onPress={onReset} color="danger" variant="solid" startContent={<ResetIcon size={16} />}>
           {t('chat.settings.reset')}
         </Button>
       </RowFlex>
