@@ -147,7 +147,6 @@ const McpServerCard: FC<McpServerCardProps> = ({
               startContent={<DeleteIcon size={14} className="lucide-custom" />}
               color="danger"
               onPress={onDelete}
-              data-no-dnd
               isIconOnly
             />
             <Button
