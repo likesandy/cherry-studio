@@ -142,6 +142,7 @@ const McpServerCard: FC<McpServerCardProps> = ({
               data-no-dnd
             />
             <Button
+              size="sm"
               variant="light"
               radius="full"
               startContent={<DeleteIcon size={14} className="lucide-custom" />}
@@ -150,6 +151,7 @@ const McpServerCard: FC<McpServerCardProps> = ({
               isIconOnly
             />
             <Button
+              size="sm"
               variant="light"
               radius="full"
               startContent={<Settings2 size={14} />}

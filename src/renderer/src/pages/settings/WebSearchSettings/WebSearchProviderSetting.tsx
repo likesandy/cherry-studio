@@ -14,7 +14,7 @@ import { useWebSearchProvider } from '@renderer/hooks/useWebSearchProviders'
 import WebSearchService from '@renderer/services/WebSearchService'
 import type { WebSearchProviderId } from '@renderer/types'
 import { formatApiKeys, hasObjectKey } from '@renderer/utils'
-import { Divider, Form, Input, Space, Tooltip } from 'antd'
+import { Divider, Form, Input, Tooltip } from 'antd'
 import Link from 'antd/es/typography/Link'
 import { Info, List } from 'lucide-react'
 import type { FC } from 'react'
@@ -183,7 +183,7 @@ const WebSearchProviderSetting: FC<Props> = ({ providerId }) => {
               <Button variant="light" size="sm" onPress={openApiKeyList} startContent={<List size={14} />} isIconOnly />
             </Tooltip>
           </SettingSubtitle>
-          <Space.Compact style={{ width: '100%' }}>
+          <Flex className="gap-2">
             <Input.Password
               value={apiKey}
               placeholder={t('settings.provider.api_key.label')}
@@ -206,7 +206,7 @@ const WebSearchProviderSetting: FC<Props> = ({ providerId }) => {
                 t('settings.tool.websearch.check')
               )}
             </Button>
-          </Space.Compact>
+          </Flex>
           <SettingHelpTextRow style={{ justifyContent: 'space-between', marginTop: 5 }}>
             <RowFlex>
               {apiKeyWebsite && (

@@ -739,6 +739,7 @@ const McpSettings: React.FC = () => {
               {serverVersion && <VersionBadge count={serverVersion} color="blue" />}
             </Flex>
             <Button
+              size="sm"
               color="danger"
               startContent={<DeleteIcon size={14} className="lucide-custom" />}
               variant="light"
@@ -754,6 +755,7 @@ const McpSettings: React.FC = () => {
               onValueChange={onToggleActive}
             />
             <Button
+              size="sm"
               variant="solid"
               color="primary"
               startContent={<SaveIcon size={14} />}
