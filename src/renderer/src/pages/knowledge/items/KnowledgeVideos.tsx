@@ -138,9 +138,12 @@ const KnowledgeVideos: FC<KnowledgeContentProps> = ({ selectedBase }) => {
                       actions: (
                         <FlexAlignCenter>
                           {item.uniqueId && (
-                            <Button variant="light" isIconOnly onPress={() => refreshItem(item)}>
-                              <RefreshIcon />
-                            </Button>
+                            <Button
+                              variant="light"
+                              startContent={<RefreshIcon />}
+                              isIconOnly
+                              onPress={() => refreshItem(item)}
+                            />
                           )}
 
                           <StatusIconWrapper>
@@ -151,9 +154,13 @@ const KnowledgeVideos: FC<KnowledgeContentProps> = ({ selectedBase }) => {
                               type="file"
                             />
                           </StatusIconWrapper>
-                          <Button variant="light" color="danger" isIconOnly onPress={() => removeItem(item)}>
-                            <DeleteOutlined />
-                          </Button>
+                          <Button
+                            variant="light"
+                            color="danger"
+                            startContent={<DeleteOutlined />}
+                            isIconOnly
+                            onPress={() => removeItem(item)}
+                          />
                         </FlexAlignCenter>
                       )
                     }}
