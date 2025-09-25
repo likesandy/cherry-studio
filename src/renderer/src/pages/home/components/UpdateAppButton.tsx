@@ -1,7 +1,7 @@
 import { SyncOutlined } from '@ant-design/icons'
+import { Button } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { useAppUpdateState } from '@renderer/hooks/useAppUpdate'
-import { Button } from '@cherrystudio/ui'
 import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
