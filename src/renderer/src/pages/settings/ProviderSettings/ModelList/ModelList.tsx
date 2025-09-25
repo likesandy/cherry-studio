@@ -170,7 +170,7 @@ const ModelList: React.FC<ModelListProps> = ({ providerId }) => {
         <Button
           color="primary"
           onPress={onManageModel}
-          startContent={<ListCheck size={16} />}
+          startContent={<ListCheck fill="currentColor" size={16} />}
           isDisabled={isHealthChecking}>
           {t('button.manage')}
         </Button>

@@ -127,9 +127,10 @@ const ModelSettings: FC = () => {
             placeholder={t('settings.models.empty')}
           />
           <Button
-            icon={<Settings2 size={16} />}
-            style={{ marginLeft: 8 }}
-            onClick={() => TranslateSettingsPopup.show()}
+            startContent={<Settings2 size={16} />}
+            isIconOnly
+            className="ml-2"
+            onPress={() => TranslateSettingsPopup.show()}
           />
           {translateModelPrompt !== TRANSLATE_PROMPT && (
             <Tooltip title={t('common.reset')}>
