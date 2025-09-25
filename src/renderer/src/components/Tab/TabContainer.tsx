@@ -17,7 +17,7 @@ import { addTab, removeTab, setActiveTab, setTabs } from '@renderer/store/tabs'
 import type { MinAppType } from '@renderer/types'
 import { classNames } from '@renderer/utils'
 import { ThemeMode } from '@shared/data/preference/preferenceTypes'
-import { LRUCache } from "lru-cache";
+import type { LRUCache } from 'lru-cache'
 import {
   FileSearch,
   Folder,
