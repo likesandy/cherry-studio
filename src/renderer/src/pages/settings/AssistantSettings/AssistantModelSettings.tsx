@@ -1,6 +1,7 @@
 import { QuestionCircleOutlined } from '@ant-design/icons'
 import { RowFlex } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
+import { Button } from '@cherrystudio/ui'
 import ModelAvatar from '@renderer/components/Avatar/ModelAvatar'
 import EditableNumber from '@renderer/components/EditableNumber'
 import { DeleteIcon, ResetIcon } from '@renderer/components/Icons'
@@ -13,7 +14,6 @@ import { SettingRow } from '@renderer/pages/settings'
 import type { Assistant, AssistantSettingCustomParameters, AssistantSettings, Model } from '@renderer/types'
 import { modalConfirm } from '@renderer/utils'
 import { Col, Divider, Input, InputNumber, Row, Select, Slider, Tooltip } from 'antd'
-import { Button } from '@cherrystudio/ui'
 import { isNull } from 'lodash'
 import { PlusIcon } from 'lucide-react'
 import type { FC } from 'react'
@@ -236,7 +236,6 @@ const AssistantModelSettings: FC<Props> = ({ assistant, updateAssistant, updateA
                 setDefaultModel(undefined)
                 updateAssistant({ ...assistant, defaultModel: undefined })
               }}
-              danger
             />
           )}
         </RowFlex>
