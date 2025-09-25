@@ -2,7 +2,6 @@ import { InfoTooltip, RowFlex } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { Client } from '@notionhq/client'
-import { AppLogo } from '@renderer/config/env'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { Button, Space } from 'antd'
 import { Input } from 'antd'
@@ -10,6 +9,7 @@ import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { SettingDivider, SettingGroup, SettingHelpText, SettingRow, SettingRowTitle, SettingTitle } from '..'
+
 const NotionSettings: FC = () => {
   const [notionApiKey, setNotionApiKey] = usePreference('data.integration.notion.api_key')
   const [notionDatabaseID, setNotionDatabaseID] = usePreference('data.integration.notion.database_id')

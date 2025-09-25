@@ -1,7 +1,6 @@
 import { InfoTooltip, RowFlex } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
-import { AppLogo } from '@renderer/config/env'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { Button, Space } from 'antd'
 import { Input } from 'antd'
