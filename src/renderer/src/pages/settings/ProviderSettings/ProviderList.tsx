@@ -368,6 +368,7 @@ const ProviderList: FC = () => {
         </DraggableVirtualList>
         <AddButtonWrapper>
           <Button
+            size="sm"
             style={{ width: '100%', borderRadius: 'var(--list-item-border-radius)' }}
             startContent={<PlusIcon size={16} />}
             onPress={onAddProvider}
