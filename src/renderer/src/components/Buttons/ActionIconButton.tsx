@@ -13,12 +13,13 @@ interface ActionIconButtonProps extends Omit<ButtonProps, 'ref'> {
 const ActionIconButton: React.FC<ActionIconButtonProps> = ({ icon, active = false, className, ...props }) => {
   return (
     <Button
+      size="sm"
       variant="light"
       radius="full"
       isIconOnly
       startContent={icon}
       className={cn(
-        'flex h-[30px] w-[30px] cursor-pointer flex-row items-center justify-center border-none p-0 text-base transition-all duration-300 ease-in-out [&_.anticon]:text-icon [&_.icon-a-addchat]:mb-[-2px] [&_.icon-a-addchat]:text-lg [&_.icon]:text-icon [&_.iconfont]:text-icon [&_.lucide]:text-icon',
+        'flex cursor-pointer flex-row items-center justify-center border-none p-0 text-base transition-all duration-300 ease-in-out [&_.anticon]:text-icon [&_.icon-a-addchat]:mb-[-2px] [&_.icon-a-addchat]:text-lg [&_.icon]:text-icon [&_.iconfont]:text-icon [&_.lucide]:text-icon',
         active &&
           '[&_.anticon]:text-primary! [&_.icon]:text-primary! [&_.iconfont]:text-primary! [&_.lucide]:text-primary!',
         className
