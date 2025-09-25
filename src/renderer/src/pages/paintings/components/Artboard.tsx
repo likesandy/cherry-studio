@@ -1,8 +1,8 @@
+import { Button } from '@cherrystudio/ui'
 import ImageViewer from '@renderer/components/ImageViewer'
 import FileManager from '@renderer/services/FileManager'
 import type { Painting } from '@renderer/types'
 import { Spin } from 'antd'
-import { Button } from '@cherrystudio/ui'
 import type { FC } from 'react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
@@ -44,7 +44,7 @@ const Artboard: FC<ArtboardProps> = ({
         {painting.files.length > 0 ? (
           <ImageContainer>
             {painting.files.length > 1 && (
-              <NavigationButton onPress={onPrevImage} style={{ left: 10 }}>
+              <NavigationButton onPress={onPrevImage} className="left-2.5">
                 ←
               </NavigationButton>
             )}
@@ -60,7 +60,7 @@ const Artboard: FC<ArtboardProps> = ({
               }}
             />
             {painting.files.length > 1 && (
-              <NavigationButton onPress={onNextImage} style={{ right: 10 }}>
+              <NavigationButton onPress={onNextImage} className="right-2.5">
                 →
               </NavigationButton>
             )}
