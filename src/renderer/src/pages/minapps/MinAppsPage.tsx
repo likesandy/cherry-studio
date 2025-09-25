@@ -3,7 +3,8 @@ import App from '@renderer/components/MinApp/MinApp'
 import Scrollbar from '@renderer/components/Scrollbar'
 import { useMinapps } from '@renderer/hooks/useMinapps'
 import { useNavbarPosition } from '@renderer/hooks/useNavbar'
-import { Button, Input } from 'antd'
+import { Button } from '@cherrystudio/ui'
+import { Input } from 'antd'
 import { Search, SettingsIcon } from 'lucide-react'
 import type { FC } from 'react'
 import React, { useState } from 'react'
@@ -55,12 +56,9 @@ const AppsPage: FC = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <Button
-            type="text"
-            className="nodrag"
-            icon={<SettingsIcon size={18} color="var(--color-text-2)" />}
-            onClick={MinappSettingsPopup.show}
-          />
+          <Button variant="light" className="nodrag" isIconOnly onPress={MinappSettingsPopup.show}>
+            <SettingsIcon size={18} color="var(--color-text-2)" />
+          </Button>
         </NavbarMain>
       </Navbar>
       <ContentContainer id="content-container">
@@ -77,12 +75,9 @@ const AppsPage: FC = () => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
-                <Button
-                  type="text"
-                  className="nodrag"
-                  icon={<SettingsIcon size={18} color="var(--color-text-2)" />}
-                  onClick={() => MinappSettingsPopup.show()}
-                />
+                <Button variant="light" className="nodrag" isIconOnly onPress={() => MinappSettingsPopup.show()}>
+                  <SettingsIcon size={18} color="var(--color-text-2)" />
+                </Button>
               </HeaderContainer>
             )}
             <AppsContainerWrapper>
