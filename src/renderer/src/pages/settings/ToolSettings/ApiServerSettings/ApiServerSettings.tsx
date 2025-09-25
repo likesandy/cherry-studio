@@ -202,12 +202,14 @@ const ApiServerSettings: FC = () => {
           suffix={
             <InputButtonContainer>
               {!apiServerRunning && (
-                <RegenerateButton onPress={regenerateApiKey} isDisabled={apiServerRunning} variant="light">
+                <Button color="primary" onPress={regenerateApiKey} isDisabled={apiServerRunning} variant="light">
                   {t('apiServer.actions.regenerate')}
-                </RegenerateButton>
+                </Button>
               )}
               <Tooltip title={t('apiServer.fields.apiKey.copyTooltip')}>
-                <InputButton
+                <Button
+                  variant="light"
+                  isIconOnly
                   startContent={<Copy size={14} />}
                   onPress={copyApiKey}
                   isDisabled={!apiServerConfig.apiKey}
@@ -405,21 +407,6 @@ const InputButtonContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 4px;
-`
-
-const InputButton = styled(Button)`
-  border: none;
-  padding: 0 4px;
-  background: transparent;
-`
-
-const RegenerateButton = styled(Button)`
-  padding: 0 4px;
-  font-size: 12px;
-  height: auto;
-  line-height: 1;
-  border: none;
-  background: transparent;
 `
 
 const AuthHeaderSection = styled.div`
