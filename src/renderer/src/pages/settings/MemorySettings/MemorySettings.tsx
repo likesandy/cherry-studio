@@ -2,6 +2,7 @@ import { ExclamationCircleOutlined } from '@ant-design/icons'
 import { RowFlex } from '@cherrystudio/ui'
 import { Flex } from '@cherrystudio/ui'
 import { Switch } from '@cherrystudio/ui'
+import { cacheService } from '@data/CacheService'
 import { loggerService } from '@logger'
 import { DeleteIcon, EditIcon, LoadingIcon, RefreshIcon } from '@renderer/components/Icons'
 import TextBadge from '@renderer/components/TextBadge'
@@ -479,8 +480,8 @@ const MemorySettings = () => {
   const handleSettingsSubmit = async () => {
     setSettingsModalVisible(false)
     await memoryService.updateConfig()
-    if (window.keyv.get('memory.wait.settings')) {
-      window.keyv.remove('memory.wait.settings')
+    if (cacheService.get('memory.wait.settings')) {
+      cacheService.delete('memory.wait.settings')
       dispatch(setGlobalMemoryEnabled(true))
     }
   }
@@ -488,7 +489,7 @@ const MemorySettings = () => {
   const handleSettingsCancel = () => {
     setSettingsModalVisible(false)
     form.resetFields()
-    window.keyv.remove('memory.wait.settings')
+    cacheService.delete('memory.wait.settings')
   }
 
   const handleResetMemories = async (userId: string) => {
@@ -554,7 +555,7 @@ const MemorySettings = () => {
 
   const handleGlobalMemoryToggle = async (enabled: boolean) => {
     if (enabled && !embedderModel) {
-      window.keyv.set('memory.wait.settings', true)
+      cacheService.set('memory.wait.settings', true)
       return setSettingsModalVisible(true)
     }
 

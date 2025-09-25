@@ -7188,13 +7188,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kangfenmao/keyv-storage@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@kangfenmao/keyv-storage@npm:0.1.0"
-  checksum: 10c0/647cf2d2f2e403ec91d1835546aa08bc6af1468a2823c3aa2cef883bacf67eb1a88bb97be1b4c0a09bc3ed69dba2ccbb8ecc3fd13242e84d4e234d5b77707156
-  languageName: node
-  linkType: hard
-
 "@langchain/community@npm:^0.3.50":
   version: 0.3.54
   resolution: "@langchain/community@npm:0.3.54"
@@ -14952,7 +14945,6 @@ __metadata:
     "@google/genai": "patch:@google/genai@npm%3A1.0.1#~/.yarn/patches/@google-genai-npm-1.0.1-e26f0f9af7.patch"
     "@hello-pangea/dnd": "npm:^18.0.1"
     "@heroui/react": "npm:^2.8.3"
-    "@kangfenmao/keyv-storage": "npm:^0.1.0"
     "@langchain/community": "npm:^0.3.50"
     "@libsql/client": "npm:0.14.0"
     "@libsql/win32-x64-msvc": "npm:^0.4.7"
