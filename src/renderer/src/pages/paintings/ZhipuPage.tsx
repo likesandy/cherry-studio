@@ -11,7 +11,8 @@ import { useAllProviders } from '@renderer/hooks/useProvider'
 import { getProviderLabel } from '@renderer/i18n/label'
 import FileManager from '@renderer/services/FileManager'
 import { getErrorMessage, uuid } from '@renderer/utils'
-import { Avatar, Button, InputNumber, Radio, Select } from 'antd'
+import { Avatar, InputNumber, Radio, Select } from 'antd'
+import { Button } from '@cherrystudio/ui'
 import TextArea from 'antd/es/input/TextArea'
 import type { FC } from 'react'
 import { useEffect, useState } from 'react'
@@ -345,7 +346,12 @@ const ZhipuPage: FC<{ Options: string[] }> = ({ Options }) => {
         </NavbarCenter>
         {isMac && (
           <NavbarRight>
-            <Button type="text" icon={<PlusOutlined />} onClick={createNewPainting} disabled={generating} />
+            <Button
+              variant="light"
+              startContent={<PlusOutlined />}
+              onPress={createNewPainting}
+              isDisabled={generating}
+            />
           </NavbarRight>
         )}
       </Navbar>
