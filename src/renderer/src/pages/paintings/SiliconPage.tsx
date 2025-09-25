@@ -25,7 +25,8 @@ import FileManager from '@renderer/services/FileManager'
 import { translateText } from '@renderer/services/TranslateService'
 import type { FileMetadata, Painting } from '@renderer/types'
 import { getErrorMessage, uuid } from '@renderer/utils'
-import { Button, Input, InputNumber, Radio, Select, Slider, Tooltip } from 'antd'
+import { Input, InputNumber, Radio, Select, Slider, Tooltip } from 'antd'
+import { Button } from '@cherrystudio/ui'
 import TextArea from 'antd/es/input/TextArea'
 import { Info } from 'lucide-react'
 import type { FC } from 'react'
@@ -374,10 +375,10 @@ const SiliconPage: FC<{ Options: string[] }> = ({ Options }) => {
         {isMac && (
           <NavbarRight style={{ justifyContent: 'flex-end' }}>
             <Button
-              size="small"
+              size="sm"
               className="nodrag"
-              icon={<PlusOutlined />}
-              onClick={() => setPainting(addPainting('siliconflow_paintings', getNewPainting()))}>
+              startContent={<PlusOutlined />}
+              onPress={() => setPainting(addPainting('siliconflow_paintings', getNewPainting()))}>
               {t('paintings.button.new.image')}
             </Button>
           </NavbarRight>
