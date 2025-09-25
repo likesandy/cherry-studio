@@ -35,8 +35,7 @@ const McpServerCard: FC<McpServerCardProps> = ({
   onOpenUrl
 }) => {
   const { t } = useTranslation()
-  const handleOpenUrl = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleOpenUrl = () => {
     if (server.providerUrl) {
       onOpenUrl(server.providerUrl)
     }
@@ -63,8 +62,7 @@ const McpServerCard: FC<McpServerCardProps> = ({
         )
       }
 
-      const onClickDetails = (e: React.MouseEvent<HTMLDivElement>) => {
-        e.stopPropagation()
+      const onClickDetails = () => {
         GeneralPopup.show({ content: <ErrorDetails /> })
       }
       return (
