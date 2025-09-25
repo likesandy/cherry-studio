@@ -145,9 +145,13 @@ const KnowledgeContent: FC<KnowledgeContentProps> = ({ selectedBase }) => {
     <MainContainer>
       <HeaderContainer>
         <ModelInfo>
-          <Button variant="light" isIconOnly onPress={() => EditKnowledgeBasePopup.show({ base })} size="sm">
-            <Settings size={18} color="var(--color-icon)" />
-          </Button>
+          <Button
+            variant="light"
+            startContent={<Settings size={18} color="var(--color-icon)" />}
+            isIconOnly
+            onPress={() => EditKnowledgeBasePopup.show({ base })}
+            size="sm"
+          />
           <div className="model-row">
             <div className="label-column">
               <label>{t('models.embedding_model')}</label>
