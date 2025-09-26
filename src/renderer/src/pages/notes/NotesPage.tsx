@@ -19,15 +19,22 @@ import {
   findNodeByPath,
   findParent,
   normalizePathValue,
-  readStoredPaths,
   removePathEntries,
   reorderTreeNodes,
   replacePathEntries,
-  updateStoredPaths,
   updateTreeNode
 } from '@renderer/services/NotesTreeService'
-import { useAppDispatch, useAppSelector } from '@renderer/store'
-import { selectActiveFilePath, selectSortType, setActiveFilePath, setSortType } from '@renderer/store/note'
+import { useAppDispatch, useAppSelector, useAppStore } from '@renderer/store'
+import {
+  selectActiveFilePath,
+  selectExpandedPaths,
+  selectSortType,
+  selectStarredPaths,
+  setActiveFilePath,
+  setExpandedPaths,
+  setSortType,
+  setStarredPaths
+} from '@renderer/store/note'
 import { NotesSortType, NotesTreeNode } from '@renderer/types/note'
 import { FileChangeEvent } from '@shared/config/types'
 import { debounce } from 'lodash'
@@ -40,9 +47,6 @@ import HeaderNavbar from './HeaderNavbar'
 import NotesEditor from './NotesEditor'
 import NotesSidebar from './NotesSidebar'
 
-const STAR_STORAGE_KEY = 'notes:starred'
-const EXPAND_STORAGE_KEY = 'notes:expanded'
-
 const logger = loggerService.withContext('NotesPage')
 
 const NotesPage: FC = () => {
@@ -50,14 +54,15 @@ const NotesPage: FC = () => {
   const { t } = useTranslation()
   const { showWorkspace } = useShowWorkspace()
   const dispatch = useAppDispatch()
+  const store = useAppStore()
   const activeFilePath = useAppSelector(selectActiveFilePath)
   const sortType = useAppSelector(selectSortType)
+  const starredPaths = useAppSelector(selectStarredPaths)
+  const expandedPaths = useAppSelector(selectExpandedPaths)
   const { settings, notesPath, updateNotesPath } = useNotesSettings()
 
   // 混合策略：useLiveQuery用于笔记树，React Query用于文件内容
   const [notesTree, setNotesTree] = useState<NotesTreeNode[]>([])
-  const [starredPaths, setStarredPaths] = useState<string[]>(() => readStoredPaths('notes:starred'))
-  const [expandedPaths, setExpandedPaths] = useState<string[]>(() => readStoredPaths('notes:expanded'))
   const starredSet = useMemo(() => new Set(starredPaths), [starredPaths])
   const expandedSet = useMemo(() => new Set(expandedPaths), [expandedPaths])
   const { activeNode } = useActiveNode(notesTree)
@@ -71,6 +76,39 @@ const NotesPage: FC = () => {
   const lastFilePathRef = useRef<string | undefined>(undefined)
   const isRenamingRef = useRef(false)
   const isCreatingNoteRef = useRef(false)
+
+  const activeFilePathRef = useRef<string | undefined>(activeFilePath)
+  const currentContentRef = useRef(currentContent)
+
+  const updateStarredPaths = useCallback(
+    (updater: (paths: string[]) => string[]) => {
+      const current = store.getState().note.starredPaths
+      const safeCurrent = Array.isArray(current) ? current : []
+      const next = updater(safeCurrent) ?? []
+      if (!Array.isArray(next)) {
+        return
+      }
+      if (next !== safeCurrent) {
+        dispatch(setStarredPaths(next))
+      }
+    },
+    [dispatch, store]
+  )
+
+  const updateExpandedPaths = useCallback(
+    (updater: (paths: string[]) => string[]) => {
+      const current = store.getState().note.expandedPaths
+      const safeCurrent = Array.isArray(current) ? current : []
+      const next = updater(safeCurrent) ?? []
+      if (!Array.isArray(next)) {
+        return
+      }
+      if (next !== safeCurrent) {
+        dispatch(setExpandedPaths(next))
+      }
+    },
+    [dispatch, store]
+  )
 
   const mergeTreeState = useCallback(
     (nodes: NotesTreeNode[]): NotesTreeNode[] => {
@@ -147,6 +185,11 @@ const NotesPage: FC = () => {
     [saveCurrentNote]
   )
 
+  const saveCurrentNoteRef = useRef(saveCurrentNote)
+  const debouncedSaveRef = useRef(debouncedSave)
+  const invalidateFileContentRef = useRef(invalidateFileContent)
+  const refreshTreeRef = useRef(refreshTree)
+
   const handleMarkdownChange = useCallback(
     (newMarkdown: string) => {
       // 记录最新内容和文件路径，用于兜底保存
@@ -157,6 +200,30 @@ const NotesPage: FC = () => {
     },
     [debouncedSave, activeFilePath]
   )
+
+  useEffect(() => {
+    activeFilePathRef.current = activeFilePath
+  }, [activeFilePath])
+
+  useEffect(() => {
+    currentContentRef.current = currentContent
+  }, [currentContent])
+
+  useEffect(() => {
+    saveCurrentNoteRef.current = saveCurrentNote
+  }, [saveCurrentNote])
+
+  useEffect(() => {
+    debouncedSaveRef.current = debouncedSave
+  }, [debouncedSave])
+
+  useEffect(() => {
+    invalidateFileContentRef.current = invalidateFileContent
+  }, [invalidateFileContent])
+
+  useEffect(() => {
+    refreshTreeRef.current = refreshTree
+  }, [refreshTree])
 
   useEffect(() => {
     async function initialize() {
@@ -209,8 +276,9 @@ const NotesPage: FC = () => {
           switch (eventType) {
             case 'change': {
               // 处理文件内容变化 - 只有内容真正改变时才触发更新
-              if (activeFilePath && normalizePathValue(activeFilePath) === normalizedEventPath) {
-                invalidateFileContent(normalizedEventPath)
+              const activePath = activeFilePathRef.current
+              if (activePath && normalizePathValue(activePath) === normalizedEventPath) {
+                invalidateFileContentRef.current?.(normalizedEventPath)
               }
               break
             }
@@ -222,14 +290,17 @@ const NotesPage: FC = () => {
               // 如果删除的是当前活动文件，清空选择
               if (
                 (eventType === 'unlink' || eventType === 'unlinkDir') &&
-                activeFilePath &&
-                normalizePathValue(activeFilePath) === normalizedEventPath
+                activeFilePathRef.current &&
+                normalizePathValue(activeFilePathRef.current) === normalizedEventPath
               ) {
                 dispatch(setActiveFilePath(undefined))
                 editorRef.current?.clear()
               }
 
-              await refreshTree()
+              const refresh = refreshTreeRef.current
+              if (refresh) {
+                await refresh()
+              }
               break
             }
 
@@ -261,25 +332,23 @@ const NotesPage: FC = () => {
       })
 
       // 如果有未保存的内容，立即保存
-      if (lastContentRef.current && lastContentRef.current !== currentContent && lastFilePathRef.current) {
-        saveCurrentNote(lastContentRef.current, lastFilePathRef.current).catch((error) => {
-          logger.error('Emergency save failed:', error as Error)
-        })
+      if (
+        lastContentRef.current &&
+        lastFilePathRef.current &&
+        lastContentRef.current !== currentContentRef.current
+      ) {
+        const saveFn = saveCurrentNoteRef.current
+        if (saveFn) {
+          saveFn(lastContentRef.current, lastFilePathRef.current).catch((error) => {
+            logger.error('Emergency save failed:', error as Error)
+          })
+        }
       }
 
       // 清理防抖函数
-      debouncedSave.cancel()
+      debouncedSaveRef.current?.cancel()
     }
-  }, [
-    notesPath,
-    activeFilePath,
-    invalidateFileContent,
-    dispatch,
-    currentContent,
-    debouncedSave,
-    saveCurrentNote,
-    refreshTree
-  ])
+  }, [dispatch, notesPath])
 
   useEffect(() => {
     const editor = editorRef.current
@@ -332,15 +401,13 @@ const NotesPage: FC = () => {
           throw new Error('No folder path selected')
         }
         await addDir(name, targetPath)
-        updateStoredPaths(setExpandedPaths, EXPAND_STORAGE_KEY, (prev) =>
-          addUniquePath(prev, normalizePathValue(targetPath))
-        )
+        updateExpandedPaths((prev) => addUniquePath(prev, normalizePathValue(targetPath)))
         await refreshTree()
       } catch (error) {
         logger.error('Failed to create folder:', error as Error)
       }
     },
-    [getTargetFolderPath, refreshTree]
+    [getTargetFolderPath, refreshTree, updateExpandedPaths]
   )
 
   // 创建笔记
@@ -355,7 +422,7 @@ const NotesPage: FC = () => {
         }
         const { path: notePath } = await addNote(name, '', targetPath)
         const normalizedParent = normalizePathValue(targetPath)
-        updateStoredPaths(setExpandedPaths, EXPAND_STORAGE_KEY, (prev) => addUniquePath(prev, normalizedParent))
+        updateExpandedPaths((prev) => addUniquePath(prev, normalizedParent))
         dispatch(setActiveFilePath(notePath))
         setSelectedFolderId(null)
 
@@ -369,7 +436,7 @@ const NotesPage: FC = () => {
         }, 500)
       }
     },
-    [dispatch, getTargetFolderPath, refreshTree]
+    [dispatch, getTargetFolderPath, refreshTree, updateExpandedPaths]
   )
 
   const handleToggleExpanded = useCallback(
@@ -381,13 +448,13 @@ const NotesPage: FC = () => {
 
       const nextExpanded = !targetNode.expanded
       setNotesTree((prev) => updateTreeNode(prev, nodeId, (node) => ({ ...node, expanded: nextExpanded })))
-      updateStoredPaths(setExpandedPaths, EXPAND_STORAGE_KEY, (prev) =>
+      updateExpandedPaths((prev) =>
         nextExpanded
           ? addUniquePath(prev, targetNode.externalPath)
           : removePathEntries(prev, targetNode.externalPath, false)
       )
     },
-    [notesTree]
+    [notesTree, updateExpandedPaths]
   )
 
   const handleToggleStar = useCallback(
@@ -399,11 +466,11 @@ const NotesPage: FC = () => {
 
       const nextStarred = !node.isStarred
       setNotesTree((prev) => updateTreeNode(prev, nodeId, (current) => ({ ...current, isStarred: nextStarred })))
-      updateStoredPaths(setStarredPaths, STAR_STORAGE_KEY, (prev) =>
+      updateStarredPaths((prev) =>
         nextStarred ? addUniquePath(prev, node.externalPath) : removePathEntries(prev, node.externalPath, false)
       )
     },
-    [notesTree]
+    [notesTree, updateStarredPaths]
   )
 
   // 选择节点
@@ -435,10 +502,10 @@ const NotesPage: FC = () => {
 
         await delNode(nodeToDelete)
 
-        updateStoredPaths(setStarredPaths, STAR_STORAGE_KEY, (prev) =>
+        updateStarredPaths((prev) =>
           removePathEntries(prev, nodeToDelete.externalPath, nodeToDelete.type === 'folder')
         )
-        updateStoredPaths(setExpandedPaths, EXPAND_STORAGE_KEY, (prev) =>
+        updateExpandedPaths((prev) =>
           removePathEntries(prev, nodeToDelete.externalPath, nodeToDelete.type === 'folder')
         )
 
@@ -460,7 +527,7 @@ const NotesPage: FC = () => {
         logger.error('Failed to delete node:', error as Error)
       }
     },
-    [notesTree, activeFilePath, dispatch, refreshTree]
+    [notesTree, activeFilePath, dispatch, refreshTree, updateStarredPaths, updateExpandedPaths]
   )
 
   // 重命名节点
@@ -478,18 +545,19 @@ const NotesPage: FC = () => {
         const renamed = await renameEntry(node, newName)
 
         if (node.type === 'file' && activeFilePath === oldPath) {
+          debouncedSaveRef.current?.cancel()
+          lastFilePathRef.current = renamed.path
           dispatch(setActiveFilePath(renamed.path))
         } else if (node.type === 'folder' && activeFilePath && activeFilePath.startsWith(`${oldPath}/`)) {
           const suffix = activeFilePath.slice(oldPath.length)
-          dispatch(setActiveFilePath(`${renamed.path}${suffix}`))
+          const nextActivePath = `${renamed.path}${suffix}`
+          debouncedSaveRef.current?.cancel()
+          lastFilePathRef.current = nextActivePath
+          dispatch(setActiveFilePath(nextActivePath))
         }
 
-        updateStoredPaths(setStarredPaths, STAR_STORAGE_KEY, (prev) =>
-          replacePathEntries(prev, oldPath, renamed.path, node.type === 'folder')
-        )
-        updateStoredPaths(setExpandedPaths, EXPAND_STORAGE_KEY, (prev) =>
-          replacePathEntries(prev, oldPath, renamed.path, node.type === 'folder')
-        )
+        updateStarredPaths((prev) => replacePathEntries(prev, oldPath, renamed.path, node.type === 'folder'))
+        updateExpandedPaths((prev) => replacePathEntries(prev, oldPath, renamed.path, node.type === 'folder'))
 
         await refreshTree()
       } catch (error) {
@@ -500,7 +568,7 @@ const NotesPage: FC = () => {
         }, 500)
       }
     },
-    [activeFilePath, dispatch, notesTree, refreshTree]
+    [activeFilePath, dispatch, notesTree, refreshTree, updateStarredPaths, updateExpandedPaths]
   )
 
   // 处理文件上传
@@ -526,9 +594,7 @@ const NotesPage: FC = () => {
         }
 
         // 排序并显示成功信息
-        updateStoredPaths(setExpandedPaths, EXPAND_STORAGE_KEY, (prev) =>
-          addUniquePath(prev, normalizePathValue(targetFolderPath))
-        )
+        updateExpandedPaths((prev) => addUniquePath(prev, normalizePathValue(targetFolderPath)))
         await refreshTree()
 
         const successMessage = t('notes.upload_success')
@@ -539,7 +605,7 @@ const NotesPage: FC = () => {
         window.toast.error(t('notes.upload_failed'))
       }
     },
-    [getTargetFolderPath, refreshTree, t]
+    [getTargetFolderPath, refreshTree, t, updateExpandedPaths]
   )
 
   // 处理节点移动
@@ -602,13 +668,14 @@ const NotesPage: FC = () => {
           await window.api.file.moveDir(sourceNode.externalPath, destinationPath)
         }
 
-        updateStoredPaths(setStarredPaths, STAR_STORAGE_KEY, (prev) =>
+        updateStarredPaths((prev) =>
           replacePathEntries(prev, sourceNode.externalPath, destinationPath, sourceNode.type === 'folder')
         )
-        updateStoredPaths(setExpandedPaths, EXPAND_STORAGE_KEY, (prev) =>
-          replacePathEntries(prev, sourceNode.externalPath, destinationPath, sourceNode.type === 'folder')
-        )
-        updateStoredPaths(setExpandedPaths, EXPAND_STORAGE_KEY, (prev) => addUniquePath(prev, normalizedTargetParent))
+        updateExpandedPaths((prev) => {
+          let next = replacePathEntries(prev, sourceNode.externalPath, destinationPath, sourceNode.type === 'folder')
+          next = addUniquePath(next, normalizedTargetParent)
+          return next
+        })
 
         const normalizedActivePath = activeFilePath ? normalizePathValue(activeFilePath) : undefined
         if (normalizedActivePath) {
@@ -625,7 +692,7 @@ const NotesPage: FC = () => {
         logger.error('Failed to move nodes:', error as Error)
       }
     },
-    [activeFilePath, dispatch, notesPath, notesTree, refreshTree]
+    [activeFilePath, dispatch, notesPath, notesTree, refreshTree, updateStarredPaths, updateExpandedPaths]
   )
 
   // 处理节点排序
@@ -662,7 +729,7 @@ const NotesPage: FC = () => {
 
       if (pathsToAdd.length > 0) {
         setNotesTree(nextTree)
-        updateStoredPaths(setExpandedPaths, EXPAND_STORAGE_KEY, (prev) => {
+        updateExpandedPaths((prev) => {
           let updated = prev
           pathsToAdd.forEach((path) => {
             updated = addUniquePath(updated, path)
@@ -671,7 +738,7 @@ const NotesPage: FC = () => {
         })
       }
     },
-    [notesTree]
+    [notesTree, updateExpandedPaths]
   )
 
   const getCurrentNoteContent = useCallback(() => {

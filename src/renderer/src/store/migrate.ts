@@ -20,6 +20,7 @@ import { DEFAULT_SIDEBAR_ICONS } from '@renderer/config/sidebar'
 import db from '@renderer/databases'
 import i18n from '@renderer/i18n'
 import { DEFAULT_ASSISTANT_SETTINGS } from '@renderer/services/AssistantService'
+import { readStoredPaths } from '@renderer/services/NotesTreeService'
 import {
   Assistant,
   BuiltinOcrProvider,
@@ -2546,6 +2547,47 @@ const migrateConfig = {
       return state
     } catch (error) {
       logger.error('migrate 158 error', error as Error)
+      return state
+    }
+  },
+  '159': (state: RootState) => {
+    try {
+      const starred = readStoredPaths('notes:starred')
+      const expanded = readStoredPaths('notes:expanded')
+
+      if (!state.note) {
+        state.note = {
+          ...notesInitialState,
+          settings: { ...notesInitialState.settings },
+          starredPaths: [...notesInitialState.starredPaths],
+          expandedPaths: [...notesInitialState.expandedPaths]
+        }
+      }
+
+      if (!Array.isArray(state.note.starredPaths)) {
+        state.note.starredPaths = []
+      }
+      if (!Array.isArray(state.note.expandedPaths)) {
+        state.note.expandedPaths = []
+      }
+
+      if (starred.length > 0) {
+        state.note.starredPaths = starred
+      }
+      if (expanded.length > 0) {
+        state.note.expandedPaths = expanded
+      }
+
+      if (starred.length > 0 || expanded.length > 0) {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.removeItem('notes:starred')
+          window.localStorage.removeItem('notes:expanded')
+        }
+      }
+
+      return state
+    } catch (error) {
+      logger.error('migrate 159 error', error as Error)
       return state
     }
   }

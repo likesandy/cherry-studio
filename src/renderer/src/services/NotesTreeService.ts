@@ -1,6 +1,5 @@
 import { loggerService } from '@logger'
 import { NotesTreeNode } from '@renderer/types/note'
-import type { Dispatch, SetStateAction } from 'react'
 
 const logger = loggerService.withContext('NotesTreeService')
 
@@ -8,8 +7,9 @@ export function normalizePathValue(path: string): string {
   return path.replace(/\\/g, '/')
 }
 
+// 一次性迁移函数
 export function readStoredPaths(key: string): string[] {
-  if (typeof window === 'undefined') {
+  if (typeof window === 'undefined' || !window.localStorage) {
     return []
   }
 
@@ -18,24 +18,21 @@ export function readStoredPaths(key: string): string[] {
     if (!raw) {
       return []
     }
+
     const parsed = JSON.parse(raw)
-    if (Array.isArray(parsed)) {
-      return parsed.map((item) => normalizePathValue(String(item)))
+    if (!Array.isArray(parsed)) {
+      return []
     }
+
+    const normalized = parsed
+      .map((item) => (typeof item === 'string' ? item : String(item)))
+      .map((path) => normalizePathValue(path))
+      .filter((path) => path.length > 0)
+
+    return Array.from(new Set(normalized))
   } catch (error) {
     logger.warn('Failed to read stored paths from localStorage', error as Error)
-  }
-  return []
-}
-
-export function writeStoredPaths(key: string, paths: string[]): void {
-  if (typeof window === 'undefined') {
-    return
-  }
-  try {
-    window.localStorage.setItem(key, JSON.stringify(paths))
-  } catch (error) {
-    logger.warn('Failed to write stored paths to localStorage', error as Error)
+    return []
   }
 }
 
@@ -70,18 +67,6 @@ export function replacePathEntries(list: string[], oldPath: string, newPath: str
       return `${newNormalized}${item.slice(oldNormalized.length)}`
     }
     return item
-  })
-}
-
-export function updateStoredPaths(
-  setter: Dispatch<SetStateAction<string[]>>,
-  key: string,
-  updater: (list: string[]) => string[]
-): void {
-  setter((prev) => {
-    const next = updater(prev)
-    writeStoredPaths(key, next)
-    return next
   })
 }
 
