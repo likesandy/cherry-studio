@@ -154,7 +154,6 @@ const Markdown: FC<Props> = ({ block, postProcess }) => {
 
   return (
     <div className="markdown">
-      <style>{fadeStyle}</style>
       <ReactMarkdown
         rehypePlugins={rehypePlugins}
         remarkPlugins={remarkPlugins}
@@ -174,18 +173,11 @@ const Markdown: FC<Props> = ({ block, postProcess }) => {
 
 export default memo(Markdown)
 
-const fadeStyle = `
- @keyframes fadeIn {
-   from { opacity: 0; filter: blur(2px); }
-   to { opacity: 1; filter: blur(0px); }
- }
-`
-
 const SmoothFade = (Comp: React.ElementType, isStreaming: boolean) => {
   const handleAnimationEnd = (e: React.AnimationEvent) => {
     // 动画结束后移除类名
-    if (e.animationName === 'fadeIn') {
-      e.currentTarget.classList.remove('animate-[fadeIn_500ms_ease-out_forwards]')
+    if (e.animationName === 'fadeInWithBlur') {
+      e.currentTarget.classList.remove('animate-[fadeInWithBlur_500ms_ease-out_forwards]')
       e.currentTarget.classList.remove('opacity-0')
     }
   }
@@ -193,7 +185,7 @@ const SmoothFade = (Comp: React.ElementType, isStreaming: boolean) => {
     return (
       <Comp
         {...rest}
-        className={isStreaming ? 'animate-[fadeIn_500ms_ease-out_forwards] opacity-0' : ''}
+        className={isStreaming ? 'animate-[fadeInWithBlur_500ms_ease-out_forwards] opacity-0' : ''}
         onAnimationEnd={handleAnimationEnd}>
         {children}
       </Comp>
