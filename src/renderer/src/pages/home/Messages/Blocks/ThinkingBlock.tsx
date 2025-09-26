@@ -109,12 +109,10 @@ const ThinkingTimeSeconds = memo(
     const animationRef = useRef<NodeJS.Timeout | null>(null)
     const targetTimeRef = useRef(0)
     const currentTimeRef = useRef(0)
-    console.log('render_blockThinkingTime', blockThinkingTime)
 
     useEffect(() => {
       // 更新目标时间
       targetTimeRef.current = blockThinkingTime
-      console.log('effect_isThinking', isThinking)
       // 如果不在思考状态，直接设置为目标时间
       if (!isThinking) {
         setDisplayTime(blockThinkingTime)
@@ -125,8 +123,7 @@ const ThinkingTimeSeconds = memo(
         }
         return
       }
-      console.log('effect_currentTimeRef.current', currentTimeRef.current)
-      console.log('effect_blockThinkingTime', blockThinkingTime)
+
       // 如果当前时间已经达到或超过目标时间，直接设置
       if (currentTimeRef.current >= blockThinkingTime) {
         setDisplayTime(blockThinkingTime)
@@ -151,7 +148,7 @@ const ThinkingTimeSeconds = memo(
       // 立即执行一次更新，避免显示0
       const firstIncrement = Math.min(100, blockThinkingTime - currentTimeRef.current)
       currentTimeRef.current += firstIncrement
-      console.log('effect_increment_currentTimeRef.current', currentTimeRef.current)
+
       setDisplayTime(currentTimeRef.current)
 
       // 如果已经达到目标，不需要启动定时器
@@ -164,7 +161,7 @@ const ThinkingTimeSeconds = memo(
         // 每次增加100ms（0.1秒）
         const increment = 100
         const newTime = Math.min(currentTimeRef.current + increment, targetTimeRef.current)
-        console.log('effect_interval_newTime', newTime)
+
         currentTimeRef.current = newTime
         setDisplayTime(newTime)
 
@@ -190,8 +187,8 @@ const ThinkingTimeSeconds = memo(
         }
       }
     }, [blockThinkingTime, isThinking])
-    console.log('displayTime', displayTime)
-    const thinkingTimeSeconds = useMemo(() => (displayTime / 1000).toFixed(1), [displayTime])
+    // const thinkingTimeSeconds = useMemo(() => (displayTime / 1000).toFixed(1), [displayTime])
+    const thinkingTimeSeconds = useMemo(() => (blockThinkingTime / 1000).toFixed(1), [blockThinkingTime])
 
     return isThinking
       ? t('chat.thinking', {
