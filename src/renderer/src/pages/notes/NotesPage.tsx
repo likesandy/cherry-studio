@@ -634,11 +634,46 @@ const NotesPage: FC = () => {
         }
 
         const oldPath = node.externalPath
+        const normalizedOldPath = normalizePathValue(oldPath)
+        let cachedContent = ''
+
+        if (
+          node.type === 'file' &&
+          activeFilePath &&
+          normalizePathValue(activeFilePath) === normalizedOldPath
+        ) {
+          cachedContent = editorRef.current?.getMarkdown() || lastContentRef.current || ''
+          if (cachedContent.trim()) {
+            try {
+              await saveCurrentNote(cachedContent, oldPath)
+            } catch (error) {
+              logger.warn('Failed to persist content before rename', error as Error)
+            }
+          }
+        }
+
         const renamed = await renameEntry(node, newName)
 
-        if (node.type === 'file' && activeFilePath === oldPath) {
-          dispatch(setActiveFilePath(renamed.path))
-        } else if (node.type === 'folder' && activeFilePath && activeFilePath.startsWith(`${oldPath}/`)) {
+        if (node.type === 'file') {
+          if (activeFilePath && normalizePathValue(activeFilePath) === normalizedOldPath) {
+            dispatch(setActiveFilePath(renamed.path))
+            invalidateFileContent(renamed.path)
+
+            if (cachedContent.trim()) {
+              try {
+                const latest = await window.api.file.readExternal(renamed.path)
+                if (!latest || latest.trim() === '') {
+                  await window.api.file.write(renamed.path, cachedContent)
+                }
+              } catch (error) {
+                logger.error('Failed to restore content after rename', error as Error)
+              }
+            }
+          }
+        } else if (
+          activeFilePath &&
+          normalizePathValue(activeFilePath).startsWith(`${normalizedOldPath}/`)
+        ) {
           const suffix = activeFilePath.slice(oldPath.length)
           dispatch(setActiveFilePath(`${renamed.path}${suffix}`))
         }
@@ -659,7 +694,7 @@ const NotesPage: FC = () => {
         }, 500)
       }
     },
-    [activeFilePath, dispatch, notesTree, refreshTree]
+    [activeFilePath, dispatch, invalidateFileContent, notesTree, refreshTree, saveCurrentNote]
   )
 
   // 处理文件上传
