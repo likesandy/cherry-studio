@@ -1,39 +1,7 @@
-import { loggerService } from '@logger'
 import { NotesTreeNode } from '@renderer/types/note'
-
-const logger = loggerService.withContext('NotesTreeService')
 
 export function normalizePathValue(path: string): string {
   return path.replace(/\\/g, '/')
-}
-
-// 一次性迁移函数
-export function readStoredPaths(key: string): string[] {
-  if (typeof window === 'undefined' || !window.localStorage) {
-    return []
-  }
-
-  try {
-    const raw = window.localStorage.getItem(key)
-    if (!raw) {
-      return []
-    }
-
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) {
-      return []
-    }
-
-    const normalized = parsed
-      .map((item) => (typeof item === 'string' ? item : String(item)))
-      .map((path) => normalizePathValue(path))
-      .filter((path) => path.length > 0)
-
-    return Array.from(new Set(normalized))
-  } catch (error) {
-    logger.warn('Failed to read stored paths from localStorage', error as Error)
-    return []
-  }
 }
 
 export function addUniquePath(list: string[], path: string): string[] {
@@ -48,10 +16,7 @@ export function removePathEntries(list: string[], path: string, deep: boolean): 
     if (item === normalized) {
       return false
     }
-    if (deep && item.startsWith(prefix)) {
-      return false
-    }
-    return true
+    return !(deep && item.startsWith(prefix))
   })
 }
 

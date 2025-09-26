@@ -332,11 +332,7 @@ const NotesPage: FC = () => {
       })
 
       // 如果有未保存的内容，立即保存
-      if (
-        lastContentRef.current &&
-        lastFilePathRef.current &&
-        lastContentRef.current !== currentContentRef.current
-      ) {
+      if (lastContentRef.current && lastFilePathRef.current && lastContentRef.current !== currentContentRef.current) {
         const saveFn = saveCurrentNoteRef.current
         if (saveFn) {
           saveFn(lastContentRef.current, lastFilePathRef.current).catch((error) => {
@@ -502,9 +498,7 @@ const NotesPage: FC = () => {
 
         await delNode(nodeToDelete)
 
-        updateStarredPaths((prev) =>
-          removePathEntries(prev, nodeToDelete.externalPath, nodeToDelete.type === 'folder')
-        )
+        updateStarredPaths((prev) => removePathEntries(prev, nodeToDelete.externalPath, nodeToDelete.type === 'folder'))
         updateExpandedPaths((prev) =>
           removePathEntries(prev, nodeToDelete.externalPath, nodeToDelete.type === 'folder')
         )
