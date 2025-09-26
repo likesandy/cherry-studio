@@ -64,10 +64,7 @@ export async function delNode(node: NotesTreeNode): Promise<void> {
   }
 }
 
-export async function renameNode(
-  node: NotesTreeNode,
-  newName: string
-): Promise<{ path: string; name: string }> {
+export async function renameNode(node: NotesTreeNode, newName: string): Promise<{ path: string; name: string }> {
   const isFile = node.type === 'file'
   const parentDir = normalizePath(getFileDirectory(node.externalPath))
   const { safeName, exists } = await window.api.file.checkFileName(parentDir, newName, isFile)
@@ -198,18 +195,14 @@ async function createFolders(folders: Set<string>): Promise<void> {
 
 function resolveFileTarget(file: File, basePath: string): { dir: string; name: string } {
   if (!file.webkitRelativePath || !file.webkitRelativePath.includes('/')) {
-    const nameWithoutExt = file.name.endsWith(MARKDOWN_EXT)
-      ? file.name.slice(0, -MARKDOWN_EXT.length)
-      : file.name
+    const nameWithoutExt = file.name.endsWith(MARKDOWN_EXT) ? file.name.slice(0, -MARKDOWN_EXT.length) : file.name
     return { dir: basePath, name: nameWithoutExt }
   }
 
   const parts = file.webkitRelativePath.split('/')
   const fileName = parts.pop() || file.name
   const dirPath = `${basePath}/${parts.join('/')}`
-  const nameWithoutExt = fileName.endsWith(MARKDOWN_EXT)
-    ? fileName.slice(0, -MARKDOWN_EXT.length)
-    : fileName
+  const nameWithoutExt = fileName.endsWith(MARKDOWN_EXT) ? fileName.slice(0, -MARKDOWN_EXT.length) : fileName
 
   return { dir: dirPath, name: nameWithoutExt }
 }

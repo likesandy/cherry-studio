@@ -414,7 +414,6 @@ const NotesSidebar: FC<NotesSidebarProps> = ({
                       ref={inPlaceEdit.inputRef as Ref<InputRef>}
                       value={inPlaceEdit.editValue}
                       onChange={inPlaceEdit.handleInputChange}
-                      onPressEnter={inPlaceEdit.saveEdit}
                       onBlur={inPlaceEdit.saveEdit}
                       onKeyDown={inPlaceEdit.handleKeyDown}
                       onClick={(e) => e.stopPropagation()}

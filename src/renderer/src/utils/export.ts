@@ -1051,11 +1051,7 @@ async function createSiyuanDoc(
  * @param content
  * @param folderPath
  */
-export const exportMessageToNotes = async (
-  title: string,
-  content: string,
-  folderPath: string
-): Promise<void> => {
+export const exportMessageToNotes = async (title: string, content: string, folderPath: string): Promise<void> => {
   try {
     const cleanedContent = content.replace(/^## 🤖 Assistant(\n|$)/m, '')
     await addNote(title, cleanedContent, folderPath)

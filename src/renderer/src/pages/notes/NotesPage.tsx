@@ -4,7 +4,15 @@ import { RichEditorRef } from '@renderer/components/RichEditor/types'
 import { useActiveNode, useFileContent, useFileContentSync } from '@renderer/hooks/useNotesQuery'
 import { useNotesSettings } from '@renderer/hooks/useNotesSettings'
 import { useShowWorkspace } from '@renderer/hooks/useShowWorkspace'
-import { addDir, addNote, delNode, loadTree, renameNode as renameEntry, sortTree, uploadNotes } from '@renderer/services/NotesService'
+import {
+  addDir,
+  addNote,
+  delNode,
+  loadTree,
+  renameNode as renameEntry,
+  sortTree,
+  uploadNotes
+} from '@renderer/services/NotesService'
 import { findNode, findNodeByPath, findParent } from '@renderer/services/NotesTreeService'
 import { useAppDispatch, useAppSelector } from '@renderer/store'
 import { selectActiveFilePath, selectSortType, setActiveFilePath, setSortType } from '@renderer/store/note'
@@ -334,8 +342,7 @@ const NotesPage: FC = () => {
     if (notesTree.length === 0) return
     // 如果有activeFilePath但找不到对应节点，清空选择
     // 但要排除正在同步树结构、重命名或创建笔记的情况，避免在这些操作中误清空
-    const shouldClearPath =
-      activeFilePath && !activeNode && !isRenamingRef.current && !isCreatingNoteRef.current
+    const shouldClearPath = activeFilePath && !activeNode && !isRenamingRef.current && !isCreatingNoteRef.current
 
     if (shouldClearPath) {
       logger.warn('Clearing activeFilePath - node not found in tree', {
@@ -557,9 +564,7 @@ const NotesPage: FC = () => {
       const nextStarred = !node.isStarred
       setNotesTree((prev) => updateTreeNode(prev, nodeId, (current) => ({ ...current, isStarred: nextStarred })))
       updateStoredPaths(setStarredPaths, STAR_STORAGE_KEY, (prev) =>
-        nextStarred
-          ? addUniquePath(prev, node.externalPath)
-          : removePathEntries(prev, node.externalPath, false)
+        nextStarred ? addUniquePath(prev, node.externalPath) : removePathEntries(prev, node.externalPath, false)
       )
     },
     [notesTree]
@@ -725,20 +730,18 @@ const NotesPage: FC = () => {
         const targetParentNode = position === 'inside' ? targetNode : findParent(notesTree, targetNodeId)
 
         const sourceParentPath = sourceParentNode ? sourceParentNode.externalPath : rootPath
-        const targetParentPath = position === 'inside'
-          ? targetNode.externalPath
-          : targetParentNode
-            ? targetParentNode.externalPath
-            : rootPath
+        const targetParentPath =
+          position === 'inside' ? targetNode.externalPath : targetParentNode ? targetParentNode.externalPath : rootPath
 
         const normalizedSourceParent = normalizePathValue(sourceParentPath)
         const normalizedTargetParent = normalizePathValue(targetParentPath)
 
-        const isManualReorder =
-          position !== 'inside' && normalizedSourceParent === normalizedTargetParent
+        const isManualReorder = position !== 'inside' && normalizedSourceParent === normalizedTargetParent
 
         if (isManualReorder) {
-          setNotesTree((prev) => reorderTreeNodes(prev, sourceNodeId, targetNodeId, position === 'before' ? 'before' : 'after'))
+          setNotesTree((prev) =>
+            reorderTreeNodes(prev, sourceNodeId, targetNodeId, position === 'before' ? 'before' : 'after')
+          )
           return
         }
 
@@ -769,18 +772,13 @@ const NotesPage: FC = () => {
         updateStoredPaths(setExpandedPaths, EXPAND_STORAGE_KEY, (prev) =>
           replacePathEntries(prev, sourceNode.externalPath, destinationPath, sourceNode.type === 'folder')
         )
-        updateStoredPaths(setExpandedPaths, EXPAND_STORAGE_KEY, (prev) =>
-          addUniquePath(prev, normalizedTargetParent)
-        )
+        updateStoredPaths(setExpandedPaths, EXPAND_STORAGE_KEY, (prev) => addUniquePath(prev, normalizedTargetParent))
 
         const normalizedActivePath = activeFilePath ? normalizePathValue(activeFilePath) : undefined
         if (normalizedActivePath) {
           if (normalizedActivePath === sourceNode.externalPath) {
             dispatch(setActiveFilePath(destinationPath))
-          } else if (
-            sourceNode.type === 'folder' &&
-            normalizedActivePath.startsWith(`${sourceNode.externalPath}/`)
-          ) {
+          } else if (sourceNode.type === 'folder' && normalizedActivePath.startsWith(`${sourceNode.externalPath}/`)) {
             const suffix = normalizedActivePath.slice(sourceNode.externalPath.length)
             dispatch(setActiveFilePath(`${destinationPath}${suffix}`))
           }
