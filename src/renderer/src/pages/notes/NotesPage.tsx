@@ -13,14 +13,26 @@ import {
   sortTree,
   uploadNotes
 } from '@renderer/services/NotesService'
-import { findNode, findNodeByPath, findParent } from '@renderer/services/NotesTreeService'
+import {
+  addUniquePath,
+  findNode,
+  findNodeByPath,
+  findParent,
+  normalizePathValue,
+  readStoredPaths,
+  removePathEntries,
+  reorderTreeNodes,
+  replacePathEntries,
+  updateStoredPaths,
+  updateTreeNode
+} from '@renderer/services/NotesTreeService'
 import { useAppDispatch, useAppSelector } from '@renderer/store'
 import { selectActiveFilePath, selectSortType, setActiveFilePath, setSortType } from '@renderer/store/note'
 import { NotesSortType, NotesTreeNode } from '@renderer/types/note'
 import { FileChangeEvent } from '@shared/config/types'
 import { debounce } from 'lodash'
 import { AnimatePresence, motion } from 'motion/react'
-import { Dispatch, FC, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
@@ -32,182 +44,6 @@ const STAR_STORAGE_KEY = 'notes:starred'
 const EXPAND_STORAGE_KEY = 'notes:expanded'
 
 const logger = loggerService.withContext('NotesPage')
-
-function normalizePathValue(path: string): string {
-  return path.replace(/\\/g, '/')
-}
-
-function readStoredPaths(key: string): string[] {
-  if (typeof window === 'undefined') {
-    return []
-  }
-
-  try {
-    const raw = window.localStorage.getItem(key)
-    if (!raw) {
-      return []
-    }
-    const parsed = JSON.parse(raw)
-    if (Array.isArray(parsed)) {
-      return parsed.map((item) => normalizePathValue(String(item)))
-    }
-  } catch (error) {
-    logger.warn('Failed to read stored paths from localStorage', error as Error)
-  }
-  return []
-}
-
-function writeStoredPaths(key: string, paths: string[]): void {
-  if (typeof window === 'undefined') {
-    return
-  }
-  try {
-    window.localStorage.setItem(key, JSON.stringify(paths))
-  } catch (error) {
-    logger.warn('Failed to write stored paths to localStorage', error as Error)
-  }
-}
-
-function addUniquePath(list: string[], path: string): string[] {
-  const normalized = normalizePathValue(path)
-  return list.includes(normalized) ? list : [...list, normalized]
-}
-
-function removePathEntries(list: string[], path: string, deep: boolean): string[] {
-  const normalized = normalizePathValue(path)
-  const prefix = `${normalized}/`
-  return list.filter((item) => {
-    if (item === normalized) {
-      return false
-    }
-    if (deep && item.startsWith(prefix)) {
-      return false
-    }
-    return true
-  })
-}
-
-function replacePathEntries(list: string[], oldPath: string, newPath: string, deep: boolean): string[] {
-  const oldNormalized = normalizePathValue(oldPath)
-  const newNormalized = normalizePathValue(newPath)
-  const prefix = `${oldNormalized}/`
-  return list.map((item) => {
-    if (item === oldNormalized) {
-      return newNormalized
-    }
-    if (deep && item.startsWith(prefix)) {
-      return `${newNormalized}${item.slice(oldNormalized.length)}`
-    }
-    return item
-  })
-}
-
-function updateStoredPaths(
-  setter: Dispatch<SetStateAction<string[]>>,
-  key: string,
-  updater: (list: string[]) => string[]
-) {
-  setter((prev) => {
-    const next = updater(prev)
-    writeStoredPaths(key, next)
-    return next
-  })
-}
-
-function updateTreeNode(
-  nodes: NotesTreeNode[],
-  nodeId: string,
-  updater: (node: NotesTreeNode) => NotesTreeNode
-): NotesTreeNode[] {
-  let changed = false
-
-  const nextNodes = nodes.map((node) => {
-    if (node.id === nodeId) {
-      changed = true
-      const updated = updater(node)
-      if (updated.type === 'folder' && !updated.children) {
-        return { ...updated, children: [] }
-      }
-      return updated
-    }
-
-    if (node.children && node.children.length > 0) {
-      const updatedChildren = updateTreeNode(node.children, nodeId, updater)
-      if (updatedChildren !== node.children) {
-        changed = true
-        return { ...node, children: updatedChildren }
-      }
-    }
-
-    return node
-  })
-
-  return changed ? nextNodes : nodes
-}
-
-function reorderTreeNodes(
-  nodes: NotesTreeNode[],
-  sourceId: string,
-  targetId: string,
-  position: 'before' | 'after'
-): NotesTreeNode[] {
-  const [updatedNodes, moved] = reorderSiblings(nodes, sourceId, targetId, position)
-  if (moved) {
-    return updatedNodes
-  }
-
-  let changed = false
-  const nextNodes = nodes.map((node) => {
-    if (!node.children || node.children.length === 0) {
-      return node
-    }
-
-    const reorderedChildren = reorderTreeNodes(node.children, sourceId, targetId, position)
-    if (reorderedChildren !== node.children) {
-      changed = true
-      return { ...node, children: reorderedChildren }
-    }
-
-    return node
-  })
-
-  return changed ? nextNodes : nodes
-}
-
-function reorderSiblings(
-  nodes: NotesTreeNode[],
-  sourceId: string,
-  targetId: string,
-  position: 'before' | 'after'
-): [NotesTreeNode[], boolean] {
-  const sourceIndex = nodes.findIndex((node) => node.id === sourceId)
-  const targetIndex = nodes.findIndex((node) => node.id === targetId)
-
-  if (sourceIndex === -1 || targetIndex === -1) {
-    return [nodes, false]
-  }
-
-  const updated = [...nodes]
-  const [sourceNode] = updated.splice(sourceIndex, 1)
-
-  let insertIndex = targetIndex
-  if (sourceIndex < targetIndex) {
-    insertIndex -= 1
-  }
-  if (position === 'after') {
-    insertIndex += 1
-  }
-
-  if (insertIndex < 0) {
-    insertIndex = 0
-  }
-  if (insertIndex > updated.length) {
-    insertIndex = updated.length
-  }
-
-  updated.splice(insertIndex, 0, sourceNode)
-  return [updated, true]
-}
 
 const NotesPage: FC = () => {
   const editorRef = useRef<RichEditorRef>(null)
