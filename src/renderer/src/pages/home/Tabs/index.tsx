@@ -47,6 +47,7 @@ const HomeTabs: FC<Props> = ({
   const { chat } = useRuntime()
   const { activeTopicOrSession } = chat
   const isSessionView = activeTopicOrSession === 'session'
+  const isTopicView = activeTopicOrSession === 'topic'
 
   const [tab, setTab] = useState<Tab>(position === 'left' ? _tab || 'assistants' : 'topic')
   const borderStyle = '0.5px solid var(--color-border)'
@@ -60,7 +61,7 @@ const HomeTabs: FC<Props> = ({
   }
 
   const showTab = position === 'left' && topicPosition === 'left'
-  const canShowSettingsTab = !isSessionView
+  const shouldShowSettingsTab = !isSessionView
 
   const onCreateAssistant = async () => {
     const assistant = await AddAssistantPopup.show()
@@ -103,6 +104,12 @@ const HomeTabs: FC<Props> = ({
     }
   }, [position, tab, topicPosition, forceToSeeAllTab])
 
+  useEffect(() => {
+    if (activeTopicOrSession === 'session' && tab === 'settings') {
+      setTab('topic')
+    }
+  }, [activeTopicOrSession, tab])
+
   return (
     <Container
       style={{ ...border, ...style }}
@@ -113,9 +120,9 @@ const HomeTabs: FC<Props> = ({
             {t('assistants.abbr')}
           </TabItem>
           <TabItem active={tab === 'topic'} onClick={() => setTab('topic')}>
-            {activeTopicOrSession === 'topic' ? t('common.topics') : t('agent.session.label_other')}
+            {isTopicView ? t('common.topics') : t('agent.session.label_other')}
           </TabItem>
-          {canShowSettingsTab && (
+          {shouldShowSettingsTab && (
             <TabItem active={tab === 'settings'} onClick={() => setTab('settings')}>
               {t('settings.title')}
             </TabItem>
@@ -123,16 +130,14 @@ const HomeTabs: FC<Props> = ({
         </CustomTabs>
       )}
 
-      {position === 'right' && topicPosition === 'right' && (
+      {position === 'right' && topicPosition === 'right' && isTopicView && (
         <CustomTabs>
           <TabItem active={tab === 'topic'} onClick={() => setTab('topic')}>
-            {activeTopicOrSession === 'topic' ? t('common.topics') : t('agent.session.label_other')}
+            {t('common.topics')}
           </TabItem>
-          {canShowSettingsTab && (
-            <TabItem active={tab === 'settings'} onClick={() => setTab('settings')}>
-              {t('settings.title')}
-            </TabItem>
-          )}
+          <TabItem active={tab === 'settings'} onClick={() => setTab('settings')}>
+            {t('settings.title')}
+          </TabItem>
         </CustomTabs>
       )}
 
@@ -153,7 +158,7 @@ const HomeTabs: FC<Props> = ({
             position={position}
           />
         )}
-        {tab === 'settings' && canShowSettingsTab && <Settings assistant={activeAssistant} />}
+        {tab === 'settings' && shouldShowSettingsTab && <Settings assistant={activeAssistant} />}
       </TabContent>
     </Container>
   )

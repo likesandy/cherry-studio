@@ -12,7 +12,6 @@ const providerRouter = express.Router({ mergeParams: true })
 
 // Helper functions for shared logic
 async function validateRequestBody(req: Request): Promise<{ valid: boolean; error?: any }> {
-  logger.info('Validating request body', { body: req.body })
   const request: MessageCreateParams = req.body
 
   if (!request) {
@@ -43,14 +42,30 @@ async function handleStreamingResponse(
   res.setHeader('Connection', 'keep-alive')
   res.setHeader('X-Accel-Buffering', 'no')
   res.flushHeaders()
+  const flushableResponse = res as Response & { flush?: () => void }
+  const flushStream = () => {
+    if (typeof flushableResponse.flush !== 'function') {
+      return
+    }
+    try {
+      flushableResponse.flush()
+    } catch (flushError: unknown) {
+      logger.warn('Failed to flush streaming response', {
+        error: flushError
+      })
+    }
+  }
 
   try {
     for await (const chunk of messagesService.processStreamingMessage(request, provider)) {
+      res.write(`event: ${chunk.type}\n`)
       res.write(`data: ${JSON.stringify(chunk)}\n\n`)
+      flushStream()
     }
     res.write('data: [DONE]\n\n')
+    flushStream()
   } catch (streamError: any) {
-    logger.error('Stream error:', streamError)
+    logger.error('Stream error', { error: streamError })
     res.write(
       `data: ${JSON.stringify({
         type: 'error',
@@ -66,7 +81,7 @@ async function handleStreamingResponse(
 }
 
 function handleErrorResponse(res: Response, error: any, logger: any): Response {
-  logger.error('Message processing error:', error)
+  logger.error('Message processing error', { error })
 
   let statusCode = 500
   let errorType = 'api_error'
@@ -129,15 +144,6 @@ async function processMessageRequest(
       request.model = modelId
     }
 
-    logger.info('Processing message request:', {
-      provider: provider.id,
-      model: request.model,
-      messageCount: request.messages?.length || 0,
-      stream: request.stream,
-      max_tokens: request.max_tokens,
-      temperature: request.temperature
-    })
-
     // Ensure provider is Anthropic type
     if (provider.type !== 'anthropic') {
       return res.status(400).json({
@@ -148,12 +154,6 @@ async function processMessageRequest(
         }
       })
     }
-
-    logger.info('Provider validation successful:', {
-      provider: provider.id,
-      providerType: provider.type,
-      modelId: request.model
-    })
 
     // Validate request
     const validation = messagesService.validateRequest(request)
@@ -314,18 +314,14 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const request: MessageCreateParams = req.body
 
-    logger.info('Anthropic message request:', {
-      model: request.model,
-      messageCount: request.messages?.length || 0,
-      stream: request.stream,
-      max_tokens: request.max_tokens
-    })
-
     // Validate model ID and get provider
     const modelValidation = await validateModelId(request.model)
     if (!modelValidation.valid) {
       const error = modelValidation.error!
-      logger.warn(`Model validation failed for '${request.model}':`, error)
+      logger.warn('Model validation failed', {
+        model: request.model,
+        error
+      })
       return res.status(400).json({
         type: 'error',
         error: {
@@ -337,13 +333,6 @@ router.post('/', async (req: Request, res: Response) => {
 
     const provider = modelValidation.provider!
     const modelId = modelValidation.modelId!
-
-    logger.info('Model validation successful:', {
-      provider: provider.id,
-      providerType: provider.type,
-      modelId: modelId,
-      fullModelId: request.model
-    })
 
     // Use shared processing function
     return await processMessageRequest(req, res, provider, modelId)
@@ -477,7 +466,6 @@ providerRouter.post('/', async (req: Request, res: Response) => {
 
   try {
     const providerId = req.params.provider
-    const request: MessageCreateParams = req.body
 
     if (!providerId) {
       return res.status(400).json({
@@ -488,14 +476,6 @@ providerRouter.post('/', async (req: Request, res: Response) => {
         }
       })
     }
-
-    logger.info('Provider-specific message request:', {
-      providerId,
-      model: request.model,
-      messageCount: request.messages?.length || 0,
-      stream: request.stream,
-      max_tokens: request.max_tokens
-    })
 
     // Get provider directly by ID from URL path
     const provider = await getProviderById(providerId)
@@ -508,12 +488,6 @@ providerRouter.post('/', async (req: Request, res: Response) => {
         }
       })
     }
-
-    logger.info('Provider validation successful:', {
-      provider: provider.id,
-      providerType: provider.type,
-      modelId: request.model
-    })
 
     // Use shared processing function (no modelId override needed)
     return await processMessageRequest(req, res, provider)

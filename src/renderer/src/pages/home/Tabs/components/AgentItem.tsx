@@ -1,7 +1,7 @@
 import { Avatar, Button, cn } from '@heroui/react'
 import { DeleteIcon, EditIcon } from '@renderer/components/Icons'
 import { getAgentAvatar } from '@renderer/config/agent'
-import AgentSettingsPopup from '@renderer/pages/settings/AgentSettings'
+import AgentSettingsPopup from '@renderer/pages/settings/AgentSettings/AgentSettingsPopup'
 import { AgentEntity } from '@renderer/types'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@renderer/ui/context-menu'
 import { FC, memo, useCallback } from 'react'
@@ -84,7 +84,7 @@ const ButtonContainer: React.FC<React.ComponentProps<typeof Button>> = ({ classN
       'rounded-[var(--list-item-border-radius)]',
       'border-[0.5px] border-transparent',
       'w-[calc(var(--assistants-width)_-_20px)]',
-      'bg-transparent hover:bg-[var(--color-list-item-hover)]',
+      'bg-transparent hover:bg-[var(--color-list-item)] hover:shadow-sm',
       'cursor-pointer',
       className?.includes('active') && 'bg-[var(--color-list-item)] shadow-sm',
       className

@@ -2,6 +2,7 @@ import { Tooltip } from '@heroui/react'
 import { loggerService } from '@logger'
 import { ActionIconButton } from '@renderer/components/Buttons'
 import { QuickPanelView } from '@renderer/components/QuickPanel'
+import { useAgent } from '@renderer/hooks/agents/useAgent'
 import { useSession } from '@renderer/hooks/agents/useSession'
 import { selectNewTopicLoading } from '@renderer/hooks/useMessageOperations'
 import { getModel } from '@renderer/hooks/useModel'
@@ -41,6 +42,7 @@ const AgentSessionInputbar: FC<Props> = ({ agentId, sessionId }) => {
   const [text, setText] = useState('')
   const [inputFocus, setInputFocus] = useState(false)
   const { session } = useSession(agentId, sessionId)
+  const { agent } = useAgent(agentId)
   const { apiServer } = useSettings()
 
   const { sendMessageShortcut, fontSize, enableSpellCheck } = useSettings()
@@ -151,15 +153,18 @@ const AgentSessionInputbar: FC<Props> = ({ agentId, sessionId }) => {
       })
       const userMessageBlocks: MessageBlock[] = [mainBlock]
 
-      const actualModelId = session?.model ? session.model.split(':').pop() : undefined
-      const actualModel = actualModelId ? getModel(actualModelId) : undefined
+      // Extract the actual model ID from session.model (format: "provider:modelId")
+      const [providerId, actualModelId] = agent?.model.split(':') ?? [undefined, undefined]
 
-      const model: Model | undefined = session?.model
+      // Try to find the actual model from providers
+      const actualModel = actualModelId ? getModel(actualModelId, providerId) : undefined
+
+      const model: Model | undefined = actualModel
         ? {
-            id: session.model,
-            name: actualModel?.name || actualModelId || session.model,
-            provider: actualModel?.provider || 'agent-session',
-            group: actualModel?.group || 'agent-session'
+            id: actualModel.id,
+            name: actualModel.name, // Use actual model name if found
+            provider: actualModel.provider,
+            group: actualModel.group
           }
         : undefined
 

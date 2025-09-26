@@ -1,4 +1,4 @@
-import { Alert, Spinner } from '@heroui/react'
+import { Alert, cn, Spinner } from '@heroui/react'
 import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useSettings } from '@renderer/hooks/useSettings'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -14,6 +14,7 @@ const SessionsTab: FC<SessionsTabProps> = () => {
   const { activeAgentId } = chat
   const { t } = useTranslation()
   const { apiServer } = useSettings()
+  const { topicPosition, navbarPosition } = useSettings()
 
   if (!apiServer.enabled) {
     return (
@@ -25,33 +26,36 @@ const SessionsTab: FC<SessionsTabProps> = () => {
 
   return (
     <AnimatePresence mode="wait">
-      {!activeAgentId ? (
-        <motion.div
-          key="loading"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="flex h-full flex-col items-center justify-center gap-3">
-          <Spinner size="lg" color="primary" />
-          <motion.p
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.3 }}
-            className="text-foreground-500 text-sm">
-            {t('common.loading')}...
-          </motion.p>
-        </motion.div>
-      ) : (
-        <motion.div
-          key={activeAgentId}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}>
+      <motion.div
+        initial={{ width: 0, opacity: 0 }}
+        animate={{ width: 'var(--assistants-width)', opacity: 1 }}
+        exit={{ width: 0, opacity: 0 }}
+        transition={{ duration: 0.5, ease: 'easeInOut' }}
+        className={cn(
+          'overflow-hidden',
+          topicPosition === 'right' && navbarPosition === 'top' ? 'rounded-l-2xl border-t border-b border-l' : undefined
+        )}>
+        {!activeAgentId ? (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex h-full flex-col items-center justify-center gap-3">
+            <Spinner size="lg" color="primary" />
+            <motion.p
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+              className="text-foreground-500 text-sm">
+              {t('common.loading')}...
+            </motion.p>
+          </motion.div>
+        ) : (
           <Sessions agentId={activeAgentId} />
-        </motion.div>
-      )}
+        )}
+      </motion.div>
     </AnimatePresence>
   )
 }
