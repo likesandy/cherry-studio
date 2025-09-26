@@ -67,7 +67,7 @@ const NotesPage: FC = () => {
   const expandedSet = useMemo(() => new Set(expandedPaths), [expandedPaths])
   const { activeNode } = useActiveNode(notesTree)
   const { invalidateFileContent } = useFileContentSync()
-  const { data: currentContent = '', isLoading: isContentLoading } = useFileContent(activeFilePath)
+  const { data: currentContent = '' } = useFileContent(activeFilePath)
 
   const [tokenCount, setTokenCount] = useState(0)
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
@@ -158,6 +158,13 @@ const NotesPage: FC = () => {
   useEffect(() => {
     refreshTree()
   }, [refreshTree])
+
+  // Re-merge tree state when starred or expanded paths change
+  useEffect(() => {
+    if (notesTree.length > 0) {
+      setNotesTree((prev) => mergeTreeState(prev))
+    }
+  }, [starredPaths, expandedPaths, mergeTreeState, notesTree.length])
 
   // 保存当前笔记内容
   const saveCurrentNote = useCallback(
@@ -443,7 +450,7 @@ const NotesPage: FC = () => {
       }
 
       const nextExpanded = !targetNode.expanded
-      setNotesTree((prev) => updateTreeNode(prev, nodeId, (node) => ({ ...node, expanded: nextExpanded })))
+      // Update Redux state first, then let mergeTreeState handle the UI update
       updateExpandedPaths((prev) =>
         nextExpanded
           ? addUniquePath(prev, targetNode.externalPath)
@@ -461,7 +468,7 @@ const NotesPage: FC = () => {
       }
 
       const nextStarred = !node.isStarred
-      setNotesTree((prev) => updateTreeNode(prev, nodeId, (current) => ({ ...current, isStarred: nextStarred })))
+      // Update Redux state first, then let mergeTreeState handle the UI update
       updateStarredPaths((prev) =>
         nextStarred ? addUniquePath(prev, node.externalPath) : removePathEntries(prev, node.externalPath, false)
       )
@@ -635,6 +642,7 @@ const NotesPage: FC = () => {
         const isManualReorder = position !== 'inside' && normalizedSourceParent === normalizedTargetParent
 
         if (isManualReorder) {
+          // For manual reordering within the same parent, we can optimize by only updating the affected parent
           setNotesTree((prev) =>
             reorderTreeNodes(prev, sourceNodeId, targetNodeId, position === 'before' ? 'before' : 'after')
           )
@@ -780,12 +788,12 @@ const NotesPage: FC = () => {
             getCurrentNoteContent={getCurrentNoteContent}
             onToggleStar={handleToggleStar}
             onExpandPath={handleExpandPath}
+            onRenameNode={handleRenameNode}
           />
           <NotesEditor
             activeNodeId={activeNode?.id}
             currentContent={currentContent}
             tokenCount={tokenCount}
-            isLoading={isContentLoading}
             onMarkdownChange={handleMarkdownChange}
             editorRef={editorRef}
           />
