@@ -46,7 +46,6 @@ const NotesEditor: FC<NotesEditorProps> = memo(
       )
     }
 
-
     return (
       <>
         <RichEditorContainer>
@@ -113,7 +112,6 @@ const NotesEditor: FC<NotesEditorProps> = memo(
 )
 
 NotesEditor.displayName = 'NotesEditor'
-
 
 const EmptyContainer = styled.div`
   display: flex;
