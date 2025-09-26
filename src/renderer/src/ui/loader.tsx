@@ -1,5 +1,4 @@
 import { cn } from '@renderer/utils/index'
-import React from 'react'
 
 export interface LoaderProps {
   variant?:

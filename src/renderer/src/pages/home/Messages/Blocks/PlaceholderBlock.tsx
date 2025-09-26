@@ -9,7 +9,7 @@ interface PlaceholderBlockProps {
 const PlaceholderBlock: React.FC<PlaceholderBlockProps> = ({ status, type }) => {
   if (status === MessageBlockStatus.PROCESSING && type === MessageBlockType.UNKNOWN) {
     return (
-      <div className="mt-[-0.5rem]">
+      <div className="-mt-2">
         <Loader variant="terminal" />
       </div>
     )

@@ -1,9 +1,7 @@
 import { loggerService } from '@logger'
 import { Model, ModelType, Provider } from '@renderer/types'
 import { ModalFuncProps } from 'antd'
-import { type ClassValue, clsx } from 'clsx'
 import { isEqual } from 'lodash'
-import { twMerge } from 'tailwind-merge'
 import { v4 as uuidv4 } from 'uuid'
 
 const logger = loggerService.withContext('Utils')
@@ -226,10 +224,6 @@ export function uniqueObjectArray<T>(array: T[]): T[] {
   return array.filter((obj, index, self) => index === self.findIndex((t) => isEqual(t, obj)))
 }
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-
 export * from './api'
 export * from './collection'
 export * from './dataLimit'
@@ -240,3 +234,4 @@ export * from './match'
 export * from './naming'
 export * from './sort'
 export * from './style'
+export { cn } from '@heroui/react'
